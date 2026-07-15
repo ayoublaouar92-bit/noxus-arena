@@ -6,15 +6,15 @@ import {
 } from "react";
 
 import {
-  Activity,
+  AlertTriangle,
   Banknote,
   Clock3,
   Gamepad2,
   Monitor,
   Play,
   RefreshCw,
+  ShieldAlert,
   Square,
-  Timer,
   UserRound,
 } from "lucide-react";
 
@@ -23,46 +23,121 @@ type Device = {
   name: string;
   type: string;
   price: string;
-  status: "Available" | "Busy";
+  status:
+    | "Available"
+    | "Busy";
+};
+
+type Player = {
+  id: number;
+  name: string;
+  username: string;
+  walletBalance: number;
+  debtBalance: number;
 };
 
 type Session = {
   id: number;
   deviceId: number;
-  deviceName: string;
+  playerId: number | null;
   customerName: string;
+  guestPhone: string | null;
+  guestNotes: string | null;
   startTime: string;
+  deviceName: string;
+  deviceType: string;
   hourlyPrice: string;
+  playerUsername: string | null;
+  playerWallet: number | null;
+  playerDebt: number | null;
+};
+
+type GuestDebt = {
+  id: number;
+  sessionId: number | null;
+  guestName: string;
+  phone: string | null;
+  identityNotes: string | null;
+  amount: number;
   status: string;
+  createdAt: string;
 };
 
 const fieldClass =
-  "h-11 w-full rounded-lg border border-white/10 bg-[#080b16] px-4 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-violet-400/60 focus:ring-2 focus:ring-violet-500/10";
+  "h-11 w-full rounded-lg border border-white/10 bg-[#080b16] px-4 text-sm text-white outline-none placeholder:text-white/25 focus:border-violet-400/60";
 
 export default function Sessions() {
-  const [devices, setDevices] = useState<Device[]>([]);
-  const [sessions, setSessions] = useState<Session[]>(
-    []
+  const [devices, setDevices] =
+    useState<Device[]>([]);
+
+  const [players, setPlayers] =
+    useState<Player[]>([]);
+
+  const [sessions, setSessions] =
+    useState<Session[]>([]);
+
+  const [
+    guestDebts,
+    setGuestDebts,
+  ] = useState<GuestDebt[]>([]);
+
+  const [mode, setMode] =
+    useState<
+      "player" | "guest"
+    >("player");
+
+  const [
+    selectedDeviceId,
+    setSelectedDeviceId,
+  ] = useState("");
+
+  const [
+    selectedPlayerId,
+    setSelectedPlayerId,
+  ] = useState("");
+
+  const [
+    guestName,
+    setGuestName,
+  ] = useState("");
+
+  const [
+    guestPhone,
+    setGuestPhone,
+  ] = useState("");
+
+  const [
+    guestNotes,
+    setGuestNotes,
+  ] = useState("");
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [starting, setStarting] =
+    useState(false);
+
+  const [endingId, setEndingId] =
+    useState<number | null>(null);
+
+  const [
+    settlingId,
+    setSettlingId,
+  ] = useState<number | null>(
+    null
   );
 
-  const [customerName, setCustomerName] =
+  const [error, setError] =
     useState("");
 
-  const [selectedDeviceId, setSelectedDeviceId] =
-    useState("");
-
-  const [loading, setLoading] = useState(true);
-  const [starting, setStarting] = useState(false);
-  const [endingId, setEndingId] = useState<
-    number | null
-  >(null);
-
-  const [error, setError] = useState("");
-  const [, setCurrentTime] = useState(Date.now());
+  const [, setTick] =
+    useState(Date.now());
 
   const api = (window as any).api;
 
-  async function loadData(showLoading = false) {
+  async function loadData(
+    showLoading = false
+  ) {
     try {
       if (showLoading) {
         setLoading(true);
@@ -71,20 +146,26 @@ export default function Sessions() {
       setError("");
 
       const [
-        devicesResult,
-        sessionsResult,
+        deviceResult,
+        playerResult,
+        sessionResult,
+        debtResult,
       ] = await Promise.all([
         api.getDevices(),
+        api.getPlayers(),
         api.getActiveSessions(),
+        api.getGuestDebts(),
       ]);
 
-      setDevices(devicesResult);
-      setSessions(sessionsResult);
+      setDevices(deviceResult);
+      setPlayers(playerResult);
+      setSessions(sessionResult);
+      setGuestDebts(debtResult);
     } catch (loadError) {
       console.error(loadError);
 
       setError(
-        "تعذر تحميل الجلسات / Failed to load sessions"
+        "تعذر تحميل بيانات الجلسات"
       );
     } finally {
       setLoading(false);
@@ -94,73 +175,92 @@ export default function Sessions() {
   useEffect(() => {
     void loadData(true);
 
-    const timerInterval = window.setInterval(() => {
-      setCurrentTime(Date.now());
-    }, 1000);
+    const clock =
+      window.setInterval(() => {
+        setTick(Date.now());
+      }, 1000);
 
-    const dataInterval = window.setInterval(() => {
-      void loadData();
-    }, 5000);
+    const refresh =
+      window.setInterval(() => {
+        void loadData();
+      }, 5000);
 
     return () => {
-      window.clearInterval(timerInterval);
-      window.clearInterval(dataInterval);
+      window.clearInterval(clock);
+      window.clearInterval(refresh);
     };
   }, []);
 
-  const availableDevices = useMemo(
-    () =>
-      devices.filter(
-        (device) => device.status === "Available"
-      ),
-    [devices]
-  );
+  const availableDevices =
+    useMemo(
+      () =>
+        devices.filter(
+          (device) =>
+            device.status ===
+            "Available"
+        ),
+      [devices]
+    );
 
-  const selectedDevice = devices.find(
-    (device) =>
-      device.id === Number(selectedDeviceId)
-  );
+  const selectedPlayer =
+    players.find(
+      (player) =>
+        player.id ===
+        Number(selectedPlayerId)
+    );
 
-  function getMinutes(startTime: string) {
-    const start = new Date(startTime).getTime();
-    const difference = Date.now() - start;
-
+  function getMinutes(
+    startTime: string
+  ) {
     return Math.max(
       1,
-      Math.ceil(difference / 60000)
+      Math.ceil(
+        (
+          Date.now() -
+          new Date(
+            startTime
+          ).getTime()
+        ) / 60000
+      )
     );
   }
 
   function getPrice(
     startTime: string,
-    hourlyPrice: string
+    price: string
   ) {
-    const minutes = getMinutes(startTime);
-
     return (
-      (minutes / 60) *
-      Number(hourlyPrice || 0)
+      (getMinutes(startTime) /
+        60) *
+      Number(price || 0)
     ).toFixed(2);
   }
 
-  function formatStartTime(startTime: string) {
-    return new Date(startTime).toLocaleTimeString(
-      "ar-DZ",
-      {
-        hour: "2-digit",
-        minute: "2-digit",
-      }
-    );
-  }
-
   async function startSession(
-    event: FormEvent<HTMLFormElement>
+    event:
+      FormEvent<HTMLFormElement>
   ) {
     event.preventDefault();
 
     if (!selectedDeviceId) {
+      setError("اختر جهازًا");
+      return;
+    }
+
+    if (
+      mode === "player" &&
+      !selectedPlayerId
+    ) {
+      setError("اختر لاعبًا");
+      return;
+    }
+
+    if (
+      mode === "guest" &&
+      !guestName.trim()
+    ) {
       setError(
-        "اختر جهازًا / Select a device"
+        "أدخل اسم أو لقب Guest"
       );
       return;
     }
@@ -170,38 +270,91 @@ export default function Sessions() {
       setError("");
 
       await api.startSession({
-        deviceId: Number(selectedDeviceId),
+        deviceId: Number(
+          selectedDeviceId
+        ),
+
+        playerId:
+          mode === "player"
+            ? Number(
+                selectedPlayerId
+              )
+            : null,
+
         customerName:
-          customerName.trim() || "Guest",
+          mode === "guest"
+            ? guestName.trim()
+            : undefined,
+
+        guestPhone:
+          mode === "guest"
+            ? guestPhone.trim()
+            : undefined,
+
+        guestNotes:
+          mode === "guest"
+            ? guestNotes.trim()
+            : undefined,
       });
 
-      setCustomerName("");
       setSelectedDeviceId("");
+      setSelectedPlayerId("");
+      setGuestName("");
+      setGuestPhone("");
+      setGuestNotes("");
 
       await loadData();
     } catch (startError) {
       console.error(startError);
 
       setError(
-        "تعذر بدء الجلسة / Failed to start session"
+        "تعذر بدء الجلسة"
       );
     } finally {
       setStarting(false);
     }
   }
 
-  async function endSession(sessionId: number) {
+  async function finishSession(
+    session: Session,
+    guestPaymentMethod:
+      | "cash"
+      | "debt" = "cash"
+  ) {
+    if (
+      !session.playerId &&
+      guestPaymentMethod === "debt"
+    ) {
+      const confirmed =
+        window.confirm(
+          `تسجيل ${getPrice(
+            session.startTime,
+            session.hourlyPrice
+          )} DA كدين على ${session.customerName}؟`
+        );
+
+      if (!confirmed) {
+        return;
+      }
+    }
+
     try {
-      setEndingId(sessionId);
+      setEndingId(session.id);
       setError("");
 
       const result =
-        await api.endSession(sessionId);
+        await api.endSession({
+          sessionId: session.id,
+          guestPaymentMethod,
+        });
 
-      alert(
-        `تم إنهاء الجلسة / Session ended\n\n` +
-          `المدة / Duration: ${result.minutes} min\n` +
-          `المبلغ / Total: ${result.total} DA`
+      window.alert(
+        `انتهت الجلسة\n` +
+          `المدة: ${result.minutes} دقيقة\n` +
+          `الإجمالي: ${result.total} DA\n` +
+          `من المحفظة: ${result.walletPaid} DA\n` +
+          `أضيف للدين: ${result.debtAdded} DA\n` +
+          `نقدًا: ${result.cashPaid} DA`
       );
 
       await loadData();
@@ -209,458 +362,578 @@ export default function Sessions() {
       console.error(endError);
 
       setError(
-        "تعذر إنهاء الجلسة / Failed to end session"
+        "تعذر إنهاء الجلسة"
       );
     } finally {
       setEndingId(null);
     }
   }
 
-  const currentRevenue = sessions.reduce(
-    (total, session) =>
-      total +
-      Number(
-        getPrice(
-          session.startTime,
-          session.hourlyPrice
-        )
-      ),
-    0
-  );
+  async function settleDebt(
+    debt: GuestDebt
+  ) {
+    const confirmed =
+      window.confirm(
+        `تأكيد استلام ${debt.amount} DA من ${debt.guestName}؟`
+      );
 
-  const averageDuration =
-    sessions.length === 0
-      ? 0
-      : Math.round(
-          sessions.reduce(
-            (total, session) =>
-              total +
-              getMinutes(session.startTime),
-            0
-          ) / sessions.length
-        );
+    if (!confirmed) {
+      return;
+    }
 
-  const stats = [
-    {
-      label: "الجلسات النشطة",
-      english: "Active Sessions",
-      value: sessions.length,
-      icon: Activity,
-      color: "text-emerald-300",
-      surface: "bg-emerald-500/10",
-    },
-    {
-      label: "الأجهزة المتاحة",
-      english: "Available Devices",
-      value: availableDevices.length,
-      icon: Monitor,
-      color: "text-violet-300",
-      surface: "bg-violet-500/10",
-    },
-    {
-      label: "متوسط المدة",
-      english: "Average Duration",
-      value: `${averageDuration} min`,
-      icon: Timer,
-      color: "text-sky-300",
-      surface: "bg-sky-500/10",
-    },
-    {
-      label: "الإيراد الحالي",
-      english: "Current Revenue",
-      value: `${currentRevenue.toFixed(2)} DA`,
-      icon: Banknote,
-      color: "text-amber-300",
-      surface: "bg-amber-500/10",
-    },
-  ];
+    try {
+      setSettlingId(debt.id);
+      setError("");
+
+      await api.settleGuestDebt(
+        debt.id
+      );
+
+      await loadData();
+    } catch (settleError) {
+      console.error(settleError);
+
+      setError(
+        "تعذر تسوية الدين"
+      );
+    } finally {
+      setSettlingId(null);
+    }
+  }
+
+  const guestDebtTotal =
+    guestDebts.reduce(
+      (total, debt) =>
+        total +
+        Number(debt.amount || 0),
+      0
+    );
 
   return (
-    <div dir="rtl" className="space-y-6">
-      <section className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <div className="mb-3 flex items-center gap-2 text-sm text-violet-300">
-            <Gamepad2 size={16} />
-            Session Control
-          </div>
+    <div
+      dir="rtl"
+      className="space-y-6"
+    >
+      <section>
+        <p className="mb-2 text-sm text-violet-300">
+          Session Control
+        </p>
 
-          <h1 className="text-3xl font-semibold tracking-tight">
-            الجلسات
-            <span
-              dir="ltr"
-              className="mr-3 text-lg font-normal text-white/35"
-            >
-              / Sessions
-            </span>
-          </h1>
+        <h1 className="text-3xl font-semibold">
+          الجلسات / Sessions
+        </h1>
 
-          <p className="mt-2 text-sm text-white/45">
-            تشغيل ومتابعة جلسات اللعب في الوقت الفعلي
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => void loadData(true)}
-          disabled={loading}
-          className="flex h-11 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 text-sm text-white/70 transition hover:border-violet-400/30 hover:bg-violet-500/10 hover:text-white disabled:opacity-50"
-        >
-          <RefreshCw
-            size={17}
-            className={loading ? "animate-spin" : ""}
-          />
-          تحديث / Refresh
-        </button>
+        <p className="mt-2 text-sm text-white/45">
+          إدارة جلسات اللاعبين
+          والزوار
+        </p>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-
-          return (
-            <article
-              key={stat.english}
-              className="rounded-xl border border-white/[0.08] bg-[#0c101d] p-5"
-            >
-              <div className="flex items-start justify-between">
-                <div
-                  className={`flex h-11 w-11 items-center justify-center rounded-lg ${stat.surface}`}
-                >
-                  <Icon
-                    size={21}
-                    className={stat.color}
-                  />
-                </div>
-
-                <span
-                  dir="ltr"
-                  className="text-2xl font-semibold"
-                >
-                  {stat.value}
-                </span>
+      {guestDebts.length > 0 && (
+        <section className="rounded-xl border border-rose-400/25 bg-rose-500/[0.07]">
+          <div className="flex items-center justify-between border-b border-rose-400/15 p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-rose-500/15 text-rose-300">
+                <ShieldAlert
+                  size={20}
+                />
               </div>
 
-              <p className="mt-5 text-sm font-medium">
-                {stat.label}
+              <div>
+                <h2 className="font-semibold text-rose-100">
+                  تنبيهات ديون Guest
+                </h2>
+
+                <p className="mt-1 text-xs text-rose-200/50">
+                  معلومات داخلية لتذكّر
+                  الزوار غير المسددين
+                </p>
+              </div>
+            </div>
+
+            <div className="text-left">
+              <p className="text-xs text-white/35">
+                إجمالي الدين
               </p>
 
               <p
                 dir="ltr"
-                className="mt-1 text-xs text-white/35"
+                className="mt-1 font-semibold text-rose-300"
               >
-                {stat.english}
+                {guestDebtTotal.toFixed(
+                  2
+                )}{" "}
+                DA
               </p>
-            </article>
-          );
-        })}
-      </section>
+            </div>
+          </div>
+
+          <div className="grid gap-3 p-4 lg:grid-cols-2 2xl:grid-cols-3">
+            {guestDebts.map(
+              (debt) => (
+                <article
+                  key={debt.id}
+                  className="rounded-lg border border-rose-400/15 bg-[#0b0d17] p-4"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-semibold">
+                        {debt.guestName}
+                      </h3>
+
+                      <p
+                        dir="ltr"
+                        className="mt-1 text-xs text-white/35"
+                      >
+                        {debt.phone ||
+                          "No phone"}
+                      </p>
+                    </div>
+
+                    <span
+                      dir="ltr"
+                      className="text-sm font-semibold text-rose-300"
+                    >
+                      {Number(
+                        debt.amount
+                      ).toFixed(2)}{" "}
+                      DA
+                    </span>
+                  </div>
+
+                  <div className="mt-3 rounded-lg bg-amber-500/[0.07] p-3">
+                    <div className="mb-2 flex items-center gap-2 text-xs text-amber-300">
+                      <AlertTriangle
+                        size={14}
+                      />
+
+                      ملاحظات تعريفية
+                    </div>
+
+                    <p className="whitespace-pre-wrap text-xs leading-5 text-white/50">
+                      {debt.identityNotes ||
+                        "لا توجد ملاحظات"}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void settleDebt(
+                        debt
+                      )
+                    }
+                    disabled={
+                      settlingId ===
+                      debt.id
+                    }
+                    className="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-emerald-500/15 text-xs font-medium text-emerald-300 disabled:opacity-50"
+                  >
+                    {settlingId ===
+                    debt.id ? (
+                      <RefreshCw
+                        size={15}
+                        className="animate-spin"
+                      />
+                    ) : (
+                      <Banknote
+                        size={15}
+                      />
+                    )}
+
+                    تم استلام المبلغ
+                  </button>
+                </article>
+              )
+            )}
+          </div>
+        </section>
+      )}
 
       {error && (
-        <div className="rounded-lg border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <div className="rounded-lg border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-rose-200">
           {error}
         </div>
       )}
 
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="min-w-0 rounded-xl border border-white/[0.08] bg-[#0c101d]">
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_370px]">
+        <article className="rounded-xl border border-white/[0.08] bg-[#0c101d]">
           <div className="flex items-center justify-between border-b border-white/[0.08] p-5">
             <div>
               <h2 className="font-semibold">
-                الجلسات الحالية
+                الجلسات النشطة
               </h2>
 
-              <p
-                dir="ltr"
-                className="mt-1 text-xs text-white/35"
-              >
-                Live Gaming Sessions
+              <p className="mt-1 text-xs text-white/30">
+                Live Sessions
               </p>
             </div>
 
-            {sessions.length > 0 && (
-              <div className="flex items-center gap-2 rounded-md bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-300">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-                Live
-              </div>
-            )}
+            <span className="rounded-lg bg-violet-500/10 px-3 py-1 text-xs text-violet-300">
+              {sessions.length} Live
+            </span>
           </div>
 
           <div className="p-5">
             {loading ? (
-              <div className="flex min-h-80 items-center justify-center text-sm text-white/40">
-                جارٍ تحميل الجلسات...
+              <div className="flex min-h-72 items-center justify-center text-white/35">
+                جارٍ التحميل...
               </div>
-            ) : sessions.length === 0 ? (
-              <div className="flex min-h-80 flex-col items-center justify-center text-center">
-                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-violet-500/10 text-violet-300">
-                  <Clock3 size={27} />
-                </div>
+            ) : sessions.length ===
+              0 ? (
+              <div className="flex min-h-72 flex-col items-center justify-center text-center">
+                <Clock3 className="mb-3 text-white/20" />
 
-                <p className="font-medium">
+                <p>
                   لا توجد جلسات نشطة
-                </p>
-
-                <p
-                  dir="ltr"
-                  className="mt-2 text-sm text-white/35"
-                >
-                  Start a new session from the control panel
                 </p>
               </div>
             ) : (
               <div className="grid gap-4 lg:grid-cols-2">
-                {sessions.map((session) => {
-                  const minutes = getMinutes(
-                    session.startTime
-                  );
-
-                  const total = getPrice(
-                    session.startTime,
-                    session.hourlyPrice
-                  );
-
-                  return (
+                {sessions.map(
+                  (session) => (
                     <article
                       key={session.id}
-                      className="rounded-xl border border-violet-400/15 bg-[#090d18] p-5 transition hover:border-violet-400/35"
+                      className="rounded-xl border border-violet-400/15 bg-[#090d18] p-5"
                     >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex min-w-0 items-center gap-3">
-                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-violet-500/10 text-violet-300">
-                            <Gamepad2 size={21} />
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-500/10 text-violet-300">
+                            <Monitor
+                              size={19}
+                            />
                           </div>
 
-                          <div className="min-w-0">
-                            <h3
-                              dir="ltr"
-                              className="truncate font-semibold"
-                            >
-                              {session.deviceName}
+                          <div>
+                            <h3 className="font-semibold">
+                              {
+                                session.deviceName
+                              }
                             </h3>
 
-                            <p className="mt-1 flex items-center gap-1.5 text-xs text-emerald-300">
-                              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-                              جلسة نشطة / Running
+                            <p className="mt-1 text-xs text-emerald-300">
+                              ● Running
                             </p>
                           </div>
                         </div>
 
-                        <span
-                          dir="ltr"
-                          className="rounded-md bg-white/5 px-2 py-1 text-xs text-white/45"
-                        >
-                          #{session.id}
+                        <span className="text-xs text-white/30">
+                          {session.playerId
+                            ? "PLAYER"
+                            : "GUEST"}
                         </span>
                       </div>
 
                       <div className="my-4 h-px bg-white/[0.08]" />
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="rounded-lg bg-white/[0.04] p-3">
-                          <p className="text-xs text-white/35">
-                            اللاعب / Player
-                          </p>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-white/35">
+                            اللاعب
+                          </span>
 
-                          <p
-                            dir="ltr"
-                            className="mt-1 truncate text-sm font-medium"
-                          >
-                            {session.customerName}
-                          </p>
+                          <span>
+                            {
+                              session.customerName
+                            }
+                          </span>
                         </div>
 
-                        <div className="rounded-lg bg-white/[0.04] p-3">
-                          <p className="text-xs text-white/35">
-                            بدأت / Started
-                          </p>
+                        <div className="flex justify-between">
+                          <span className="text-white/35">
+                            المدة
+                          </span>
 
-                          <p
-                            dir="ltr"
-                            className="mt-1 text-sm font-medium"
-                          >
-                            {formatStartTime(
+                          <span className="text-sky-300">
+                            {getMinutes(
                               session.startTime
-                            )}
-                          </p>
+                            )}{" "}
+                            min
+                          </span>
                         </div>
 
-                        <div className="rounded-lg bg-white/[0.04] p-3">
-                          <p className="text-xs text-white/35">
-                            المدة / Duration
-                          </p>
+                        <div className="flex justify-between">
+                          <span className="text-white/35">
+                            السعر الحالي
+                          </span>
 
-                          <p
-                            dir="ltr"
-                            className="mt-1 text-sm font-medium text-sky-300"
-                          >
-                            {minutes} min
-                          </p>
-                        </div>
-
-                        <div className="rounded-lg bg-white/[0.04] p-3">
-                          <p className="text-xs text-white/35">
-                            المبلغ / Total
-                          </p>
-
-                          <p
-                            dir="ltr"
-                            className="mt-1 text-sm font-medium text-emerald-300"
-                          >
-                            {total} DA
-                          </p>
+                          <span className="text-emerald-300">
+                            {getPrice(
+                              session.startTime,
+                              session.hourlyPrice
+                            )}{" "}
+                            DA
+                          </span>
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() =>
-                          void endSession(session.id)
-                        }
-                        disabled={endingId === session.id}
-                        className="mt-4 flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-rose-400/20 bg-rose-500/10 text-sm font-medium text-rose-300 transition hover:bg-rose-500/20 disabled:opacity-50"
-                      >
-                        {endingId === session.id ? (
-                          <RefreshCw
-                            size={16}
-                            className="animate-spin"
-                          />
-                        ) : (
-                          <Square size={15} />
-                        )}
+                      {session.playerId ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void finishSession(
+                              session
+                            )
+                          }
+                          disabled={
+                            endingId ===
+                            session.id
+                          }
+                          className="mt-4 flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-medium disabled:opacity-50"
+                        >
+                          {endingId ===
+                          session.id ? (
+                            <RefreshCw
+                              size={15}
+                              className="animate-spin"
+                            />
+                          ) : (
+                            <Square
+                              size={15}
+                            />
+                          )}
 
-                        إنهاء الجلسة / End Session
-                      </button>
+                          إنهاء والخصم
+                        </button>
+                      ) : (
+                        <div className="mt-4 grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void finishSession(
+                                session,
+                                "cash"
+                              )
+                            }
+                            disabled={
+                              endingId ===
+                              session.id
+                            }
+                            className="flex h-10 items-center justify-center gap-2 rounded-lg bg-emerald-500/15 text-xs text-emerald-300 disabled:opacity-50"
+                          >
+                            <Banknote
+                              size={15}
+                            />
+
+                            دفع نقدي
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void finishSession(
+                                session,
+                                "debt"
+                              )
+                            }
+                            disabled={
+                              endingId ===
+                              session.id
+                            }
+                            className="flex h-10 items-center justify-center gap-2 rounded-lg bg-rose-500/15 text-xs text-rose-300 disabled:opacity-50"
+                          >
+                            <AlertTriangle
+                              size={15}
+                            />
+
+                            تسجيل دين
+                          </button>
+                        </div>
+                      )}
                     </article>
-                  );
-                })}
+                  )
+                )}
               </div>
             )}
           </div>
-        </div>
+        </article>
 
         <aside className="h-fit rounded-xl border border-violet-400/15 bg-[#0c101d]">
           <div className="border-b border-white/[0.08] p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-500/10 text-violet-300">
-                <Play size={19} />
-              </div>
+            <h2 className="font-semibold">
+              جلسة جديدة
+            </h2>
 
-              <div>
-                <h2 className="font-semibold">
-                  جلسة جديدة
-                </h2>
-
-                <p
-                  dir="ltr"
-                  className="mt-1 text-xs text-white/35"
-                >
-                  Start New Session
-                </p>
-              </div>
-            </div>
+            <p className="mt-1 text-xs text-white/30">
+              Start Session
+            </p>
           </div>
 
           <form
             onSubmit={startSession}
             className="space-y-4 p-5"
           >
-            <label className="block">
-              <span className="mb-2 block text-xs text-white/45">
-                اللاعب / Player Name
-              </span>
-
-              <div className="relative">
-                <UserRound
-                  size={17}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/25"
-                />
-
-                <input
-                  value={customerName}
-                  onChange={(event) =>
-                    setCustomerName(
-                      event.target.value
-                    )
-                  }
-                  placeholder="Guest"
-                  className={`${fieldClass} pr-11`}
-                />
-              </div>
-            </label>
-
-            <label className="block">
-              <span className="mb-2 block text-xs text-white/45">
-                الجهاز / Select Device
-              </span>
-
-              <select
-                value={selectedDeviceId}
-                onChange={(event) =>
-                  setSelectedDeviceId(
-                    event.target.value
-                  )
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  setMode("player")
                 }
-                className={fieldClass}
+                className={`flex h-10 items-center justify-center gap-2 rounded-lg text-xs ${
+                  mode === "player"
+                    ? "bg-violet-600"
+                    : "bg-white/[0.05] text-white/40"
+                }`}
               >
-                <option value="">
-                  اختر جهازًا متاحًا
-                </option>
+                <UserRound size={15} />
+                لاعب
+              </button>
 
-                {availableDevices.map((device) => (
+              <button
+                type="button"
+                onClick={() =>
+                  setMode("guest")
+                }
+                className={`flex h-10 items-center justify-center gap-2 rounded-lg text-xs ${
+                  mode === "guest"
+                    ? "bg-violet-600"
+                    : "bg-white/[0.05] text-white/40"
+                }`}
+              >
+                <Gamepad2 size={15} />
+                Guest
+              </button>
+            </div>
+
+            <select
+              value={selectedDeviceId}
+              onChange={(event) =>
+                setSelectedDeviceId(
+                  event.target.value
+                )
+              }
+              className={fieldClass}
+            >
+              <option value="">
+                اختر الجهاز
+              </option>
+
+              {availableDevices.map(
+                (device) => (
                   <option
                     key={device.id}
                     value={device.id}
                   >
-                    {device.name} — {device.type}
+                    {device.name} —{" "}
+                    {device.price} DA/h
                   </option>
-                ))}
-              </select>
-            </label>
+                )
+              )}
+            </select>
 
-            {selectedDevice && (
-              <div className="rounded-lg border border-violet-400/15 bg-violet-500/[0.06] p-4">
-                <div className="flex items-center gap-3">
-                  <Monitor
-                    size={19}
-                    className="text-violet-300"
-                  />
+            {mode === "player" ? (
+              <>
+                <select
+                  value={
+                    selectedPlayerId
+                  }
+                  onChange={(event) =>
+                    setSelectedPlayerId(
+                      event.target.value
+                    )
+                  }
+                  className={fieldClass}
+                >
+                  <option value="">
+                    اختر اللاعب
+                  </option>
 
-                  <div>
-                    <p
-                      dir="ltr"
-                      className="text-sm font-medium"
-                    >
-                      {selectedDevice.name}
-                    </p>
+                  {players.map(
+                    (player) => (
+                      <option
+                        key={player.id}
+                        value={player.id}
+                      >
+                        {player.name}
+                      </option>
+                    )
+                  )}
+                </select>
 
-                    <p
-                      dir="ltr"
-                      className="mt-1 text-xs text-white/35"
-                    >
-                      {selectedDevice.price || "0"} DA
-                      / hour
-                    </p>
+                {selectedPlayer && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-lg bg-emerald-500/[0.07] p-3">
+                      <p className="text-[10px] text-white/35">
+                        المحفظة
+                      </p>
+
+                      <p className="mt-1 text-sm text-emerald-300">
+                        {Number(
+                          selectedPlayer.walletBalance ||
+                            0
+                        ).toFixed(2)}{" "}
+                        DA
+                      </p>
+                    </div>
+
+                    <div className="rounded-lg bg-rose-500/[0.07] p-3">
+                      <p className="text-[10px] text-white/35">
+                        الدين
+                      </p>
+
+                      <p className="mt-1 text-sm text-rose-300">
+                        {Number(
+                          selectedPlayer.debtBalance ||
+                            0
+                        ).toFixed(2)}{" "}
+                        DA
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </div>
-            )}
+                )}
+              </>
+            ) : (
+              <>
+                <input
+                  value={guestName}
+                  onChange={(event) =>
+                    setGuestName(
+                      event.target.value
+                    )
+                  }
+                  placeholder="اسم أو لقب Guest"
+                  className={fieldClass}
+                />
 
-            {availableDevices.length === 0 && (
-              <div className="rounded-lg border border-amber-400/20 bg-amber-500/10 p-3 text-xs leading-5 text-amber-200">
-                لا توجد أجهزة متاحة حاليًا
-                <br />
-                No available devices
-              </div>
+                <input
+                  dir="ltr"
+                  value={guestPhone}
+                  onChange={(event) =>
+                    setGuestPhone(
+                      event.target.value
+                    )
+                  }
+                  placeholder="Phone (optional)"
+                  className={fieldClass}
+                />
+
+                <textarea
+                  value={guestNotes}
+                  onChange={(event) =>
+                    setGuestNotes(
+                      event.target.value
+                    )
+                  }
+                  placeholder="ملاحظات تعريفية مؤقتة: الملابس، وقت الزيارة، الجهاز..."
+                  rows={4}
+                  className="w-full resize-none rounded-lg border border-amber-400/15 bg-amber-500/[0.05] p-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-amber-400/40"
+                />
+
+                <p className="text-[10px] leading-5 text-amber-200/50">
+                  استخدم ملاحظات محايدة
+                  ومؤقتة فقط، ولا تسجل
+                  صفات حساسة.
+                </p>
+              </>
             )}
 
             <button
               type="submit"
               disabled={
                 starting ||
-                !selectedDeviceId ||
-                availableDevices.length === 0
+                !selectedDeviceId
               }
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-medium text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/30"
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-medium disabled:opacity-40"
             >
               {starting ? (
                 <RefreshCw
@@ -671,9 +944,7 @@ export default function Sessions() {
                 <Play size={17} />
               )}
 
-              {starting
-                ? "جارٍ التشغيل..."
-                : "بدء الجلسة / Start Session"}
+              بدء الجلسة
             </button>
           </form>
         </aside>
