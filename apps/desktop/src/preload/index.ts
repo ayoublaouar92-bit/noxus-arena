@@ -1,68 +1,30 @@
-import {
-  contextBridge,
-  ipcRenderer,
-} from "electron";
+import { contextBridge, ipcRenderer } from "electron";
 
 const api = {
-  getDevices: () =>
-    ipcRenderer.invoke(
-      "get-devices"
-    ),
-
+  getDevices: () => ipcRenderer.invoke("get-devices"),
   addDevice: (device: {
     name: string;
     type: string;
     ip?: string;
     mac?: string;
     price: string;
-  }) =>
-    ipcRenderer.invoke(
-      "add-device",
-      device
-    ),
+  }) => ipcRenderer.invoke("add-device", device),
 
-  getPlayers: () =>
-    ipcRenderer.invoke(
-      "finance:get-players"
-    ),
-
+  // Finance
+  getPlayers: () => ipcRenderer.invoke("finance:get-players"),
   addPlayer: (player: {
     name: string;
     username: string;
     phone?: string;
     initialDeposit?: number;
     image?: string;
-  }) =>
-    ipcRenderer.invoke(
-      "finance:add-player",
-      player
-    ),
-
-  deletePlayer: (
-    playerId: number
-  ) =>
-    ipcRenderer.invoke(
-      "finance:delete-player",
-      playerId
-    ),
-
-  topUpPlayer: (data: {
-    playerId: number;
-    amount: number;
-    note?: string;
-  }) =>
-    ipcRenderer.invoke(
-      "finance:top-up-player",
-      data
-    ),
-
-  getPlayerTransactions: (
-    playerId: number
-  ) =>
-    ipcRenderer.invoke(
-      "finance:get-transactions",
-      playerId
-    ),
+  }) => ipcRenderer.invoke("finance:add-player", player),
+  deletePlayer: (playerId: number) =>
+    ipcRenderer.invoke("finance:delete-player", playerId),
+  topUpPlayer: (data: { playerId: number; amount: number; note?: string }) =>
+    ipcRenderer.invoke("finance:top-up-player", data),
+  getPlayerTransactions: (playerId: number) =>
+    ipcRenderer.invoke("finance:get-transactions", playerId),
 
   startSession: (data: {
     deviceId: number;
@@ -70,47 +32,17 @@ const api = {
     customerName?: string;
     guestPhone?: string;
     guestNotes?: string;
-  }) =>
-    ipcRenderer.invoke(
-      "finance:start-session",
-      data
-    ),
+  }) => ipcRenderer.invoke("finance:start-session", data),
+  getActiveSessions: () => ipcRenderer.invoke("finance:get-active-sessions"),
+  endSession: (data: { sessionId: number; guestPaymentMethod?: "cash" | "debt" }) =>
+    ipcRenderer.invoke("finance:end-session", data),
 
-  getActiveSessions: () =>
-    ipcRenderer.invoke(
-      "finance:get-active-sessions"
-    ),
+  getGuestDebts: () => ipcRenderer.invoke("finance:get-guest-debts"),
+  settleGuestDebt: (debtId: number) =>
+    ipcRenderer.invoke("finance:settle-guest-debt", debtId),
 
-  endSession: (data: {
-    sessionId: number;
-
-    guestPaymentMethod?:
-      | "cash"
-      | "debt";
-  }) =>
-    ipcRenderer.invoke(
-      "finance:end-session",
-      data
-    ),
-
-  getGuestDebts: () =>
-    ipcRenderer.invoke(
-      "finance:get-guest-debts"
-    ),
-
-  settleGuestDebt: (
-    debtId: number
-  ) =>
-    ipcRenderer.invoke(
-      "finance:settle-guest-debt",
-      debtId
-    ),
-
-  getTournaments: () =>
-    ipcRenderer.invoke(
-      "tournaments:get-all"
-    ),
-
+  // Tournaments
+  getTournaments: () => ipcRenderer.invoke("tournaments:get-all"),
   createTournament: (data: {
     name: string;
     game: string;
@@ -118,95 +50,39 @@ const api = {
     maxPlayers: number;
     entryFee: number;
     prize: number;
-  }) =>
-    ipcRenderer.invoke(
-      "tournaments:create",
-      data
-    ),
-
+  }) => ipcRenderer.invoke("tournaments:create", data),
   setTournamentStatus: (data: {
     tournamentId: number;
+    status: "Draft" | "Registration" | "Running" | "Completed";
+  }) => ipcRenderer.invoke("tournaments:set-status", data),
+  getTournamentParticipants: (tournamentId: number) =>
+    ipcRenderer.invoke("tournaments:get-participants", tournamentId),
+  registerTournamentPlayer: (data: { tournamentId: number; playerId: number }) =>
+    ipcRenderer.invoke("tournaments:register-player", data),
+  deleteTournament: (tournamentId: number) =>
+    ipcRenderer.invoke("tournaments:delete", tournamentId),
 
-    status:
-      | "Draft"
-      | "Registration"
-      | "Running"
-      | "Completed";
-  }) =>
-    ipcRenderer.invoke(
-      "tournaments:set-status",
-      data
-    ),
-
-  getTournamentParticipants: (
-    tournamentId: number
-  ) =>
-    ipcRenderer.invoke(
-      "tournaments:get-participants",
-      tournamentId
-    ),
-
-  registerTournamentPlayer: (
-    data: {
-      tournamentId: number;
-      playerId: number;
-    }
-  ) =>
-    ipcRenderer.invoke(
-      "tournaments:register-player",
-      data
-    ),
-
-  deleteTournament: (
-    tournamentId: number
-  ) =>
-    ipcRenderer.invoke(
-      "tournaments:delete",
-      tournamentId
-    ),
-
-  getBillingSummary: () =>
-    ipcRenderer.invoke(
-      "billing:get-summary"
-    ),
-
-  getBillingDailyRevenue: () =>
-    ipcRenderer.invoke(
-      "billing:get-daily-revenue"
-    ),
-
-  getBillingLedger: () =>
-    ipcRenderer.invoke(
-      "billing:get-ledger"
-    ),
-
-  getExpenses: () =>
-    ipcRenderer.invoke(
-      "billing:get-expenses"
-    ),
-
+  // Billing
+  getBillingSummary: () => ipcRenderer.invoke("billing:get-summary"),
+  getBillingDailyRevenue: () => ipcRenderer.invoke("billing:get-daily-revenue"),
+  getBillingLedger: () => ipcRenderer.invoke("billing:get-ledger"),
+  getExpenses: () => ipcRenderer.invoke("billing:get-expenses"),
   addExpense: (data: {
     title: string;
     category: string;
     amount: number;
     note?: string;
     spentAt?: string;
-  }) =>
-    ipcRenderer.invoke(
-      "billing:add-expense",
-      data
-    ),
+  }) => ipcRenderer.invoke("billing:add-expense", data),
+  deleteExpense: (expenseId: number) =>
+    ipcRenderer.invoke("billing:delete-expense", expenseId),
 
-  deleteExpense: (
-    expenseId: number
-  ) =>
-    ipcRenderer.invoke(
-      "billing:delete-expense",
-      expenseId
-    ),
+  // Reports
+  getReport: (payload: {
+    range: "today" | "week" | "month" | "custom";
+    start?: string;
+    end?: string;
+  }) => ipcRenderer.invoke("reports:get", payload),
 };
 
-contextBridge.exposeInMainWorld(
-  "api",
-  api
-);
+contextBridge.exposeInMainWorld("api", api);
