@@ -3,6 +3,10 @@ import { app } from "electron";
 import { join } from "node:path";
 
 import {
+  registerBillingHandlers,
+} from "./billing";
+
+import {
   registerFinanceHandlers,
 } from "./finance";
 
@@ -276,5 +280,6 @@ db.exec(`
 
 registerFinanceHandlers(db);
 registerTournamentHandlers(db);
+registerBillingHandlers(db);
 
 export default db;
