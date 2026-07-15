@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { registerBillingHandlers } from "./billing";
 import { registerFinanceHandlers } from "./finance";
 import { registerReportsHandlers } from "./reports";
+import { registerSettingsHandlers } from "./settings";
 import { registerTournamentHandlers } from "./tournaments";
 
 type TableColumn = {
@@ -22,6 +23,12 @@ const db = new Database(databasePath);
 db.pragma("foreign_keys = ON");
 db.pragma("busy_timeout = 5000");
 
+/*
+|--------------------------------------------------------------------------
+| Devices
+|--------------------------------------------------------------------------
+*/
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS devices (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,6 +40,12 @@ db.exec(`
     status TEXT NOT NULL DEFAULT 'Available'
   );
 `);
+
+/*
+|--------------------------------------------------------------------------
+| Players
+|--------------------------------------------------------------------------
+*/
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS players (
@@ -47,13 +60,17 @@ db.exec(`
   );
 `);
 
+/*
+|--------------------------------------------------------------------------
+| Migrate legacy balance -> wallet/debt
+|--------------------------------------------------------------------------
+*/
+
 const playerColumns = db
   .prepare("PRAGMA table_info(players)")
   .all() as TableColumn[];
 
-const playerColumnNames = new Set(
-  playerColumns.map((column) => column.name)
-);
+const playerColumnNames = new Set(playerColumns.map((column) => column.name));
 
 const hadWalletBalance = playerColumnNames.has("walletBalance");
 const hadDebtBalance = playerColumnNames.has("debtBalance");
@@ -92,6 +109,12 @@ if (hasLegacyBalance && (!hadWalletBalance || !hadDebtBalance)) {
   `);
 }
 
+/*
+|--------------------------------------------------------------------------
+| Sessions
+|--------------------------------------------------------------------------
+*/
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -119,9 +142,7 @@ const sessionColumns = db
   .prepare("PRAGMA table_info(sessions)")
   .all() as TableColumn[];
 
-const sessionColumnNames = new Set(
-  sessionColumns.map((column) => column.name)
-);
+const sessionColumnNames = new Set(sessionColumns.map((column) => column.name));
 
 const sessionMigrations = [
   { name: "playerId", definition: "INTEGER" },
@@ -141,6 +162,12 @@ for (const migration of sessionMigrations) {
   }
 }
 
+/*
+|--------------------------------------------------------------------------
+| Wallet transactions
+|--------------------------------------------------------------------------
+*/
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS wallet_transactions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -158,6 +185,12 @@ db.exec(`
   );
 `);
 
+/*
+|--------------------------------------------------------------------------
+| Guest debts
+|--------------------------------------------------------------------------
+*/
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS guest_debts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -174,6 +207,12 @@ db.exec(`
   );
 `);
 
+/*
+|--------------------------------------------------------------------------
+| Indexes
+|--------------------------------------------------------------------------
+*/
+
 db.exec(`
   CREATE INDEX IF NOT EXISTS idx_sessions_status ON sessions(status);
   CREATE INDEX IF NOT EXISTS idx_sessions_player ON sessions(playerId);
@@ -182,6 +221,13 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_guest_debts_phone ON guest_debts(phone);
 `);
 
+/*
+|--------------------------------------------------------------------------
+| IPC registrations
+|--------------------------------------------------------------------------
+*/
+
+registerSettingsHandlers(db);
 registerFinanceHandlers(db);
 registerTournamentHandlers(db);
 registerBillingHandlers(db);

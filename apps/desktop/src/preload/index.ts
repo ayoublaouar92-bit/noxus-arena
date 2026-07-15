@@ -10,6 +10,15 @@ const api = {
     price: string;
   }) => ipcRenderer.invoke("add-device", device),
 
+  // Settings
+  getSettings: () => ipcRenderer.invoke("settings:get"),
+  updateSettings: (updates: {
+    currency?: string;
+    roundingMode?: "minute" | "quarter_hour" | "hour";
+    minimumMinutes?: number;
+    defaultGuestPayment?: "cash" | "debt";
+  }) => ipcRenderer.invoke("settings:update", updates),
+
   // Finance
   getPlayers: () => ipcRenderer.invoke("finance:get-players"),
   addPlayer: (player: {
