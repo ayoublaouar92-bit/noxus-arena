@@ -6,6 +6,10 @@ import {
   registerFinanceHandlers,
 } from "./finance";
 
+import {
+  registerTournamentHandlers,
+} from "./tournaments";
+
 type TableColumn = {
   cid: number;
   name: string;
@@ -25,12 +29,6 @@ const db = new Database(databasePath);
 db.pragma("foreign_keys = ON");
 db.pragma("busy_timeout = 5000");
 
-/*
-|--------------------------------------------------------------------------
-| Devices
-|--------------------------------------------------------------------------
-*/
-
 db.exec(`
   CREATE TABLE IF NOT EXISTS devices (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,12 +40,6 @@ db.exec(`
     status TEXT NOT NULL DEFAULT 'Available'
   );
 `);
-
-/*
-|--------------------------------------------------------------------------
-| Players
-|--------------------------------------------------------------------------
-*/
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS players (
@@ -62,12 +54,6 @@ db.exec(`
       DEFAULT CURRENT_TIMESTAMP
   );
 `);
-
-/*
-|--------------------------------------------------------------------------
-| Migrate old player balance
-|--------------------------------------------------------------------------
-*/
 
 const playerColumns = db
   .prepare(
@@ -92,7 +78,9 @@ const hadDebtBalance =
   );
 
 const hasLegacyBalance =
-  playerColumnNames.has("balance");
+  playerColumnNames.has(
+    "balance"
+  );
 
 if (!hadWalletBalance) {
   db.exec(`
@@ -112,7 +100,8 @@ if (!hadDebtBalance) {
 
 if (
   hasLegacyBalance &&
-  (!hadWalletBalance || !hadDebtBalance)
+  (!hadWalletBalance ||
+    !hadDebtBalance)
 ) {
   db.exec(`
     UPDATE players
@@ -132,12 +121,6 @@ if (
         END;
   `);
 }
-
-/*
-|--------------------------------------------------------------------------
-| Sessions
-|--------------------------------------------------------------------------
-*/
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS sessions (
@@ -164,12 +147,6 @@ db.exec(`
       REFERENCES players(id)
   );
 `);
-
-/*
-|--------------------------------------------------------------------------
-| Migrate existing sessions
-|--------------------------------------------------------------------------
-*/
 
 const sessionColumns = db
   .prepare(
@@ -234,12 +211,6 @@ for (
   }
 }
 
-/*
-|--------------------------------------------------------------------------
-| Wallet transactions
-|--------------------------------------------------------------------------
-*/
-
 db.exec(`
   CREATE TABLE IF NOT EXISTS
     wallet_transactions (
@@ -263,12 +234,6 @@ db.exec(`
     );
 `);
 
-/*
-|--------------------------------------------------------------------------
-| Guest debts
-|--------------------------------------------------------------------------
-*/
-
 db.exec(`
   CREATE TABLE IF NOT EXISTS guest_debts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -286,12 +251,6 @@ db.exec(`
       REFERENCES sessions(id)
   );
 `);
-
-/*
-|--------------------------------------------------------------------------
-| Indexes
-|--------------------------------------------------------------------------
-*/
 
 db.exec(`
   CREATE INDEX IF NOT EXISTS
@@ -315,12 +274,7 @@ db.exec(`
   ON guest_debts(phone);
 `);
 
-/*
-|--------------------------------------------------------------------------
-| Register finance IPC
-|--------------------------------------------------------------------------
-*/
-
 registerFinanceHandlers(db);
+registerTournamentHandlers(db);
 
 export default db;

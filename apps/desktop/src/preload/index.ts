@@ -4,12 +4,6 @@ import {
 } from "electron";
 
 const api = {
-  /*
-  |--------------------------------------------------------------------------
-  | Devices
-  |--------------------------------------------------------------------------
-  */
-
   getDevices: () => {
     return ipcRenderer.invoke(
       "get-devices"
@@ -28,12 +22,6 @@ const api = {
       device
     );
   },
-
-  /*
-  |--------------------------------------------------------------------------
-  | Players and wallets
-  |--------------------------------------------------------------------------
-  */
 
   getPlayers: () => {
     return ipcRenderer.invoke(
@@ -83,12 +71,6 @@ const api = {
     );
   },
 
-  /*
-  |--------------------------------------------------------------------------
-  | Sessions
-  |--------------------------------------------------------------------------
-  */
-
   startSession: (data: {
     deviceId: number;
     playerId?: number | null;
@@ -110,6 +92,7 @@ const api = {
 
   endSession: (data: {
     sessionId: number;
+
     guestPaymentMethod?:
       | "cash"
       | "debt";
@@ -119,12 +102,6 @@ const api = {
       data
     );
   },
-
-  /*
-  |--------------------------------------------------------------------------
-  | Guest debts
-  |--------------------------------------------------------------------------
-  */
 
   getGuestDebts: () => {
     return ipcRenderer.invoke(
@@ -138,6 +115,71 @@ const api = {
     return ipcRenderer.invoke(
       "finance:settle-guest-debt",
       debtId
+    );
+  },
+
+  getTournaments: () => {
+    return ipcRenderer.invoke(
+      "tournaments:get-all"
+    );
+  },
+
+  createTournament: (data: {
+    name: string;
+    game: string;
+    startAt: string;
+    maxPlayers: number;
+    entryFee: number;
+    prize: number;
+  }) => {
+    return ipcRenderer.invoke(
+      "tournaments:create",
+      data
+    );
+  },
+
+  setTournamentStatus: (data: {
+    tournamentId: number;
+
+    status:
+      | "Draft"
+      | "Registration"
+      | "Running"
+      | "Completed";
+  }) => {
+    return ipcRenderer.invoke(
+      "tournaments:set-status",
+      data
+    );
+  },
+
+  getTournamentParticipants: (
+    tournamentId: number
+  ) => {
+    return ipcRenderer.invoke(
+      "tournaments:get-participants",
+      tournamentId
+    );
+  },
+
+  registerTournamentPlayer: (
+    data: {
+      tournamentId: number;
+      playerId: number;
+    }
+  ) => {
+    return ipcRenderer.invoke(
+      "tournaments:register-player",
+      data
+    );
+  },
+
+  deleteTournament: (
+    tournamentId: number
+  ) => {
+    return ipcRenderer.invoke(
+      "tournaments:delete",
+      tournamentId
     );
   },
 };
