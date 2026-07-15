@@ -33,6 +33,68 @@ type Player = {
 const fieldClass =
   "h-11 w-full rounded-lg border border-white/10 bg-[#080b16] px-4 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-violet-400/60 focus:ring-2 focus:ring-violet-500/10";
 
+function normalizeMoneyInput(
+  value: string
+) {
+  const digitMap:
+    Record<string, string> = {
+    "&": "1",
+    "é": "2",
+    '"': "3",
+    "'": "4",
+    "(": "5",
+    "-": "6",
+    "è": "7",
+    "_": "8",
+    "ç": "9",
+    "à": "0",
+
+    "\u0660": "0",
+    "\u0661": "1",
+    "\u0662": "2",
+    "\u0663": "3",
+    "\u0664": "4",
+    "\u0665": "5",
+    "\u0666": "6",
+    "\u0667": "7",
+    "\u0668": "8",
+    "\u0669": "9",
+
+    "\u06F0": "0",
+    "\u06F1": "1",
+    "\u06F2": "2",
+    "\u06F3": "3",
+    "\u06F4": "4",
+    "\u06F5": "5",
+    "\u06F6": "6",
+    "\u06F7": "7",
+    "\u06F8": "8",
+    "\u06F9": "9",
+  };
+
+  let normalized = value
+    .split("")
+    .map(
+      (character) =>
+        digitMap[character] ??
+        character
+    )
+    .join("")
+    .replace(",", ".")
+    .replace(/[^\d.]/g, "");
+
+  const parts =
+    normalized.split(".");
+
+  if (parts.length > 1) {
+    normalized =
+      `${parts[0]}.` +
+      parts.slice(1).join("");
+  }
+
+  return normalized;
+}
+
 export default function Players() {
   const [players, setPlayers] =
     useState<Player[]>([]);
@@ -661,6 +723,7 @@ export default function Players() {
                             <PlusCircle
                               size={15}
                             />
+
                             شحن
                           </button>
 
@@ -778,13 +841,14 @@ export default function Players() {
 
             <input
               dir="ltr"
-              type="number"
-              min="0"
-              step="0.01"
+              type="text"
+              inputMode="decimal"
               value={initialDeposit}
               onChange={(event) =>
                 setInitialDeposit(
-                  event.target.value
+                  normalizeMoneyInput(
+                    event.target.value
+                  )
                 )
               }
               placeholder="Initial deposit DA"
@@ -872,13 +936,14 @@ export default function Players() {
             >
               <input
                 dir="ltr"
-                type="number"
-                min="0.01"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
                 value={topUpAmount}
                 onChange={(event) =>
                   setTopUpAmount(
-                    event.target.value
+                    normalizeMoneyInput(
+                      event.target.value
+                    )
                   )
                 }
                 placeholder="Amount DA"
