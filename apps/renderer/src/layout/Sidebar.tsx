@@ -10,7 +10,6 @@ import {
   ShoppingBag,
   Trophy,
   UserRound,
-  Users,
   Wifi,
 } from "lucide-react";
 
@@ -19,6 +18,7 @@ import { NavLink } from "react-router-dom";
 const navigationGroups = [
   {
     title: "CONTROL",
+
     items: [
       {
         title: "Dashboard",
@@ -40,20 +40,16 @@ const navigationGroups = [
       },
     ],
   },
+
   {
     title: "ARENA",
+
     items: [
       {
-        title: "Players",
-        arabic: "اللاعبون",
+        title: "Players & Members",
+        arabic: "اللاعبون والأعضاء",
         path: "/players",
         icon: UserRound,
-      },
-      {
-        title: "Members",
-        arabic: "الأعضاء",
-        path: "/members",
-        icon: Users,
       },
       {
         title: "Tournaments",
@@ -63,8 +59,10 @@ const navigationGroups = [
       },
     ],
   },
+
   {
     title: "BUSINESS",
+
     items: [
       {
         title: "Billing",
@@ -136,7 +134,9 @@ export default function Sidebar() {
                     key={item.path}
                     to={item.path}
                     end={item.path === "/"}
-                    className={({ isActive }) =>
+                    className={({
+                      isActive,
+                    }) =>
                       `group relative flex min-h-11 items-center gap-3 overflow-hidden rounded-lg px-3 transition ${
                         isActive
                           ? "bg-gradient-to-r from-violet-600/90 to-violet-500/45 text-white shadow-[0_8px_28px_rgba(124,58,237,0.17)]"
@@ -190,7 +190,9 @@ export default function Sidebar() {
           }
         >
           <Settings size={18} />
+
           <span>Settings</span>
+
           <span className="ml-auto text-[10px] text-white/25">
             الإعدادات
           </span>

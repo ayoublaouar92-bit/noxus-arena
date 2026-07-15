@@ -11,7 +11,6 @@ import Billing from "./pages/Billing";
 import Dashboard from "./pages/Dashboard";
 import Devices from "./pages/Devices";
 import Inventory from "./pages/Inventory";
-import Members from "./pages/Members";
 import Players from "./pages/Players";
 import Reports from "./pages/Reports";
 import Sessions from "./pages/Sessions";
@@ -24,7 +23,10 @@ export default function App() {
     <HashRouter>
       <Routes>
         <Route element={<AppLayout />}>
-          <Route index element={<Dashboard />} />
+          <Route
+            index
+            element={<Dashboard />}
+          />
 
           <Route
             path="devices"
@@ -43,7 +45,12 @@ export default function App() {
 
           <Route
             path="members"
-            element={<Members />}
+            element={
+              <Navigate
+                to="/players"
+                replace
+              />
+            }
           />
 
           <Route
@@ -78,7 +85,12 @@ export default function App() {
 
           <Route
             path="*"
-            element={<Navigate to="/" replace />}
+            element={
+              <Navigate
+                to="/"
+                replace
+              />
+            }
           />
         </Route>
       </Routes>
