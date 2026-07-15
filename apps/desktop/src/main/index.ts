@@ -20,6 +20,14 @@ type StartSessionData = {
   customerName?: string;
 };
 
+type AddPlayerData = {
+  name: string;
+  username: string;
+  phone?: string;
+  balance?: number;
+  image?: string;
+};
+
 type DeviceRow = {
   id: number;
   name: string;
@@ -57,7 +65,6 @@ function createWindow() {
         __dirname,
         "../preload/index.cjs"
       ),
-
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -108,12 +115,19 @@ ipcMain.handle("get-devices", () => {
 ipcMain.handle(
   "add-device",
   (_event, device: AddDeviceData) => {
-    if (!device.name?.trim()) {
-      throw new Error("Device name is required");
+    const name = device.name?.trim();
+    const type = device.type?.trim();
+
+    if (!name) {
+      throw new Error(
+        "Device name is required"
+      );
     }
 
-    if (!device.type?.trim()) {
-      throw new Error("Device type is required");
+    if (!type) {
+      throw new Error(
+        "Device type is required"
+      );
     }
 
     const result = db
@@ -140,8 +154,8 @@ ipcMain.handle(
         `
       )
       .run({
-        name: device.name.trim(),
-        type: device.type.trim(),
+        name,
+        type,
         ip: device.ip?.trim() || "",
         mac: device.mac?.trim() || "",
         price: String(device.price || "0"),
@@ -164,7 +178,9 @@ ipcMain.handle(
   "start-session",
   (_event, data: StartSessionData) => {
     if (!data.deviceId) {
-      throw new Error("Device is required");
+      throw new Error(
+        "Device is required"
+      );
     }
 
     const device = db
@@ -180,7 +196,9 @@ ipcMain.handle(
       | undefined;
 
     if (!device) {
-      throw new Error("Device not found");
+      throw new Error(
+        "Device not found"
+      );
     }
 
     if (device.status === "Busy") {
@@ -189,44 +207,47 @@ ipcMain.handle(
       );
     }
 
-    const startTime = new Date().toISOString();
+    const startTime =
+      new Date().toISOString();
 
-    const startTransaction = db.transaction(() => {
-      const result = db
-        .prepare(
+    const startTransaction =
+      db.transaction(() => {
+        const result = db
+          .prepare(
+            `
+              INSERT INTO sessions
+              (
+                deviceId,
+                customerName,
+                startTime,
+                status
+              )
+              VALUES
+              (
+                ?,
+                ?,
+                ?,
+                'Running'
+              )
+            `
+          )
+          .run(
+            data.deviceId,
+            data.customerName?.trim() ||
+              "Guest",
+            startTime
+          );
+
+        db.prepare(
           `
-            INSERT INTO sessions
-            (
-              deviceId,
-              customerName,
-              startTime,
-              status
-            )
-            VALUES
-            (
-              ?,
-              ?,
-              ?,
-              'Running'
-            )
+            UPDATE devices
+            SET status = 'Busy'
+            WHERE id = ?
           `
-        )
-        .run(
-          data.deviceId,
-          data.customerName?.trim() || "Guest",
-          startTime
-        );
+        ).run(data.deviceId);
 
-      db.prepare(
-        `
-          UPDATE devices
-          SET status = 'Busy'
-          WHERE id = ?
-        `
-      ).run(data.deviceId);
-
-      return result;
-    });
+        return result;
+      });
 
     const result = startTransaction();
 
@@ -263,6 +284,12 @@ ipcMain.handle(
 ipcMain.handle(
   "end-session",
   (_event, sessionId: number) => {
+    if (!sessionId) {
+      throw new Error(
+        "Session ID is required"
+      );
+    }
+
     const session = db
       .prepare(
         `
@@ -276,7 +303,9 @@ ipcMain.handle(
       | undefined;
 
     if (!session) {
-      throw new Error("Session not found");
+      throw new Error(
+        "Session not found"
+      );
     }
 
     if (session.status !== "Running") {
@@ -298,10 +327,13 @@ ipcMain.handle(
       | undefined;
 
     if (!device) {
-      throw new Error("Session device not found");
+      throw new Error(
+        "Session device not found"
+      );
     }
 
     const endTime = new Date();
+
     const startTime = new Date(
       session.startTime
     );
@@ -320,32 +352,33 @@ ipcMain.handle(
       Number(device.price || 0)
     ).toFixed(2);
 
-    const endTransaction = db.transaction(() => {
-      db.prepare(
-        `
-          UPDATE sessions
-          SET
-            endTime = ?,
-            duration = ?,
-            totalPrice = ?,
-            status = 'Finished'
-          WHERE id = ?
-        `
-      ).run(
-        endTime.toISOString(),
-        minutes,
-        total,
-        sessionId
-      );
+    const endTransaction =
+      db.transaction(() => {
+        db.prepare(
+          `
+            UPDATE sessions
+            SET
+              endTime = ?,
+              duration = ?,
+              totalPrice = ?,
+              status = 'Finished'
+            WHERE id = ?
+          `
+        ).run(
+          endTime.toISOString(),
+          minutes,
+          total,
+          sessionId
+        );
 
-      db.prepare(
-        `
-          UPDATE devices
-          SET status = 'Available'
-          WHERE id = ?
-        `
-      ).run(session.deviceId);
-    });
+        db.prepare(
+          `
+            UPDATE devices
+            SET status = 'Available'
+            WHERE id = ?
+          `
+        ).run(session.deviceId);
+      });
 
     endTransaction();
 
@@ -353,6 +386,123 @@ ipcMain.handle(
       minutes,
       total,
       endTime: endTime.toISOString(),
+    };
+  }
+);
+
+/*
+|--------------------------------------------------------------------------
+| Players
+|--------------------------------------------------------------------------
+*/
+
+ipcMain.handle("get-players", () => {
+  return db
+    .prepare(
+      `
+        SELECT *
+        FROM players
+        ORDER BY id DESC
+      `
+    )
+    .all();
+});
+
+ipcMain.handle(
+  "add-player",
+  (_event, player: AddPlayerData) => {
+    const name = player.name?.trim();
+
+    const username = player.username
+      ?.trim()
+      .replace(/^@/, "");
+
+    if (!name) {
+      throw new Error(
+        "Player name is required"
+      );
+    }
+
+    if (!username) {
+      throw new Error(
+        "Player username is required"
+      );
+    }
+
+    const existingPlayer = db
+      .prepare(
+        `
+          SELECT id
+          FROM players
+          WHERE LOWER(username) = LOWER(?)
+        `
+      )
+      .get(username);
+
+    if (existingPlayer) {
+      throw new Error(
+        "Username already exists"
+      );
+    }
+
+    const result = db
+      .prepare(
+        `
+          INSERT INTO players
+          (
+            name,
+            username,
+            phone,
+            balance,
+            image
+          )
+          VALUES
+          (
+            @name,
+            @username,
+            @phone,
+            @balance,
+            @image
+          )
+        `
+      )
+      .run({
+        name,
+        username,
+        phone: player.phone?.trim() || "",
+        balance: Number(
+          player.balance || 0
+        ),
+        image: player.image || "",
+      });
+
+    return {
+      id: Number(result.lastInsertRowid),
+      changes: result.changes,
+    };
+  }
+);
+
+ipcMain.handle(
+  "delete-player",
+  (_event, playerId: number) => {
+    if (!playerId) {
+      throw new Error(
+        "Player ID is required"
+      );
+    }
+
+    const result = db
+      .prepare(
+        `
+          DELETE FROM players
+          WHERE id = ?
+        `
+      )
+      .run(playerId);
+
+    return {
+      changes: result.changes,
     };
   }
 );
