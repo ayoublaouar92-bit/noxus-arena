@@ -1,0 +1,17 @@
+{
+  "name": "@noxus/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/main/index.ts",
+  "scripts": {
+    "dev": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^43.1.0"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "sql.js": "^1.14.1"
+  }
+}

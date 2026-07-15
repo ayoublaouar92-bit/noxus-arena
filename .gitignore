@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+out/
+dist/
+build/
+release/
+coverage/
+*.tsbuildinfo
+
+# Local databases
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Editors
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Operating systems
+.DS_Store
+Thumbs.db
+
+# Local backups and generated trees
+backup/
+tree.txt
+project-tree.txt
+noxus-files.txt

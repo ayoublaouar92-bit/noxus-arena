@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+
+model Member {
+  id          Int       @id @default(autoincrement())
+  name        String
+  nickname    String?
+  phone       String?
+  balance     Float     @default(0)
+  note        String?
+
+  sessions    Session[]
+
+  createdAt   DateTime  @default(now())
+}
+
+
+model Device {
+  id          Int       @id @default(autoincrement())
+
+  name        String
+  type        String
+  status      String    @default("AVAILABLE")
+
+  ip          String?
+  mac         String?
+
+  priceHour   Float     @default(0)
+  priceRound  Float     @default(0)
+
+  sessions    Session[]
+
+  createdAt   DateTime  @default(now())
+}
+
+
+model Session {
+  id          Int       @id @default(autoincrement())
+
+  memberId    Int?
+  deviceId    Int
+
+  mode        String
+
+  startTime   DateTime  @default(now())
+  endTime     DateTime?
+
+  minutes     Int?
+  rounds      Int?
+
+  total       Float     @default(0)
+
+  member      Member?   @relation(fields: [memberId], references: [id])
+  device      Device    @relation(fields: [deviceId], references: [id])
+}
+
+
+model Product {
+  id          Int       @id @default(autoincrement())
+
+  name        String
+  price       Float
+  stock       Int       @default(0)
+
+  createdAt   DateTime  @default(now())
+}
+
+
+model Sale {
+  id           Int       @id @default(autoincrement())
+
+  productName  String
+  quantity     Int
+  total        Float
+
+  createdAt    DateTime  @default(now())
+}

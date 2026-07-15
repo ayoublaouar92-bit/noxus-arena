@@ -1,0 +1,10 @@
+packages:
+  - apps/*
+  - packages/*
+  - domains/*
+allowBuilds:
+  '@prisma/engines': true
+  better-sqlite3: true
+  esbuild: true
+  lzma-native: true
+  prisma: true
