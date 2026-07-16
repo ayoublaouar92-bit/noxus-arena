@@ -7,7 +7,16 @@ import {
   ShoppingCart,
   Tags,
   UserRound,
+  Image as ImageIcon,
 } from "lucide-react";
+
+type Category = {
+  id: number;
+  name: string;
+  color: string | null;
+  sortOrder: number;
+  active: number;
+};
 
 type Product = {
   id: number;
@@ -15,9 +24,12 @@ type Product = {
   sku: string | null;
   unit: string;
   salePrice: number;
-  costPrice: number;
   stock: number;
   active: number;
+  categoryId: number | null;
+  categoryName?: string | null;
+  categoryColor?: string | null;
+  image?: string | null;
 };
 
 type Player = {
@@ -35,8 +47,8 @@ type CartItem = {
   unitPrice: number;
   quantity: number;
   stock: number;
-  // optional: inferred category
-  category: string;
+  categoryName: string;
+  image?: string | null;
 };
 
 const fieldClass =
@@ -54,7 +66,6 @@ function normalizeNumber(value: string) {
     "_": "8",
     "ç": "9",
     "à": "0",
-
     "\u0660": "0",
     "\u0661": "1",
     "\u0662": "2",
@@ -65,7 +76,6 @@ function normalizeNumber(value: string) {
     "\u0667": "7",
     "\u0668": "8",
     "\u0669": "9",
-
     "\u06F0": "0",
     "\u06F1": "1",
     "\u06F2": "2",
@@ -94,25 +104,11 @@ function money(value: number) {
   return `${Number(value || 0).toFixed(2)} DA`;
 }
 
-// Simple category inference (because backend doesn't have category yet)
-// You can later replace with a real DB column.
-function inferCategory(product: Product) {
-  const name = (product.name || "").toLowerCase();
-
-  if (/(coca|cola|pepsi|fanta|sprite)/.test(name)) return "COLA";
-  if (/(juice|jus|orange|ananas|apple)/.test(name)) return "JUICE";
-  if (/(energy|red bull|monster)/.test(name)) return "ENERGY DRINKS";
-  if (/(water|eau)/.test(name)) return "REFRESHING WATER";
-  if (/(candy|choco|bar|gauf|bisc|cake)/.test(name)) return "CANDY BARS";
-  if (/(coffee|café)/.test(name)) return "COFFEE";
-
-  return "ALL";
-}
-
 export default function Store() {
   const api = (window as any).api;
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
 
   const [loading, setLoading] = useState(true);
@@ -120,13 +116,10 @@ export default function Store() {
   const [error, setError] = useState("");
 
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<
-    "ALL" | "JUICE" | "COLA" | "ENERGY DRINKS" | "REFRESHING WATER" | "CANDY BARS" | "COFFEE"
-  >("ALL");
+  const [categoryId, setCategoryId] = useState<string>("ALL");
 
   const [cart, setCart] = useState<CartItem[]>([]);
 
-  // right panel
   const [payment, setPayment] = useState<"cash" | "player">("cash");
   const [playerId, setPlayerId] = useState("");
   const [customerName, setCustomerName] = useState("");
@@ -137,12 +130,14 @@ export default function Store() {
       if (showLoading) setLoading(true);
       setError("");
 
-      const [p, pl] = await Promise.all([
+      const [p, c, pl] = await Promise.all([
         api.getProducts(),
+        api.getCategories(),
         api.getPlayers(),
       ]);
 
       setProducts(p);
+      setCategories(c);
       setPlayers(pl);
     } catch (e) {
       console.error(e);
@@ -156,21 +151,27 @@ export default function Store() {
     void loadData(true);
   }, []);
 
-  const activeProducts = useMemo(() => {
-    return products
-      .filter((p) => Number(p.active) === 1)
-      .map((p) => ({
-        ...p,
-        __category: inferCategory(p),
-      }));
-  }, [products]);
+  const activeCategories = useMemo(
+    () =>
+      categories
+        .filter((c) => Number(c.active) === 1)
+        .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0)),
+    [categories]
+  );
+
+  const activeProducts = useMemo(
+    () => products.filter((p) => Number(p.active) === 1),
+    [products]
+  );
 
   const filteredProducts = useMemo(() => {
     const q = search.trim().toLowerCase();
 
-    return activeProducts.filter((p: any) => {
+    return activeProducts.filter((p) => {
       const matchCategory =
-        category === "ALL" ? true : (p.__category as string) === category;
+        categoryId === "ALL"
+          ? true
+          : String(p.categoryId || "") === String(categoryId);
 
       const matchQuery =
         !q ||
@@ -179,18 +180,18 @@ export default function Store() {
 
       return matchCategory && matchQuery;
     });
-  }, [activeProducts, category, search]);
+  }, [activeProducts, categoryId, search]);
 
   const cartCount = cart.reduce((t, i) => t + i.quantity, 0);
   const subtotal = cart.reduce((t, i) => t + i.quantity * i.unitPrice, 0);
   const total = Number(subtotal.toFixed(2));
 
-  function upsertCart(product: any, delta: number) {
+  function upsertCart(product: Product, delta: number) {
     setCart((prev) => {
       const existing = prev.find((i) => i.productId === product.id);
 
       const stock = Number(product.stock || 0);
-      const categoryName = (product.__category || "ALL") as string;
+      const categoryName = product.categoryName || "Other";
 
       if (!existing) {
         const nextQty = Math.max(0, Math.min(stock, delta));
@@ -205,15 +206,13 @@ export default function Store() {
             unitPrice: Number(product.salePrice || 0),
             quantity: nextQty,
             stock,
-            category: categoryName,
+            categoryName,
+            image: product.image || null,
           },
         ];
       }
 
-      const nextQty = Math.max(
-        0,
-        Math.min(stock, existing.quantity + delta)
-      );
+      const nextQty = Math.max(0, Math.min(stock, existing.quantity + delta));
 
       if (nextQty === 0) {
         return prev.filter((i) => i.productId !== product.id);
@@ -226,54 +225,12 @@ export default function Store() {
               quantity: nextQty,
               stock,
               unitPrice: Number(product.salePrice || 0),
-              category: categoryName,
+              categoryName,
+              image: product.image || null,
             }
           : i
       );
     });
-  }
-
-  function setQty(product: any, qty: number) {
-    setCart((prev) => {
-      const stock = Number(product.stock || 0);
-      const safeQty = Math.max(0, Math.min(stock, qty));
-      const existing = prev.find((i) => i.productId === product.id);
-
-      if (!existing) {
-        if (safeQty === 0) return prev;
-        return [
-          ...prev,
-          {
-            productId: product.id,
-            name: product.name,
-            unit: product.unit || "pcs",
-            unitPrice: Number(product.salePrice || 0),
-            quantity: safeQty,
-            stock,
-            category: (product.__category || "ALL") as string,
-          },
-        ];
-      }
-
-      if (safeQty === 0) {
-        return prev.filter((i) => i.productId !== product.id);
-      }
-
-      return prev.map((i) =>
-        i.productId === product.id
-          ? {
-              ...i,
-              quantity: safeQty,
-              stock,
-              unitPrice: Number(product.salePrice || 0),
-            }
-          : i
-      );
-    });
-  }
-
-  function clearCart() {
-    setCart([]);
   }
 
   async function checkout(event: FormEvent) {
@@ -290,9 +247,7 @@ export default function Store() {
     }
 
     const confirmed = window.confirm(
-      `تأكيد الدفع؟\n` +
-        `الإجمالي: ${money(total)}\n` +
-        `عدد العناصر: ${cartCount}`
+      `تأكيد الدفع؟\nالإجمالي: ${money(total)}\nعدد العناصر: ${cartCount}`
     );
 
     if (!confirmed) return;
@@ -335,7 +290,7 @@ export default function Store() {
           `أضيف للدين: ${money(result.debtAdded)}`
       );
 
-      clearCart();
+      setCart([]);
       setCustomerName("");
       setNote("");
 
@@ -348,24 +303,16 @@ export default function Store() {
     }
   }
 
-  const tabs: Array<{ id: typeof category; label: string }> = [
-    { id: "ALL", label: "ALL" },
-    { id: "JUICE", label: "JUICE" },
-    { id: "COLA", label: "COLA" },
-    { id: "ENERGY DRINKS", label: "ENERGY DRINKS" },
-    { id: "REFRESHING WATER", label: "REFRESHING WATER" },
-    { id: "CANDY BARS", label: "CANDY BARS" },
-    { id: "COFFEE", label: "COFFEE" },
-  ];
-
+  // NOTE: make POS layout like the screenshot (products LEFT, checkout RIGHT)
+  // Use LTR for layout, keep text blocks RTL.
   return (
-    <div dir="rtl" className="space-y-5">
+    <div dir="ltr" className="space-y-5">
       <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
+        <div dir="rtl">
           <p className="mb-2 text-sm text-violet-300">Point of Sale</p>
-          <h1 className="text-3xl font-semibold">المتجر / POS</h1>
+          <h1 className="text-3xl font-semibold">POS / المتجر</h1>
           <p className="mt-2 text-sm text-white/45">
-            ابحث واختر المنتجات ثم ادفع من اليمين
+            نقرة على المنتج تضيفه للسلة مباشرة
           </p>
         </div>
 
@@ -375,20 +322,19 @@ export default function Store() {
           className="flex h-11 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-4 text-sm"
         >
           <RefreshCw size={17} className={loading ? "animate-spin" : ""} />
-          تحديث
+          Refresh
         </button>
       </section>
 
       {error && (
-        <div className="rounded-lg border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <div dir="rtl" className="rounded-lg border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
           {error}
         </div>
       )}
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-        {/* LEFT: browse */}
+        {/* PRODUCTS (left) */}
         <div className="space-y-4">
-          {/* search + tabs */}
           <div className="rounded-xl border border-white/[0.08] bg-[#0c101d] p-4">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex h-10 items-center gap-2 rounded-lg border border-white/10 bg-[#080b16] px-3">
@@ -396,7 +342,7 @@ export default function Store() {
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="بحث..."
+                  placeholder="Search..."
                   className="min-w-0 flex-1 bg-transparent text-sm outline-none"
                 />
               </div>
@@ -408,47 +354,70 @@ export default function Store() {
             </div>
 
             <div className="mt-3 flex flex-wrap gap-2">
-              {tabs.map((t) => (
+              <button
+                type="button"
+                onClick={() => setCategoryId("ALL")}
+                className={`h-9 rounded-lg border px-3 text-xs transition ${
+                  categoryId === "ALL"
+                    ? "border-violet-400/30 bg-violet-600 text-white"
+                    : "border-white/10 bg-white/[0.05] text-white/50"
+                }`}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <Tags size={14} />
+                  ALL
+                </span>
+              </button>
+
+              {activeCategories.map((c) => (
                 <button
-                  key={t.id}
+                  key={c.id}
                   type="button"
-                  onClick={() => setCategory(t.id)}
+                  onClick={() => setCategoryId(String(c.id))}
                   className={`h-9 rounded-lg border px-3 text-xs transition ${
-                    category === t.id
+                    String(categoryId) === String(c.id)
                       ? "border-violet-400/30 bg-violet-600 text-white"
-                      : "border-white/10 bg-white/[0.05] text-white/50 hover:border-violet-400/20"
+                      : "border-white/10 bg-white/[0.05] text-white/50"
                   }`}
                 >
                   <span className="inline-flex items-center gap-2">
                     <Tags size={14} />
-                    {t.label}
+                    {c.name}
                   </span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* products grid */}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-            {filteredProducts.map((p: any) => {
+            {filteredProducts.map((p) => {
               const stock = Number(p.stock || 0);
-
-              const inCart =
-                cart.find((i) => i.productId === p.id)?.quantity || 0;
+              const inCart = cart.find((i) => i.productId === p.id)?.quantity || 0;
 
               return (
-                <div
+                <button
                   key={p.id}
-                  className="rounded-xl border border-white/[0.08] bg-[#0c101d] overflow-hidden"
+                  type="button"
+                  onClick={() => upsertCart(p, +1)} // ONE CLICK add
+                  disabled={stock <= 0}
+                  className="text-left rounded-xl border border-white/[0.08] bg-[#0c101d] overflow-hidden transition hover:border-violet-400/30 disabled:opacity-40"
                 >
-                  <div className="h-20 bg-gradient-to-br from-violet-600/20 via-fuchsia-600/10 to-cyan-500/10" />
+                  <div className="h-32 bg-[#090d18]">
+                    {p.image ? (
+                      <img src={p.image} alt={p.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-white/15">
+                        <ImageIcon />
+                      </div>
+                    )}
+                  </div>
 
-                  <div className="p-4">
+                  <div dir="rtl" className="p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate font-semibold">{p.name}</p>
                         <p className="mt-1 text-xs text-white/30">
-                          {stock} {p.unit}
+                          {p.categoryName || "Other"} · Stock {stock} {p.unit}
                         </p>
                       </div>
 
@@ -460,48 +429,44 @@ export default function Store() {
                     <div className="mt-3 grid grid-cols-[36px_1fr_36px] gap-2 items-center">
                       <button
                         type="button"
-                        onClick={() => upsertCart(p, -1)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          upsertCart(p, -1);
+                        }}
                         disabled={inCart <= 0}
                         className="flex h-9 items-center justify-center rounded-lg bg-white/[0.05] text-white/70 disabled:opacity-30"
                       >
                         <Minus size={16} />
                       </button>
 
-                      <input
-                        dir="ltr"
-                        type="text"
-                        inputMode="numeric"
-                        value={String(inCart || 0)}
-                        onChange={(e) => {
-                          const q = Number(normalizeNumber(e.target.value));
-                          setQty(p, Number.isFinite(q) ? q : 0);
-                        }}
-                        className="h-9 rounded-lg border border-white/10 bg-[#080b16] px-3 text-sm outline-none text-center"
-                      />
+                      <div className="h-9 rounded-lg border border-white/10 bg-[#080b16] text-center flex items-center justify-center text-sm">
+                        {inCart}
+                      </div>
 
                       <button
                         type="button"
-                        onClick={() => upsertCart(p, +1)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          upsertCart(p, +1);
+                        }}
                         disabled={stock <= 0 || inCart >= stock}
                         className="flex h-9 items-center justify-center rounded-lg bg-violet-600 text-white disabled:opacity-30"
                       >
                         <Plus size={16} />
                       </button>
                     </div>
-
-                    <p className="mt-2 text-[10px] text-white/30">
-                      Category: {p.__category}
-                    </p>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
         </div>
 
-        {/* RIGHT: current order */}
+        {/* CHECKOUT (right) */}
         <aside className="h-fit rounded-xl border border-white/[0.08] bg-[#0c101d]">
-          <div className="border-b border-white/[0.08] p-5">
+          <div className="border-b border-white/[0.08] p-5" dir="rtl">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="font-semibold">Current Order</h2>
@@ -512,7 +477,7 @@ export default function Store() {
 
               <button
                 type="button"
-                onClick={clearCart}
+                onClick={() => setCart([])}
                 className="h-9 rounded-lg bg-white/[0.05] px-3 text-xs text-white/60"
               >
                 Clear
@@ -520,8 +485,7 @@ export default function Store() {
             </div>
           </div>
 
-          <div className="p-5">
-            {/* order items */}
+          <div className="p-5" dir="rtl">
             <div className="rounded-xl border border-white/[0.08] bg-[#090d18]">
               {cart.length === 0 ? (
                 <div className="p-6 text-center text-sm text-white/35">
@@ -536,7 +500,7 @@ export default function Store() {
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium">{i.name}</p>
                           <p className="mt-1 text-xs text-white/30">
-                            {i.category} · {i.unit}
+                            {i.categoryName} · {i.unit}
                           </p>
                         </div>
 
@@ -574,7 +538,13 @@ export default function Store() {
                             setCart((prev) =>
                               prev.map((x) =>
                                 x.productId === i.productId
-                                  ? { ...x, quantity: Math.max(1, Math.min(i.stock, Number.isFinite(q) ? q : 1)) }
+                                  ? {
+                                      ...x,
+                                      quantity: Math.max(
+                                        1,
+                                        Math.min(i.stock, Number.isFinite(q) ? q : 1)
+                                      ),
+                                    }
                                   : x
                               )
                             );
@@ -605,16 +575,10 @@ export default function Store() {
               )}
             </div>
 
-            {/* totals */}
             <div className="mt-4 rounded-xl border border-white/[0.08] bg-[#090d18] p-4 text-sm">
               <div className="flex items-center justify-between text-white/60">
                 <span>Subtotal</span>
                 <span dir="ltr">{money(total)}</span>
-              </div>
-
-              <div className="mt-2 flex items-center justify-between text-white/60">
-                <span>Discount</span>
-                <span dir="ltr">0.00 DA</span>
               </div>
 
               <div className="mt-3 h-px bg-white/[0.08]" />
@@ -627,7 +591,6 @@ export default function Store() {
               </div>
             </div>
 
-            {/* payment */}
             <form onSubmit={checkout} className="mt-4 space-y-3">
               <div className="grid grid-cols-3 gap-2">
                 <button
@@ -690,7 +653,7 @@ export default function Store() {
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
                 className={fieldClass}
-                placeholder="Link or create customer (اختياري)"
+                placeholder="اسم الزبون (اختياري)"
               />
 
               <input
@@ -714,8 +677,7 @@ export default function Store() {
               </button>
 
               <p className="text-[10px] leading-5 text-white/30">
-                ملاحظة: زر WALLET وDEBT يعملان بنفس الآلية (محفظة ثم دين تلقائيًا).
-                إذا تريد “Debt فقط بدون خصم من Wallet” قل لي لنعدّل Backend.
+                WALLET/DEBT: يخصم من المحفظة ثم يحوّل الباقي إلى دين تلقائيًا.
               </p>
             </form>
           </div>
