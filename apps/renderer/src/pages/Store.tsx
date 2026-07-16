@@ -9,6 +9,7 @@ import {
   UserRound,
   Image as ImageIcon,
 } from "lucide-react";
+import { handleUnauthorized } from "../lib/auth";
 
 type Category = {
   id: number;
@@ -110,14 +111,12 @@ export default function Store() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
-
   const [loading, setLoading] = useState(true);
   const [checkingOut, setCheckingOut] = useState(false);
   const [error, setError] = useState("");
 
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState<string>("ALL");
-
   const [cart, setCart] = useState<CartItem[]>([]);
 
   const [payment, setPayment] = useState<"cash" | "player">("cash");
@@ -249,7 +248,6 @@ export default function Store() {
     const confirmed = window.confirm(
       `تأكيد الدفع؟\nالإجمالي: ${money(total)}\nعدد العناصر: ${cartCount}`
     );
-
     if (!confirmed) return;
 
     try {
@@ -295,16 +293,15 @@ export default function Store() {
       setNote("");
 
       await loadData(true);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      if (handleUnauthorized(e)) return;
       setError("تعذر إتمام العملية (تحقق من المخزون)");
     } finally {
       setCheckingOut(false);
     }
   }
 
-  // NOTE: make POS layout like the screenshot (products LEFT, checkout RIGHT)
-  // Use LTR for layout, keep text blocks RTL.
   return (
     <div dir="ltr" className="space-y-5">
       <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -327,13 +324,16 @@ export default function Store() {
       </section>
 
       {error && (
-        <div dir="rtl" className="rounded-lg border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <div
+          dir="rtl"
+          className="rounded-lg border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"
+        >
           {error}
         </div>
       )}
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-        {/* PRODUCTS (left) */}
+        {/* PRODUCTS */}
         <div className="space-y-4">
           <div className="rounded-xl border border-white/[0.08] bg-[#0c101d] p-4">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -398,13 +398,17 @@ export default function Store() {
                 <button
                   key={p.id}
                   type="button"
-                  onClick={() => upsertCart(p, +1)} // ONE CLICK add
+                  onClick={() => upsertCart(p, +1)}
                   disabled={stock <= 0}
                   className="text-left rounded-xl border border-white/[0.08] bg-[#0c101d] overflow-hidden transition hover:border-violet-400/30 disabled:opacity-40"
                 >
                   <div className="h-32 bg-[#090d18]">
                     {p.image ? (
-                      <img src={p.image} alt={p.name} className="h-full w-full object-cover" />
+                      <img
+                        src={p.image}
+                        alt={p.name}
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-white/15">
                         <ImageIcon />
@@ -464,7 +468,7 @@ export default function Store() {
           </div>
         </div>
 
-        {/* CHECKOUT (right) */}
+        {/* CHECKOUT */}
         <aside className="h-fit rounded-xl border border-white/[0.08] bg-[#0c101d]">
           <div className="border-b border-white/[0.08] p-5" dir="rtl">
             <div className="flex items-center justify-between">
@@ -489,7 +493,8 @@ export default function Store() {
             <div className="rounded-xl border border-white/[0.08] bg-[#090d18]">
               {cart.length === 0 ? (
                 <div className="p-6 text-center text-sm text-white/35">
-                  Cart is empty<br />
+                  Cart is empty
+                  <br />
                   أضف منتجًا للبدء
                 </div>
               ) : (

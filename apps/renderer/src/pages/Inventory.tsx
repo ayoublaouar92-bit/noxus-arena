@@ -13,6 +13,7 @@ import {
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
+import { handleUnauthorized } from "../lib/auth";
 
 type Category = {
   id: number;
@@ -97,7 +98,6 @@ export default function Inventory() {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-
   const [loading, setLoading] = useState(true);
   const [savingProduct, setSavingProduct] = useState(false);
   const [savingCategory, setSavingCategory] = useState(false);
@@ -203,8 +203,9 @@ export default function Inventory() {
       setCatSort("0");
 
       await load(true);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      if (handleUnauthorized(e)) return;
       setError("تعذر إضافة التصنيف (قد يكون موجودًا)");
     } finally {
       setSavingCategory(false);
@@ -217,8 +218,9 @@ export default function Inventory() {
     try {
       await api.deleteCategory(category.id);
       await load(true);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      if (handleUnauthorized(e)) return;
       setError("تعذر حذف/تعطيل التصنيف");
     }
   }
@@ -257,8 +259,9 @@ export default function Inventory() {
       setImage("");
 
       await load(true);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      if (handleUnauthorized(e)) return;
       setError("تعذر إضافة المنتج");
     } finally {
       setSavingProduct(false);
@@ -271,8 +274,9 @@ export default function Inventory() {
     try {
       await api.deleteProduct(product.id);
       await load(true);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      if (handleUnauthorized(e)) return;
       setError("تعذر حذف/تعطيل المنتج");
     }
   }
@@ -287,8 +291,9 @@ export default function Inventory() {
       });
 
       await load();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      if (handleUnauthorized(e)) return;
       setError("تعذر تعديل المخزون");
     }
   }
@@ -338,8 +343,9 @@ export default function Inventory() {
 
       closeEdit();
       await load(true);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      if (handleUnauthorized(e)) return;
       setError("تعذر حفظ التعديلات");
     } finally {
       setEditSaving(false);
@@ -416,7 +422,6 @@ export default function Inventory() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="truncate font-semibold">{p.name}</p>
-
                       <p className="mt-1 text-xs text-white/35">
                         التصنيف: {p.categoryName || "Other"} · الوحدة: {p.unit}
                       </p>
@@ -628,7 +633,12 @@ export default function Inventory() {
                     )}
                   </div>
 
-                  <input type="file" accept="image/*" onChange={chooseImage(setImage)} className="hidden" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={chooseImage(setImage)}
+                    className="hidden"
+                  />
                 </label>
 
                 <p className="mt-2 text-[10px] text-white/30">حد أقصى 2MB</p>
@@ -739,7 +749,11 @@ export default function Inventory() {
                 disabled={savingProduct}
                 className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-medium disabled:opacity-50"
               >
-                {savingProduct ? <RefreshCw size={17} className="animate-spin" /> : <Plus size={17} />}
+                {savingProduct ? (
+                  <RefreshCw size={17} className="animate-spin" />
+                ) : (
+                  <Plus size={17} />
+                )}
                 إضافة المنتج
               </button>
             </form>
@@ -871,7 +885,9 @@ export default function Inventory() {
                         type="text"
                         inputMode="decimal"
                         value={editSalePrice}
-                        onChange={(e) => setEditSalePrice(normalizeNumber(e.target.value))}
+                        onChange={(e) =>
+                          setEditSalePrice(normalizeNumber(e.target.value))
+                        }
                         className={fieldClass}
                       />
                     </label>
@@ -883,7 +899,9 @@ export default function Inventory() {
                         type="text"
                         inputMode="decimal"
                         value={editCostPrice}
-                        onChange={(e) => setEditCostPrice(normalizeNumber(e.target.value))}
+                        onChange={(e) =>
+                          setEditCostPrice(normalizeNumber(e.target.value))
+                        }
                         className={fieldClass}
                       />
                     </label>
