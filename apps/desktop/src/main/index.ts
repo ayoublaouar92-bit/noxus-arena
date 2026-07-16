@@ -204,11 +204,10 @@ ipcMain.handle("update-device", (_event, data: UpdateDeviceData) => {
   const mac = normalizeMac(String(data.mac || ""));
   const price = String(data.price || "0");
 
-  // status allowed only if no running session
+  // status allowed only if no running session when trying to force Available
   let status = data.status ? String(data.status) : existing.status;
 
   if (status === "Available" && existing.status === "Busy") {
-    // Ensure no running session
     const running = db
       .prepare(
         `
@@ -258,26 +257,11 @@ ipcMain.handle("delete-device", (_event, deviceId: number) => {
   const id = Number(deviceId);
   if (!id) throw new Error("Device ID is required");
 
-  // prevent deleting if there is any session history (optional).
-  // User asked "delete", so we allow delete even with history ONLY if you accept it.
-  // We will BLOCK deletion if sessions exist to avoid breaking references.
-  const sessionCount = db
-    .prepare(
-      `
-        SELECT COUNT(*) AS total
-        FROM sessions
-        WHERE deviceId = ?
-      `
-    )
-    .get(id) as { total: number };
-
-  if (Number(sessionCount.total) > 0) {
-    throw new Error("Cannot delete device with session history");
-  }
-
   const row = db.prepare(`SELECT * FROM devices WHERE id = ?`).get(id) as DeviceRow | undefined;
   if (!row) throw new Error("Device not found");
 
+  // Allow delete even if session history exists (requested).
+  // NOTE: old sessions will reference a deleted deviceId.
   const result = db.prepare(`DELETE FROM devices WHERE id = ?`).run(id);
 
   audit(db, {
@@ -407,7 +391,6 @@ ipcMain.handle("end-session", (_event, sessionId: number) => {
   const startTime = new Date(session.startTime);
 
   const minutes = Math.max(1, Math.ceil((endTime.getTime() - startTime.getTime()) / 60000));
-
   const total = ((minutes / 60) * Number(device.price || 0)).toFixed(2);
 
   const endTransaction = db.transaction(() => {
@@ -461,7 +444,6 @@ ipcMain.handle("get-players", () => {
 
 ipcMain.handle("add-player", (_event, player: AddPlayerData) => {
   const name = player.name?.trim();
-
   const username = player.username?.trim().replace(/^@/, "");
 
   if (!name) throw new Error("Player name is required");
