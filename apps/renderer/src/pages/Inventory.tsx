@@ -8,6 +8,10 @@ import {
   Tags,
   Image as ImageIcon,
   X,
+  Pencil,
+  Save,
+  ToggleLeft,
+  ToggleRight,
 } from "lucide-react";
 
 type Category = {
@@ -99,7 +103,7 @@ export default function Inventory() {
   const [savingCategory, setSavingCategory] = useState(false);
   const [error, setError] = useState("");
 
-  // Product form
+  // Product add form
   const [name, setName] = useState("");
   const [sku, setSku] = useState("");
   const [unit, setUnit] = useState("pcs");
@@ -114,16 +118,25 @@ export default function Inventory() {
   const [catColor, setCatColor] = useState("#64748b");
   const [catSort, setCatSort] = useState("0");
 
+  // Edit modal state
+  const [editing, setEditing] = useState<Product | null>(null);
+  const [editSaving, setEditSaving] = useState(false);
+
+  const [editName, setEditName] = useState("");
+  const [editSku, setEditSku] = useState("");
+  const [editUnit, setEditUnit] = useState("pcs");
+  const [editSalePrice, setEditSalePrice] = useState("0");
+  const [editCostPrice, setEditCostPrice] = useState("0");
+  const [editCategoryId, setEditCategoryId] = useState<string>("");
+  const [editImage, setEditImage] = useState<string>("");
+  const [editActive, setEditActive] = useState(true);
+
   async function load(showLoading = false) {
     try {
       if (showLoading) setLoading(true);
       setError("");
 
-      const [p, c] = await Promise.all([
-        api.getProducts(),
-        api.getCategories(),
-      ]);
-
+      const [p, c] = await Promise.all([api.getProducts(), api.getCategories()]);
       setProducts(p);
       setCategories(c);
     } catch (e) {
@@ -138,30 +151,32 @@ export default function Inventory() {
     void load(true);
   }, []);
 
-  function chooseImage(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  function chooseImage(setter: (value: string) => void) {
+    return (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      setError("اختر صورة صالحة");
-      return;
-    }
+      if (!file.type.startsWith("image/")) {
+        setError("اختر صورة صالحة");
+        return;
+      }
 
-    if (file.size > 2 * 1024 * 1024) {
-      setError("حجم الصورة يجب ألا يتجاوز 2MB");
-      return;
-    }
+      if (file.size > 2 * 1024 * 1024) {
+        setError("حجم الصورة يجب ألا يتجاوز 2MB");
+        return;
+      }
 
-    const reader = new FileReader();
+      const reader = new FileReader();
 
-    reader.onload = () => {
-      setImage(String(reader.result || ""));
-      setError("");
+      reader.onload = () => {
+        setter(String(reader.result || ""));
+        setError("");
+      };
+
+      reader.onerror = () => setError("تعذر قراءة الصورة");
+
+      reader.readAsDataURL(file);
     };
-
-    reader.onerror = () => setError("تعذر قراءة الصورة");
-
-    reader.readAsDataURL(file);
   }
 
   async function addCategory(event: FormEvent) {
@@ -270,10 +285,64 @@ export default function Inventory() {
         reason: "ADJUSTMENT",
         note: "Quick adjust",
       });
+
       await load();
     } catch (e) {
       console.error(e);
       setError("تعذر تعديل المخزون");
+    }
+  }
+
+  function openEdit(product: Product) {
+    setEditing(product);
+
+    setEditName(product.name || "");
+    setEditSku(product.sku || "");
+    setEditUnit(product.unit || "pcs");
+    setEditSalePrice(String(Number(product.salePrice || 0)));
+    setEditCostPrice(String(Number(product.costPrice || 0)));
+    setEditCategoryId(product.categoryId ? String(product.categoryId) : "");
+    setEditImage(product.image || "");
+    setEditActive(Number(product.active) === 1);
+  }
+
+  function closeEdit() {
+    setEditing(null);
+  }
+
+  async function saveEdit(event: FormEvent) {
+    event.preventDefault();
+
+    if (!editing) return;
+
+    if (!editName.trim()) {
+      setError("اسم المنتج مطلوب");
+      return;
+    }
+
+    try {
+      setEditSaving(true);
+      setError("");
+
+      await api.updateProduct({
+        productId: editing.id,
+        name: editName.trim(),
+        sku: editSku.trim(),
+        unit: editUnit.trim(),
+        salePrice: Number(editSalePrice || 0),
+        costPrice: Number(editCostPrice || 0),
+        categoryId: editCategoryId ? Number(editCategoryId) : null,
+        image: editImage ? editImage : null,
+        active: editActive,
+      });
+
+      closeEdit();
+      await load(true);
+    } catch (e) {
+      console.error(e);
+      setError("تعذر حفظ التعديلات");
+    } finally {
+      setEditSaving(false);
     }
   }
 
@@ -344,11 +413,24 @@ export default function Inventory() {
                 </div>
 
                 <div className="px-4 pb-4">
-                  <p className="truncate font-semibold">{p.name}</p>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold">{p.name}</p>
 
-                  <p className="mt-1 text-xs text-white/35">
-                    التصنيف: {p.categoryName || "Other"} · الوحدة: {p.unit}
-                  </p>
+                      <p className="mt-1 text-xs text-white/35">
+                        التصنيف: {p.categoryName || "Other"} · الوحدة: {p.unit}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => openEdit(p)}
+                      className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.05] text-white/70"
+                      title="تعديل"
+                    >
+                      <Pencil size={16} />
+                    </button>
+                  </div>
 
                   <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                     <div className="rounded-lg bg-white/[0.03] p-3">
@@ -409,9 +491,7 @@ export default function Inventory() {
                 </div>
                 <div>
                   <h2 className="font-semibold">التصنيفات / Categories</h2>
-                  <p className="mt-1 text-xs text-white/30">
-                    إضافة/حذف/ترتيب
-                  </p>
+                  <p className="mt-1 text-xs text-white/30">إضافة/حذف/ترتيب</p>
                 </div>
               </div>
             </div>
@@ -451,9 +531,7 @@ export default function Inventory() {
                     inputMode="numeric"
                     value={catSort}
                     onChange={(e) =>
-                      setCatSort(
-                        normalizeNumber(e.target.value).replace(".", "")
-                      )
+                      setCatSort(normalizeNumber(e.target.value).replace(".", ""))
                     }
                     placeholder="0"
                     className={fieldClass}
@@ -475,9 +553,7 @@ export default function Inventory() {
               </button>
 
               <div className="rounded-xl border border-white/[0.08] bg-[#090d18]">
-                <div className="p-3 text-xs text-white/35">
-                  التصنيفات الحالية
-                </div>
+                <div className="p-3 text-xs text-white/35">التصنيفات الحالية</div>
 
                 <div className="divide-y divide-white/[0.06]">
                   {categories.map((c) => (
@@ -486,10 +562,7 @@ export default function Inventory() {
                       className="flex items-center justify-between gap-3 p-3"
                     >
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">
-                          {c.name}
-                        </p>
-
+                        <p className="truncate text-sm font-medium">{c.name}</p>
                         <p className="mt-1 text-[10px] text-white/30">
                           {c.color || "—"} · ترتيب {Number(c.sortOrder || 0)}
                         </p>
@@ -518,15 +591,12 @@ export default function Inventory() {
                 </div>
                 <div>
                   <h2 className="font-semibold">إضافة منتج / Add product</h2>
-                  <p className="mt-1 text-xs text-white/30">
-                    أدخل البيانات بوضوح
-                  </p>
+                  <p className="mt-1 text-xs text-white/30">أدخل البيانات بوضوح</p>
                 </div>
               </div>
             </div>
 
             <form onSubmit={addProduct} className="space-y-4 p-5">
-              {/* Image */}
               <div className="rounded-xl border border-white/[0.08] bg-[#090d18] p-4">
                 <div className="mb-3 flex items-center justify-between">
                   <p className="text-sm font-medium">صورة المنتج</p>
@@ -553,24 +623,15 @@ export default function Inventory() {
                     ) : (
                       <div className="text-center">
                         <ImageIcon className="mx-auto text-white/25" />
-                        <p className="mt-2 text-xs text-white/35">
-                          اختر صورة
-                        </p>
+                        <p className="mt-2 text-xs text-white/35">اختر صورة</p>
                       </div>
                     )}
                   </div>
 
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={chooseImage}
-                    className="hidden"
-                  />
+                  <input type="file" accept="image/*" onChange={chooseImage(setImage)} className="hidden" />
                 </label>
 
-                <p className="mt-2 text-[10px] text-white/30">
-                  حد أقصى 2MB
-                </p>
+                <p className="mt-2 text-[10px] text-white/30">حد أقصى 2MB</p>
               </div>
 
               <label className="block">
@@ -591,7 +652,6 @@ export default function Inventory() {
                   className={fieldClass}
                 >
                   <option value="">Other (Default)</option>
-
                   {categories
                     .filter((c) => Number(c.active) === 1)
                     .map((c) => (
@@ -637,9 +697,7 @@ export default function Inventory() {
                       type="text"
                       inputMode="decimal"
                       value={salePrice}
-                      onChange={(e) =>
-                        setSalePrice(normalizeNumber(e.target.value))
-                      }
+                      onChange={(e) => setSalePrice(normalizeNumber(e.target.value))}
                       placeholder="مثال: 70"
                       className={fieldClass}
                     />
@@ -652,9 +710,7 @@ export default function Inventory() {
                       type="text"
                       inputMode="decimal"
                       value={costPrice}
-                      onChange={(e) =>
-                        setCostPrice(normalizeNumber(e.target.value))
-                      }
+                      onChange={(e) => setCostPrice(normalizeNumber(e.target.value))}
                       placeholder="مثال: 50"
                       className={fieldClass}
                     />
@@ -667,9 +723,7 @@ export default function Inventory() {
                       type="text"
                       inputMode="decimal"
                       value={initialStock}
-                      onChange={(e) =>
-                        setInitialStock(normalizeNumber(e.target.value))
-                      }
+                      onChange={(e) => setInitialStock(normalizeNumber(e.target.value))}
                       placeholder="مثال: 70"
                       className={fieldClass}
                     />
@@ -685,17 +739,192 @@ export default function Inventory() {
                 disabled={savingProduct}
                 className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-medium disabled:opacity-50"
               >
-                {savingProduct ? (
-                  <RefreshCw size={17} className="animate-spin" />
-                ) : (
-                  <Plus size={17} />
-                )}
+                {savingProduct ? <RefreshCw size={17} className="animate-spin" /> : <Plus size={17} />}
                 إضافة المنتج
               </button>
             </form>
           </article>
         </aside>
       </section>
+
+      {/* EDIT MODAL */}
+      {editing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-xl border border-violet-400/20 bg-[#0c101d]">
+            <div className="flex items-center justify-between border-b border-white/[0.08] p-5">
+              <div>
+                <h2 className="font-semibold">تعديل المنتج</h2>
+                <p className="mt-1 text-xs text-white/30">{editing.name}</p>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeEdit}
+                className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.05]"
+              >
+                <X size={17} />
+              </button>
+            </div>
+
+            <form onSubmit={saveEdit} className="space-y-4 p-5">
+              <div className="grid gap-4 lg:grid-cols-2">
+                {/* image */}
+                <div className="rounded-xl border border-white/[0.08] bg-[#090d18] p-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <p className="text-sm font-medium">الصورة</p>
+
+                    {editImage && (
+                      <button
+                        type="button"
+                        onClick={() => setEditImage("")}
+                        className="flex h-9 w-9 items-center justify-center rounded-lg bg-rose-500/10 text-rose-300"
+                        title="حذف الصورة"
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+
+                  <label className="block cursor-pointer">
+                    <div className="flex h-40 items-center justify-center overflow-hidden rounded-lg border border-dashed border-white/15 bg-[#080b16]">
+                      {editImage ? (
+                        <img
+                          src={editImage}
+                          alt="Preview"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="text-center">
+                          <ImageIcon className="mx-auto text-white/25" />
+                          <p className="mt-2 text-xs text-white/35">اختر صورة</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={chooseImage(setEditImage)}
+                      className="hidden"
+                    />
+                  </label>
+
+                  <p className="mt-2 text-[10px] text-white/30">حد أقصى 2MB</p>
+                </div>
+
+                {/* fields */}
+                <div className="space-y-4">
+                  <label className="block">
+                    <span className="mb-2 block text-xs text-white/45">الاسم</span>
+                    <input
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className={fieldClass}
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-2 block text-xs text-white/45">التصنيف</span>
+                    <select
+                      value={editCategoryId}
+                      onChange={(e) => setEditCategoryId(e.target.value)}
+                      className={fieldClass}
+                    >
+                      <option value="">Other (Default)</option>
+                      {categories
+                        .filter((c) => Number(c.active) === 1)
+                        .map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="block">
+                      <span className="mb-2 block text-xs text-white/45">SKU</span>
+                      <input
+                        dir="ltr"
+                        value={editSku}
+                        onChange={(e) => setEditSku(e.target.value)}
+                        className={fieldClass}
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="mb-2 block text-xs text-white/45">Unit</span>
+                      <input
+                        dir="ltr"
+                        value={editUnit}
+                        onChange={(e) => setEditUnit(e.target.value)}
+                        className={fieldClass}
+                      />
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="block">
+                      <span className="mb-2 block text-xs text-white/45">Sale price</span>
+                      <input
+                        dir="ltr"
+                        type="text"
+                        inputMode="decimal"
+                        value={editSalePrice}
+                        onChange={(e) => setEditSalePrice(normalizeNumber(e.target.value))}
+                        className={fieldClass}
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="mb-2 block text-xs text-white/45">Cost price</span>
+                      <input
+                        dir="ltr"
+                        type="text"
+                        inputMode="decimal"
+                        value={editCostPrice}
+                        onChange={(e) => setEditCostPrice(normalizeNumber(e.target.value))}
+                        className={fieldClass}
+                      />
+                    </label>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditActive((v) => !v)}
+                    className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-white/[0.05] text-sm"
+                  >
+                    {editActive ? (
+                      <>
+                        <ToggleRight size={18} className="text-emerald-300" />
+                        Active (مفعل)
+                      </>
+                    ) : (
+                      <>
+                        <ToggleLeft size={18} className="text-rose-300" />
+                        Inactive (معطل)
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={editSaving}
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-medium disabled:opacity-50"
+              >
+                {editSaving ? (
+                  <RefreshCw size={17} className="animate-spin" />
+                ) : (
+                  <Save size={17} />
+                )}
+                حفظ التعديلات
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
