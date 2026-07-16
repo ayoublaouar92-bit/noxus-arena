@@ -15,6 +15,7 @@ import Players from "./pages/Players";
 import Reports from "./pages/Reports";
 import Sessions from "./pages/Sessions";
 import Settings from "./pages/Settings";
+import Staff from "./pages/Staff";
 import Store from "./pages/Store";
 import Tournaments from "./pages/Tournaments";
 
@@ -76,6 +77,11 @@ export default function App() {
           <Route
             path="reports"
             element={<Reports />}
+          />
+
+          <Route
+            path="staff"
+            element={<Staff />}
           />
 
           <Route

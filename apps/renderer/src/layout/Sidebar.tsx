@@ -7,6 +7,7 @@ import {
   Monitor,
   Receipt,
   Settings,
+  Shield,
   ShoppingBag,
   Trophy,
   UserRound,
@@ -18,7 +19,6 @@ import { NavLink } from "react-router-dom";
 const navigationGroups = [
   {
     title: "CONTROL",
-
     items: [
       {
         title: "Dashboard",
@@ -40,10 +40,8 @@ const navigationGroups = [
       },
     ],
   },
-
   {
     title: "ARENA",
-
     items: [
       {
         title: "Players & Members",
@@ -59,10 +57,8 @@ const navigationGroups = [
       },
     ],
   },
-
   {
     title: "BUSINESS",
-
     items: [
       {
         title: "Billing",
@@ -88,6 +84,12 @@ const navigationGroups = [
         path: "/reports",
         icon: BarChart3,
       },
+      {
+        title: "Staff",
+        arabic: "الموظفون",
+        path: "/staff",
+        icon: Shield,
+      },
     ],
   },
 ];
@@ -99,7 +101,6 @@ export default function Sidebar() {
         <div className="flex items-center gap-3">
           <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white shadow-[0_0_30px_rgba(139,92,246,0.28)]">
             <Gamepad2 size={22} />
-
             <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#070a14] bg-cyan-300" />
           </div>
 
@@ -134,9 +135,7 @@ export default function Sidebar() {
                     key={item.path}
                     to={item.path}
                     end={item.path === "/"}
-                    className={({
-                      isActive,
-                    }) =>
+                    className={({ isActive }) =>
                       `group relative flex min-h-11 items-center gap-3 overflow-hidden rounded-lg px-3 transition ${
                         isActive
                           ? "bg-gradient-to-r from-violet-600/90 to-violet-500/45 text-white shadow-[0_8px_28px_rgba(124,58,237,0.17)]"
@@ -163,7 +162,6 @@ export default function Sidebar() {
                           <p className="truncate text-[13px] font-medium">
                             {item.title}
                           </p>
-
                           <p className="mt-0.5 truncate text-[9px] text-white/30">
                             {item.arabic}
                           </p>
@@ -190,9 +188,7 @@ export default function Sidebar() {
           }
         >
           <Settings size={18} />
-
           <span>Settings</span>
-
           <span className="ml-auto text-[10px] text-white/25">
             الإعدادات
           </span>
