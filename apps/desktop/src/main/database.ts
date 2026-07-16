@@ -6,6 +6,8 @@ import { registerBillingHandlers } from "./billing";
 import { registerFinanceHandlers } from "./finance";
 import { registerReportsHandlers } from "./reports";
 import { registerSettingsHandlers } from "./settings";
+import { registerStaffHandlers } from "./staff";
+import { registerStoreHandlers } from "./store";
 import { registerTournamentHandlers } from "./tournaments";
 
 type TableColumn = {
@@ -25,7 +27,7 @@ db.pragma("busy_timeout = 5000");
 
 /*
 |--------------------------------------------------------------------------
-| Devices
+| Core tables
 |--------------------------------------------------------------------------
 */
 
@@ -40,12 +42,6 @@ db.exec(`
     status TEXT NOT NULL DEFAULT 'Available'
   );
 `);
-
-/*
-|--------------------------------------------------------------------------
-| Players
-|--------------------------------------------------------------------------
-*/
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS players (
@@ -225,11 +221,14 @@ db.exec(`
 |--------------------------------------------------------------------------
 | IPC registrations
 |--------------------------------------------------------------------------
+| IMPORTANT: staff first (so other modules can require auth)
 */
 
+registerStaffHandlers(db);
 registerSettingsHandlers(db);
 registerFinanceHandlers(db);
 registerTournamentHandlers(db);
+registerStoreHandlers(db);
 registerBillingHandlers(db);
 registerReportsHandlers(db);
 

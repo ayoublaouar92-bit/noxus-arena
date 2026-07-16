@@ -1,11 +1,12 @@
 import { ipcMain } from "electron";
+import { requireStaff, audit } from "./staff";
 
 type RoundingMode = "minute" | "quarter_hour" | "hour";
 
 type AppSettings = {
-  currency: string; // e.g. "DA"
+  currency: string;
   roundingMode: RoundingMode;
-  minimumMinutes: number; // e.g. 1 or 15
+  minimumMinutes: number;
   defaultGuestPayment: "cash" | "debt";
 };
 
@@ -16,10 +17,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultGuestPayment: "cash",
 };
 
-function registerHandler(
-  channel: string,
-  handler: (...args: any[]) => any
-) {
+function registerHandler(channel: string, handler: (...args: any[]) => any) {
   ipcMain.removeHandler(channel);
   ipcMain.handle(channel, handler);
 }
@@ -101,44 +99,47 @@ export function registerSettingsHandlers(db: any) {
     return getAllSettings(db);
   });
 
-  registerHandler(
-    "settings:update",
-    (
-      _event,
-      updates: Partial<AppSettings>
-    ) => {
-      const current = getAllSettings(db);
+  registerHandler("settings:update", (_event, updates: Partial<AppSettings>) => {
+    // PROTECT
+    requireStaff(db, "SETTINGS_UPDATE");
 
-      const next: AppSettings = {
-        currency:
-          typeof updates.currency === "string" && updates.currency.trim()
-            ? updates.currency.trim()
-            : current.currency,
+    const current = getAllSettings(db);
 
-        roundingMode:
-          updates.roundingMode === "minute" ||
-          updates.roundingMode === "quarter_hour" ||
-          updates.roundingMode === "hour"
-            ? updates.roundingMode
-            : current.roundingMode,
+    const next: AppSettings = {
+      currency:
+        typeof updates.currency === "string" && updates.currency.trim()
+          ? updates.currency.trim()
+          : current.currency,
 
-        minimumMinutes:
-          typeof updates.minimumMinutes !== "undefined"
-            ? clampInt(updates.minimumMinutes, 1, 240)
-            : current.minimumMinutes,
+      roundingMode:
+        updates.roundingMode === "minute" ||
+        updates.roundingMode === "quarter_hour" ||
+        updates.roundingMode === "hour"
+          ? updates.roundingMode
+          : current.roundingMode,
 
-        defaultGuestPayment:
-          updates.defaultGuestPayment === "cash" || updates.defaultGuestPayment === "debt"
-            ? updates.defaultGuestPayment
-            : current.defaultGuestPayment,
-      };
+      minimumMinutes:
+        typeof updates.minimumMinutes !== "undefined"
+          ? clampInt(updates.minimumMinutes, 1, 240)
+          : current.minimumMinutes,
 
-      setSetting(db, "currency", next.currency);
-      setSetting(db, "roundingMode", next.roundingMode);
-      setSetting(db, "minimumMinutes", String(next.minimumMinutes));
-      setSetting(db, "defaultGuestPayment", next.defaultGuestPayment);
+      defaultGuestPayment:
+        updates.defaultGuestPayment === "cash" || updates.defaultGuestPayment === "debt"
+          ? updates.defaultGuestPayment
+          : current.defaultGuestPayment,
+    };
 
-      return next;
-    }
-  );
+    setSetting(db, "currency", next.currency);
+    setSetting(db, "roundingMode", next.roundingMode);
+    setSetting(db, "minimumMinutes", String(next.minimumMinutes));
+    setSetting(db, "defaultGuestPayment", next.defaultGuestPayment);
+
+    audit(db, {
+      action: "SETTINGS_UPDATED",
+      entity: "app_settings",
+      details: JSON.stringify(next),
+    });
+
+    return next;
+  });
 }
