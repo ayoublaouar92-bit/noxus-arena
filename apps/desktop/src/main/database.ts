@@ -9,6 +9,7 @@ import { registerSettingsHandlers } from "./settings";
 import { registerStaffHandlers } from "./staff";
 import { registerStoreHandlers } from "./store";
 import { registerTournamentHandlers } from "./tournaments";
+import { startKioskServer } from "./kioskServer";
 
 type TableColumn = {
   cid: number;
@@ -129,6 +130,10 @@ db.exec(`
     debtAdded REAL NOT NULL DEFAULT 0,
     cashPaid REAL NOT NULL DEFAULT 0,
 
+    -- PAUSE support (v2)
+    pausedAt TEXT,
+    pausedMinutes INTEGER NOT NULL DEFAULT 0,
+
     FOREIGN KEY (deviceId) REFERENCES devices(id),
     FOREIGN KEY (playerId) REFERENCES players(id)
   );
@@ -148,6 +153,8 @@ const sessionMigrations = [
   { name: "walletPaid", definition: "REAL NOT NULL DEFAULT 0" },
   { name: "debtAdded", definition: "REAL NOT NULL DEFAULT 0" },
   { name: "cashPaid", definition: "REAL NOT NULL DEFAULT 0" },
+  { name: "pausedAt", definition: "TEXT" },
+  { name: "pausedMinutes", definition: "INTEGER NOT NULL DEFAULT 0" },
 ];
 
 for (const migration of sessionMigrations) {
@@ -195,7 +202,10 @@ db.exec(`
     phone TEXT,
     identityNotes TEXT,
     amount REAL NOT NULL DEFAULT 0,
+    paidAmount REAL NOT NULL DEFAULT 0,
     status TEXT NOT NULL DEFAULT 'Open',
+    note TEXT,
+    source TEXT NOT NULL DEFAULT 'session',
     createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     settledAt TEXT,
 
@@ -221,7 +231,7 @@ db.exec(`
 |--------------------------------------------------------------------------
 | IPC registrations
 |--------------------------------------------------------------------------
-| IMPORTANT: staff first (so other modules can require auth)
+| IMPORTANT: staff first
 */
 
 registerStaffHandlers(db);
@@ -231,5 +241,12 @@ registerTournamentHandlers(db);
 registerStoreHandlers(db);
 registerBillingHandlers(db);
 registerReportsHandlers(db);
+
+/*
+|--------------------------------------------------------------------------
+| Kiosk LAN server (for client devices)
+|--------------------------------------------------------------------------
+*/
+startKioskServer(db);
 
 export default db;

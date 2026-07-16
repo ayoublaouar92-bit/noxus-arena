@@ -1,6 +1,6 @@
 import { ipcMain } from "electron";
 import { getAllSettings } from "./settings";
-import { getCurrentStaffUserId } from "./staff";
+import { requireStaff, requireAdmin, audit } from "./staff";
 
 type StartSessionData = {
   deviceId: number;
@@ -18,14 +18,14 @@ type EndSessionData = {
 type GuestDebtQuery = {
   query?: string; // search in guestName/phone
   status?: "Open" | "Paid" | "All";
-  start?: string; // ISO date or datetime
-  end?: string; // ISO date or datetime
+  start?: string; // ISO datetime
+  end?: string; // ISO datetime
   limit?: number;
 };
 
 type SettleGuestDebtData = {
   debtId: number;
-  paidAmount: number; // can be partial
+  paidAmount: number; // partial or full
   note?: string;
 };
 
@@ -64,7 +64,12 @@ type SessionRow = {
   guestPhone: string | null;
   guestNotes: string | null;
   startTime: string;
+  endTime?: string | null;
   status: string;
+
+  // pause support
+  pausedAt?: string | null;
+  pausedMinutes?: number;
 };
 
 type GuestDebtRow = {
@@ -74,12 +79,12 @@ type GuestDebtRow = {
   phone: string | null;
   identityNotes: string | null;
   amount: number;
-  paidAmount?: number;
-  remaining?: number;
+  paidAmount: number;
   status: string;
   note?: string | null;
-  createdAt: string;
-  settledAt: string | null;
+  source?: string | null;
+  createdAt?: string;
+  settledAt?: string | null;
 };
 
 function registerHandler(channel: string, handler: (...args: any[]) => any) {
@@ -94,15 +99,19 @@ function roundMinutes(rawMinutes: number, mode: "minute" | "quarter_hour" | "hou
 }
 
 function ensureGuestDebtMigrations(db: any) {
-  // guest_debts exists from your database.ts already, add v2 columns if missing
   const cols = db.prepare("PRAGMA table_info(guest_debts)").all() as Array<{ name: string }>;
   const names = new Set(cols.map((c) => c.name));
 
-  if (!names.has("paidAmount")) db.exec(`ALTER TABLE guest_debts ADD COLUMN paidAmount REAL NOT NULL DEFAULT 0;`);
-  if (!names.has("note")) db.exec(`ALTER TABLE guest_debts ADD COLUMN note TEXT;`);
-  if (!names.has("source")) db.exec(`ALTER TABLE guest_debts ADD COLUMN source TEXT NOT NULL DEFAULT 'session';`);
+  if (!names.has("paidAmount")) {
+    db.exec(`ALTER TABLE guest_debts ADD COLUMN paidAmount REAL NOT NULL DEFAULT 0;`);
+  }
+  if (!names.has("note")) {
+    db.exec(`ALTER TABLE guest_debts ADD COLUMN note TEXT;`);
+  }
+  if (!names.has("source")) {
+    db.exec(`ALTER TABLE guest_debts ADD COLUMN source TEXT NOT NULL DEFAULT 'session';`);
+  }
 
-  // Backfill
   db.exec(`
     UPDATE guest_debts
     SET paidAmount = 0
@@ -116,49 +125,31 @@ function ensureGuestDebtMigrations(db: any) {
   `);
 }
 
-function requireStaffForAction(db: any, action: string) {
-  const staffUserId = getCurrentStaffUserId();
-  if (!staffUserId) {
-    const err = new Error("UNAUTHORIZED");
-    (err as any).code = "UNAUTHORIZED";
-    throw err;
-  }
+function ensureSessionPauseColumns(db: any) {
+  const cols = db.prepare("PRAGMA table_info(sessions)").all() as Array<{ name: string }>;
+  const names = new Set(cols.map((c) => c.name));
 
-  // basic audit trail inside finance module
-  db.prepare(
-    `
-    INSERT INTO audit_log (staffUserId, action, entity, entityId, details)
-    VALUES (?, ?, 'finance', NULL, NULL)
-  `
-  ).run(staffUserId, action);
+  if (!names.has("pausedAt")) db.exec(`ALTER TABLE sessions ADD COLUMN pausedAt TEXT;`);
+  if (!names.has("pausedMinutes")) db.exec(`ALTER TABLE sessions ADD COLUMN pausedMinutes INTEGER NOT NULL DEFAULT 0;`);
 
-  return staffUserId;
+  db.exec(`
+    UPDATE sessions
+    SET pausedMinutes = 0
+    WHERE pausedMinutes IS NULL
+  `);
 }
 
-function requireAdmin(db: any, action: string) {
-  const staffUserId = requireStaffForAction(db, action);
+function toIsoNow() {
+  return new Date().toISOString();
+}
 
-  const staff = db
-    .prepare(`SELECT id, role, active FROM staff_users WHERE id = ?`)
-    .get(staffUserId) as { id: number; role: string; active: number } | undefined;
-
-  if (!staff || Number(staff.active) !== 1) {
-    const err = new Error("UNAUTHORIZED");
-    (err as any).code = "UNAUTHORIZED";
-    throw err;
-  }
-
-  if (staff.role !== "Admin") {
-    const err = new Error("FORBIDDEN");
-    (err as any).code = "FORBIDDEN";
-    throw err;
-  }
-
-  return staffUserId;
+function toNumber(value: unknown) {
+  return Number(value || 0);
 }
 
 export function registerFinanceHandlers(db: any) {
   ensureGuestDebtMigrations(db);
+  ensureSessionPauseColumns(db);
 
   /*
   |--------------------------------------------------------------------------
@@ -294,6 +285,10 @@ export function registerFinanceHandlers(db: any) {
         note?: string;
       }
     ) => {
+      // Top-ups: Admin-only in many businesses, but you didn't ask to restrict this.
+      // If you want Admin-only, change to requireAdmin(db, "FINANCE_TOP_UP_PLAYER");
+      requireStaff(db, "FINANCE_TOP_UP_PLAYER");
+
       const amount = Number(data.amount);
 
       if (!data.playerId) throw new Error("Player ID is required");
@@ -339,6 +334,13 @@ export function registerFinanceHandlers(db: any) {
 
       transaction();
 
+      audit(db, {
+        action: "PLAYER_TOP_UP",
+        entity: "players",
+        entityId: player.id,
+        details: JSON.stringify({ amount, walletAdded, debtPaid }),
+      });
+
       return {
         amount,
         debtPaid,
@@ -370,6 +372,9 @@ export function registerFinanceHandlers(db: any) {
   */
 
   registerHandler("finance:start-session", (_event, data: StartSessionData) => {
+    // Staff allowed
+    requireStaff(db, "FINANCE_START_SESSION");
+
     if (!data.deviceId) throw new Error("Device is required");
 
     const device = db
@@ -402,16 +407,16 @@ export function registerFinanceHandlers(db: any) {
     }
 
     const customerName = player ? player.name : data.customerName?.trim() || "Guest";
-    const startTime = new Date().toISOString();
+    const startTime = toIsoNow();
 
     const transaction = db.transaction(() => {
       const result = db
         .prepare(
           `
             INSERT INTO sessions
-            (deviceId, playerId, customerName, guestPhone, guestNotes, startTime, status)
+            (deviceId, playerId, customerName, guestPhone, guestNotes, startTime, status, pausedAt, pausedMinutes)
             VALUES
-            (?, ?, ?, ?, ?, ?, 'Running')
+            (?, ?, ?, ?, ?, ?, 'Running', NULL, 0)
           `
         )
         .run(
@@ -435,6 +440,13 @@ export function registerFinanceHandlers(db: any) {
     });
 
     const result = transaction();
+
+    audit(db, {
+      action: "SESSION_STARTED",
+      entity: "sessions",
+      entityId: Number(result.lastInsertRowid),
+      details: JSON.stringify({ deviceId: data.deviceId, playerId: player?.id || null, customerName }),
+    });
 
     return {
       id: Number(result.lastInsertRowid),
@@ -466,9 +478,55 @@ export function registerFinanceHandlers(db: any) {
       .all();
   });
 
+  // PAUSE (Staff allowed)
+  registerHandler("finance:pause-session", (_event, sessionId: number) => {
+    requireStaff(db, "FINANCE_PAUSE_SESSION");
+
+    const session = db.prepare(`SELECT * FROM sessions WHERE id = ?`).get(sessionId) as SessionRow | undefined;
+    if (!session) throw new Error("Session not found");
+    if (session.status !== "Running") throw new Error("Only running sessions can be paused");
+    if (session.pausedAt) throw new Error("Session already paused");
+
+    const pausedAt = toIsoNow();
+    db.prepare(`UPDATE sessions SET pausedAt = ? WHERE id = ?`).run(pausedAt, sessionId);
+
+    audit(db, { action: "SESSION_PAUSED", entity: "sessions", entityId: sessionId, details: pausedAt });
+
+    return { id: sessionId, pausedAt };
+  });
+
+  // RESUME (Staff allowed)
+  registerHandler("finance:resume-session", (_event, sessionId: number) => {
+    requireStaff(db, "FINANCE_RESUME_SESSION");
+
+    const session = db.prepare(`SELECT * FROM sessions WHERE id = ?`).get(sessionId) as SessionRow | undefined;
+    if (!session) throw new Error("Session not found");
+    if (session.status !== "Running") throw new Error("Only running sessions can be resumed");
+    if (!session.pausedAt) throw new Error("Session is not paused");
+
+    const pausedAt = new Date(session.pausedAt);
+    const now = new Date();
+    const pausedMinutesAdd = Math.max(0, Math.ceil((now.getTime() - pausedAt.getTime()) / 60000));
+    const newPausedMinutes = Number(session.pausedMinutes || 0) + pausedMinutesAdd;
+
+    db.prepare(`UPDATE sessions SET pausedAt = NULL, pausedMinutes = ? WHERE id = ?`).run(
+      newPausedMinutes,
+      sessionId
+    );
+
+    audit(db, {
+      action: "SESSION_RESUMED",
+      entity: "sessions",
+      entityId: sessionId,
+      details: JSON.stringify({ pausedMinutesAdd, pausedMinutes: newPausedMinutes }),
+    });
+
+    return { id: sessionId, pausedMinutes: newPausedMinutes };
+  });
+
   registerHandler("finance:end-session", (_event, data: EndSessionData) => {
-    // Staff is allowed to end sessions
-    requireStaffForAction(db, "FINANCE_END_SESSION");
+    // Staff allowed
+    requireStaff(db, "FINANCE_END_SESSION");
 
     const settings = getAllSettings(db);
 
@@ -497,12 +555,34 @@ export function registerFinanceHandlers(db: any) {
 
     if (!device) throw new Error("Device not found");
 
+    // If paused, resume bookkeeping first (add paused minutes up to now, and clear pausedAt)
+    if (session.pausedAt) {
+      const pausedAt = new Date(session.pausedAt);
+      const now = new Date();
+      const pausedMinutesAdd = Math.max(0, Math.ceil((now.getTime() - pausedAt.getTime()) / 60000));
+      const newPausedMinutes = Number(session.pausedMinutes || 0) + pausedMinutesAdd;
+
+      db.prepare(`UPDATE sessions SET pausedAt = NULL, pausedMinutes = ? WHERE id = ?`).run(
+        newPausedMinutes,
+        session.id
+      );
+
+      session.pausedAt = null;
+      session.pausedMinutes = newPausedMinutes;
+    }
+
     const endTime = new Date();
     const startTime = new Date(session.startTime);
 
-    const rawMinutes = Math.max(1, Math.ceil((endTime.getTime() - startTime.getTime()) / 60000));
+    const rawMinutes = Math.max(
+      1,
+      Math.ceil((endTime.getTime() - startTime.getTime()) / 60000)
+    );
 
-    const rounded = roundMinutes(rawMinutes, settings.roundingMode);
+    const pausedMinutes = Math.max(0, Number(session.pausedMinutes || 0));
+    const billableRaw = Math.max(1, rawMinutes - pausedMinutes);
+
+    const rounded = roundMinutes(billableRaw, settings.roundingMode);
     const minutes = Math.max(settings.minimumMinutes, rounded);
 
     const total = Number(((minutes / 60) * Number(device.price || 0)).toFixed(2));
@@ -588,10 +668,21 @@ export function registerFinanceHandlers(db: any) {
             paymentMethod = ?,
             walletPaid = ?,
             debtAdded = ?,
-            cashPaid = ?
+            cashPaid = ?,
+            pausedMinutes = ?
           WHERE id = ?
         `
-      ).run(endTime.toISOString(), minutes, total.toFixed(2), paymentMethod, walletPaid, debtAdded, cashPaid, session.id);
+      ).run(
+        endTime.toISOString(),
+        minutes,
+        total.toFixed(2),
+        paymentMethod,
+        walletPaid,
+        debtAdded,
+        cashPaid,
+        pausedMinutes,
+        session.id
+      );
 
       db.prepare(
         `
@@ -604,6 +695,13 @@ export function registerFinanceHandlers(db: any) {
 
     transaction();
 
+    audit(db, {
+      action: "SESSION_ENDED",
+      entity: "sessions",
+      entityId: session.id,
+      details: JSON.stringify({ minutes, total, paymentMethod, pausedMinutes }),
+    });
+
     return {
       minutes,
       total: total.toFixed(2),
@@ -611,6 +709,7 @@ export function registerFinanceHandlers(db: any) {
       walletPaid: walletPaid.toFixed(2),
       debtAdded: debtAdded.toFixed(2),
       cashPaid: cashPaid.toFixed(2),
+      pausedMinutes: String(pausedMinutes),
     };
   });
 
@@ -671,7 +770,7 @@ export function registerFinanceHandlers(db: any) {
 
   // Staff can collect/settle (partial or full)
   registerHandler("finance:settle-guest-debt", (_event, data: SettleGuestDebtData) => {
-    requireStaffForAction(db, "FINANCE_SETTLE_GUEST_DEBT");
+    requireStaff(db, "FINANCE_SETTLE_GUEST_DEBT");
 
     const debtId = Number(data.debtId);
     const paidAmount = Number(data.paidAmount);
@@ -700,7 +799,7 @@ export function registerFinanceHandlers(db: any) {
     const newPaid = currentPaid + paidAmount;
     const newRemaining = Math.max(0, Number(debt.amount || 0) - newPaid);
 
-    const settledAt = newRemaining === 0 ? new Date().toISOString() : null;
+    const settledAt = newRemaining === 0 ? toIsoNow() : null;
     const nextStatus = newRemaining === 0 ? "Paid" : "Open";
 
     db.prepare(
@@ -715,24 +814,18 @@ export function registerFinanceHandlers(db: any) {
       `
     ).run(newPaid, nextStatus, settledAt, data.note?.trim() || null, debtId);
 
-    // audit details
-    const staffUserId = getCurrentStaffUserId();
-    db.prepare(
-      `
-      INSERT INTO audit_log (staffUserId, action, entity, entityId, details)
-      VALUES (?, 'GUEST_DEBT_COLLECTED', 'guest_debts', ?, ?)
-    `
-    ).run(
-      staffUserId,
-      String(debtId),
-      JSON.stringify({
+    audit(db, {
+      action: "GUEST_DEBT_COLLECTED",
+      entity: "guest_debts",
+      entityId: debtId,
+      details: JSON.stringify({
         guestName: debt.guestName,
         collected: paidAmount,
         totalAmount: debt.amount,
         remaining: newRemaining,
         status: nextStatus,
-      })
-    );
+      }),
+    });
 
     return {
       id: debtId,
@@ -768,13 +861,12 @@ export function registerFinanceHandlers(db: any) {
       )
       .run(guestName, phone, identityNotes, amount, note || null);
 
-    const staffUserId = getCurrentStaffUserId();
-    db.prepare(
-      `
-      INSERT INTO audit_log (staffUserId, action, entity, entityId, details)
-      VALUES (?, 'GUEST_DEBT_CREATED', 'guest_debts', ?, ?)
-    `
-    ).run(staffUserId, String(result.lastInsertRowid), JSON.stringify({ guestName, phone, amount, source: "manual" }));
+    audit(db, {
+      action: "GUEST_DEBT_CREATED",
+      entity: "guest_debts",
+      entityId: Number(result.lastInsertRowid),
+      details: JSON.stringify({ guestName, phone, amount, source: "manual" }),
+    });
 
     return { id: Number(result.lastInsertRowid), changes: result.changes };
   });
