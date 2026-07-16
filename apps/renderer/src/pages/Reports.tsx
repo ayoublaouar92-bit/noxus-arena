@@ -8,6 +8,9 @@ import {
   Users,
   Wallet,
   CircleDollarSign,
+  ShoppingBag,
+  Boxes,
+  Layers,
 } from "lucide-react";
 
 type Range = "today" | "week" | "month" | "custom";
@@ -27,6 +30,14 @@ type Report = {
 
   tournaments: {
     revenue: number;
+    walletPaid: number;
+    debtAdded: number;
+    count: number;
+  };
+
+  store: {
+    revenue: number;
+    cashPaid: number;
     walletPaid: number;
     debtAdded: number;
     count: number;
@@ -64,6 +75,27 @@ type Report = {
     walletBalance: number;
     debtBalance: number;
   }>;
+
+  storeAnalytics: {
+    topProducts: Array<{
+      productId: number;
+      name: string;
+      unit: string;
+      quantity: number;
+      revenue: number;
+    }>;
+    revenueByCategory: Array<{
+      category: string;
+      quantity: number;
+      revenue: number;
+    }>;
+    profit: number;
+    cogs: number;
+    inventoryValuation: {
+      valuationCost: number;
+      valuationSale: number;
+    };
+  };
 };
 
 const fieldClass =
@@ -115,9 +147,7 @@ export default function Reports() {
 
   const headerSubtitle = useMemo(() => {
     if (!report) return "";
-    return `${new Date(report.start).toLocaleString("ar-DZ")} → ${new Date(
-      report.end,
-    ).toLocaleString("ar-DZ")}`;
+    return `${new Date(report.start).toLocaleString("ar-DZ")} → ${new Date(report.end).toLocaleString("ar-DZ")}`;
   }, [report]);
 
   function onCustomSubmit(event: FormEvent) {
@@ -125,11 +155,16 @@ export default function Reports() {
     void loadReport(true);
   }
 
+  const totalRevenue =
+    (report?.sessions.revenue || 0) +
+    (report?.tournaments.revenue || 0) +
+    (report?.store.revenue || 0);
+
   const statCards = report
     ? [
         {
-          label: "الإيراد",
-          value: report.sessions.revenue + report.tournaments.revenue,
+          label: "الإيراد (جلسات + بطولات + متجر)",
+          value: totalRevenue,
           icon: TrendingUp,
           surface: "bg-emerald-500/10",
           color: "text-emerald-300",
@@ -143,7 +178,7 @@ export default function Reports() {
         },
         {
           label: "الديون المضافة",
-          value: report.sessions.debtAdded + report.tournaments.debtAdded,
+          value: report.sessions.debtAdded + report.tournaments.debtAdded + report.store.debtAdded,
           icon: CircleDollarSign,
           surface: "bg-rose-500/10",
           color: "text-rose-300",
@@ -164,7 +199,7 @@ export default function Reports() {
         <div>
           <p className="mb-2 text-sm text-violet-300">Insights</p>
           <h1 className="text-3xl font-semibold">التقارير / Reports</h1>
-          <p className="mt-2 text-sm text-white/45">تقرير يومي/أسبوعي/شهري قابل للطباعة</p>
+          <p className="mt-2 text-sm text-white/45">تقارير حسب فترة + متجر + ربح + مخزون</p>
           {headerSubtitle && <p className="mt-2 text-xs text-white/30">{headerSubtitle}</p>}
         </div>
 
@@ -221,10 +256,7 @@ export default function Reports() {
                 />
               </div>
 
-              <button
-                type="submit"
-                className="h-11 rounded-lg bg-violet-600 px-4 text-sm font-medium"
-              >
+              <button type="submit" className="h-11 rounded-lg bg-violet-600 px-4 text-sm font-medium">
                 إنشاء
               </button>
             </form>
@@ -239,23 +271,16 @@ export default function Reports() {
       )}
 
       {loading ? (
-        <div className="flex min-h-60 items-center justify-center text-white/35">
-          جارٍ إنشاء التقرير...
-        </div>
+        <div className="flex min-h-60 items-center justify-center text-white/35">جارٍ إنشاء التقرير...</div>
       ) : !report ? (
-        <div className="flex min-h-60 items-center justify-center text-white/35">
-          لا توجد بيانات
-        </div>
+        <div className="flex min-h-60 items-center justify-center text-white/35">لا توجد بيانات</div>
       ) : (
         <>
           <section className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
             {statCards.map((stat) => {
               const Icon = stat.icon;
               return (
-                <article
-                  key={stat.label}
-                  className="rounded-xl border border-white/[0.08] bg-[#0c101d] p-5"
-                >
+                <article key={stat.label} className="rounded-xl border border-white/[0.08] bg-[#0c101d] p-5">
                   <div className="flex items-start justify-between">
                     <div className={`flex h-11 w-11 items-center justify-center rounded-lg ${stat.surface}`}>
                       <Icon size={21} className={stat.color} />
@@ -270,46 +295,137 @@ export default function Reports() {
             })}
           </section>
 
+          {/* NEW: Store analytics */}
           <section className="grid gap-6 xl:grid-cols-2">
             <article className="rounded-xl border border-white/[0.08] bg-[#0c101d]">
               <div className="border-b border-white/[0.08] p-5">
-                <h2 className="font-semibold">ملخص الفترة</h2>
-                <p className="mt-1 text-xs text-white/30">Breakdown</p>
+                <div className="flex items-center gap-2">
+                  <ShoppingBag className="text-violet-300" size={18} />
+                  <h2 className="font-semibold">المتجر — ربح ومبيعات</h2>
+                </div>
+                <p className="mt-1 text-xs text-white/30">Store revenue / profit</p>
               </div>
 
               <div className="grid gap-3 p-5 sm:grid-cols-2">
                 <div className="rounded-lg bg-white/[0.03] p-4">
-                  <p className="text-xs text-white/35">جلسات (عدد)</p>
-                  <p className="mt-2 text-sky-300">{report.sessions.count}</p>
+                  <p className="text-xs text-white/35">إيراد المتجر</p>
+                  <p dir="ltr" className="mt-2 text-emerald-300">
+                    {formatMoney(report.store.revenue)}
+                  </p>
                 </div>
 
                 <div className="rounded-lg bg-white/[0.03] p-4">
-                  <p className="text-xs text-white/35">بطولات (عدد)</p>
-                  <p className="mt-2 text-violet-300">{report.tournaments.count}</p>
+                  <p className="text-xs text-white/35">عدد فواتير المتجر</p>
+                  <p className="mt-2 text-sky-300">{report.store.count}</p>
                 </div>
 
                 <div className="rounded-lg bg-white/[0.03] p-4">
-                  <p className="text-xs text-white/35">شحن محافظ</p>
-                  <p className="mt-2 text-emerald-300">{formatMoney(report.topUps.total)}</p>
+                  <p className="text-xs text-white/35">تكلفة البضاعة (COGS)</p>
+                  <p dir="ltr" className="mt-2 text-amber-300">
+                    {formatMoney(report.storeAnalytics.cogs)}
+                  </p>
                 </div>
 
                 <div className="rounded-lg bg-white/[0.03] p-4">
-                  <p className="text-xs text-white/35">ديون Guest مدفوعة</p>
-                  <p className="mt-2 text-emerald-300">{formatMoney(report.guestDebtPaid.total)}</p>
-                </div>
-
-                <div className="rounded-lg bg-white/[0.03] p-4">
-                  <p className="text-xs text-white/35">مصروفات</p>
-                  <p className="mt-2 text-rose-300">{formatMoney(report.expenses.total)}</p>
-                </div>
-
-                <div className="rounded-lg bg-white/[0.03] p-4">
-                  <p className="text-xs text-white/35">صافي النقد</p>
-                  <p className="mt-2 font-semibold text-amber-300">{formatMoney(report.netCash)}</p>
+                  <p className="text-xs text-white/35">الربح (Profit)</p>
+                  <p dir="ltr" className="mt-2 font-semibold text-emerald-300">
+                    {formatMoney(report.storeAnalytics.profit)}
+                  </p>
                 </div>
               </div>
             </article>
 
+            <article className="rounded-xl border border-white/[0.08] bg-[#0c101d]">
+              <div className="border-b border-white/[0.08] p-5">
+                <div className="flex items-center gap-2">
+                  <Boxes className="text-violet-300" size={18} />
+                  <h2 className="font-semibold">قيمة المخزون (حاليًا)</h2>
+                </div>
+                <p className="mt-1 text-xs text-white/30">Inventory valuation snapshot</p>
+              </div>
+
+              <div className="grid gap-3 p-5 sm:grid-cols-2">
+                <div className="rounded-lg bg-white/[0.03] p-4">
+                  <p className="text-xs text-white/35">Cost valuation</p>
+                  <p dir="ltr" className="mt-2 text-amber-300">
+                    {formatMoney(report.storeAnalytics.inventoryValuation.valuationCost)}
+                  </p>
+                </div>
+
+                <div className="rounded-lg bg-white/[0.03] p-4">
+                  <p className="text-xs text-white/35">Sale valuation</p>
+                  <p dir="ltr" className="mt-2 text-emerald-300">
+                    {formatMoney(report.storeAnalytics.inventoryValuation.valuationSale)}
+                  </p>
+                </div>
+              </div>
+            </article>
+
+            <article className="rounded-xl border border-white/[0.08] bg-[#0c101d]">
+              <div className="border-b border-white/[0.08] p-5">
+                <div className="flex items-center gap-2">
+                  <Layers className="text-violet-300" size={18} />
+                  <h2 className="font-semibold">أفضل المنتجات</h2>
+                </div>
+                <p className="mt-1 text-xs text-white/30">Top products</p>
+              </div>
+
+              <div className="divide-y divide-white/[0.06]">
+                {report.storeAnalytics.topProducts.length === 0 ? (
+                  <div className="p-10 text-center text-white/30">لا توجد بيانات</div>
+                ) : (
+                  report.storeAnalytics.topProducts.map((p, idx) => (
+                    <div key={p.productId} className="flex items-center justify-between gap-3 p-4">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">
+                          {idx + 1}. {p.name}
+                        </p>
+                        <p className="mt-1 text-xs text-white/30">
+                          Qty: {Number(p.quantity || 0).toFixed(2)} {p.unit}
+                        </p>
+                      </div>
+                      <p dir="ltr" className="text-sm font-semibold text-emerald-300">
+                        {formatMoney(p.revenue)}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </article>
+
+            <article className="rounded-xl border border-white/[0.08] bg-[#0c101d]">
+              <div className="border-b border-white/[0.08] p-5">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="text-violet-300" size={18} />
+                  <h2 className="font-semibold">المبيعات حسب التصنيف</h2>
+                </div>
+                <p className="mt-1 text-xs text-white/30">Revenue by category</p>
+              </div>
+
+              <div className="divide-y divide-white/[0.06]">
+                {report.storeAnalytics.revenueByCategory.length === 0 ? (
+                  <div className="p-10 text-center text-white/30">لا توجد بيانات</div>
+                ) : (
+                  report.storeAnalytics.revenueByCategory.map((c) => (
+                    <div key={c.category} className="flex items-center justify-between gap-3 p-4">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{c.category}</p>
+                        <p className="mt-1 text-xs text-white/30">
+                          Qty: {Number(c.quantity || 0).toFixed(2)}
+                        </p>
+                      </div>
+                      <p dir="ltr" className="text-sm font-semibold text-emerald-300">
+                        {formatMoney(c.revenue)}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </article>
+          </section>
+
+          {/* Existing blocks (players/debts) */}
+          <section className="grid gap-6 xl:grid-cols-2">
             <article className="rounded-xl border border-white/[0.08] bg-[#0c101d]">
               <div className="border-b border-white/[0.08] p-5">
                 <h2 className="font-semibold">أفضل اللاعبين (إنفاق)</h2>
@@ -342,23 +458,18 @@ export default function Reports() {
               </div>
             </article>
 
-            <article className="rounded-xl border border-white/[0.08] bg-[#0c101d] xl:col-span-2">
+            <article className="rounded-xl border border-white/[0.08] bg-[#0c101d]">
               <div className="border-b border-white/[0.08] p-5">
                 <h2 className="font-semibold">أكبر الديون (حاليًا)</h2>
                 <p className="mt-1 text-xs text-white/30">Top debts now</p>
               </div>
 
-              <div className="grid gap-3 p-5 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-3 p-5 md:grid-cols-2">
                 {report.topDebts.length === 0 ? (
-                  <div className="col-span-full p-8 text-center text-white/30">
-                    لا يوجد ديون
-                  </div>
+                  <div className="col-span-full p-8 text-center text-white/30">لا يوجد ديون</div>
                 ) : (
                   report.topDebts.map((player) => (
-                    <div
-                      key={player.id}
-                      className="rounded-lg border border-white/[0.08] bg-[#090d18] p-4"
-                    >
+                    <div key={player.id} className="rounded-lg border border-white/[0.08] bg-[#090d18] p-4">
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-rose-500/10 text-rose-300">
                           <Users size={18} />
