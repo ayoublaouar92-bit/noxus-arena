@@ -1,6 +1,10 @@
 import { contextBridge, ipcRenderer } from "electron";
 
 const api = {
+  getDevices: () => ipcRenderer.invoke("get-devices"),
+  addDevice: (device: { name: string; type: string; ip?: string; mac?: string; price: string }) =>
+    ipcRenderer.invoke("add-device", device),
+
   // Staff (PIN)
   getCurrentStaff: () => ipcRenderer.invoke("staff:get-current"),
   staffLogin: (pin: string) => ipcRenderer.invoke("staff:login", { pin }),
@@ -30,14 +34,33 @@ const api = {
     ipcRenderer.invoke("finance:top-up-player", data),
   getPlayerTransactions: (playerId: number) => ipcRenderer.invoke("finance:get-transactions", playerId),
 
-  startSession: (data: { deviceId: number; playerId?: number | null; customerName?: string; guestPhone?: string; guestNotes?: string }) =>
-    ipcRenderer.invoke("finance:start-session", data),
+  startSession: (data: {
+    deviceId: number;
+    playerId?: number | null;
+    customerName?: string;
+    guestPhone?: string;
+    guestNotes?: string;
+  }) => ipcRenderer.invoke("finance:start-session", data),
+
   getActiveSessions: () => ipcRenderer.invoke("finance:get-active-sessions"),
+
   endSession: (data: { sessionId: number; guestPaymentMethod?: "cash" | "debt" }) =>
     ipcRenderer.invoke("finance:end-session", data),
 
-  getGuestDebts: () => ipcRenderer.invoke("finance:get-guest-debts"),
-  settleGuestDebt: (debtId: number) => ipcRenderer.invoke("finance:settle-guest-debt", debtId),
+  // Guest Debts v2
+  getGuestDebts: (query?: {
+    query?: string;
+    status?: "Open" | "Paid" | "All";
+    start?: string;
+    end?: string;
+    limit?: number;
+  }) => ipcRenderer.invoke("finance:get-guest-debts", query),
+
+  settleGuestDebt: (data: { debtId: number; paidAmount: number; note?: string }) =>
+    ipcRenderer.invoke("finance:settle-guest-debt", data),
+
+  addGuestDebt: (data: { guestName: string; phone?: string; identityNotes?: string; amount: number; note?: string }) =>
+    ipcRenderer.invoke("finance:add-guest-debt", data),
 
   // Tournaments
   getTournaments: () => ipcRenderer.invoke("tournaments:get-all"),
@@ -70,6 +93,7 @@ const api = {
     categoryId?: number | null;
     image?: string | null;
   }) => ipcRenderer.invoke("store:add-product", data),
+
   updateProduct: (data: {
     productId: number;
     name?: string;
@@ -81,9 +105,11 @@ const api = {
     categoryId?: number | null;
     image?: string | null;
   }) => ipcRenderer.invoke("store:update-product", data),
+
   deleteProduct: (productId: number) => ipcRenderer.invoke("store:delete-product", productId),
 
   getProductMovements: (productId: number) => ipcRenderer.invoke("store:get-product-movements", productId),
+
   moveStock: (data: { productId: number; quantity: number; reason: "PURCHASE" | "ADJUSTMENT" | "RETURN"; note?: string }) =>
     ipcRenderer.invoke("store:move-stock", data),
 

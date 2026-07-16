@@ -10,6 +10,7 @@ import AppLayout from "./layout/AppLayout";
 import Billing from "./pages/Billing";
 import Dashboard from "./pages/Dashboard";
 import Devices from "./pages/Devices";
+import GuestDebts from "./pages/GuestDebts";
 import Inventory from "./pages/Inventory";
 import Players from "./pages/Players";
 import Reports from "./pages/Reports";
@@ -72,6 +73,11 @@ export default function App() {
           <Route
             path="inventory"
             element={<Inventory />}
+          />
+
+          <Route
+            path="guest-debts"
+            element={<GuestDebts />}
           />
 
           <Route
