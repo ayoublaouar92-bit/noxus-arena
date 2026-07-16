@@ -5,6 +5,19 @@ const api = {
   addDevice: (device: { name: string; type: string; ip?: string; mac?: string; price: string }) =>
     ipcRenderer.invoke("add-device", device),
 
+  // NEW: Devices update/delete
+  updateDevice: (data: {
+    deviceId: number;
+    name: string;
+    type: string;
+    ip?: string;
+    mac?: string;
+    price: string;
+    status?: "Available" | "Busy";
+  }) => ipcRenderer.invoke("update-device", data),
+
+  deleteDevice: (deviceId: number) => ipcRenderer.invoke("delete-device", deviceId),
+
   // Staff (PIN)
   getCurrentStaff: () => ipcRenderer.invoke("staff:get-current"),
   staffLogin: (pin: string) => ipcRenderer.invoke("staff:login", { pin }),
@@ -64,11 +77,20 @@ const api = {
 
   // Tournaments
   getTournaments: () => ipcRenderer.invoke("tournaments:get-all"),
-  createTournament: (data: { name: string; game: string; startAt: string; maxPlayers: number; entryFee: number; prize: number }) =>
-    ipcRenderer.invoke("tournaments:create", data),
-  setTournamentStatus: (data: { tournamentId: number; status: "Draft" | "Registration" | "Running" | "Completed" }) =>
-    ipcRenderer.invoke("tournaments:set-status", data),
-  getTournamentParticipants: (tournamentId: number) => ipcRenderer.invoke("tournaments:get-participants", tournamentId),
+  createTournament: (data: {
+    name: string;
+    game: string;
+    startAt: string;
+    maxPlayers: number;
+    entryFee: number;
+    prize: number;
+  }) => ipcRenderer.invoke("tournaments:create", data),
+  setTournamentStatus: (data: {
+    tournamentId: number;
+    status: "Draft" | "Registration" | "Running" | "Completed";
+  }) => ipcRenderer.invoke("tournaments:set-status", data),
+  getTournamentParticipants: (tournamentId: number) =>
+    ipcRenderer.invoke("tournaments:get-participants", tournamentId),
   registerTournamentPlayer: (data: { tournamentId: number; playerId: number }) =>
     ipcRenderer.invoke("tournaments:register-player", data),
   deleteTournament: (tournamentId: number) => ipcRenderer.invoke("tournaments:delete", tournamentId),
@@ -113,10 +135,22 @@ const api = {
   moveStock: (data: { productId: number; quantity: number; reason: "PURCHASE" | "ADJUSTMENT" | "RETURN"; note?: string }) =>
     ipcRenderer.invoke("store:move-stock", data),
 
-  createSale: (data:
-    | { paymentType: "cash"; customerName?: string; note?: string; items: Array<{ productId: number; quantity: number; unitPrice: number }> }
-    | { paymentType: "player"; playerId: number; customerName?: string; note?: string; items: Array<{ productId: number; quantity: number; unitPrice: number }> }) =>
-    ipcRenderer.invoke("store:create-sale", data),
+  createSale: (
+    data:
+      | {
+          paymentType: "cash";
+          customerName?: string;
+          note?: string;
+          items: Array<{ productId: number; quantity: number; unitPrice: number }>;
+        }
+      | {
+          paymentType: "player";
+          playerId: number;
+          customerName?: string;
+          note?: string;
+          items: Array<{ productId: number; quantity: number; unitPrice: number }>;
+        }
+  ) => ipcRenderer.invoke("store:create-sale", data),
 
   // Billing
   getBillingSummary: () => ipcRenderer.invoke("billing:get-summary"),
