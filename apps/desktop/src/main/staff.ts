@@ -118,6 +118,18 @@ function toPublic(user: StaffUserRow): PublicStaffUser {
   };
 }
 
+function unauthorized() {
+  const err = new Error("UNAUTHORIZED");
+  (err as any).code = "UNAUTHORIZED";
+  throw err;
+}
+
+function forbidden() {
+  const err = new Error("FORBIDDEN");
+  (err as any).code = "FORBIDDEN";
+  throw err;
+}
+
 let currentStaffUserId: number | null = null;
 let currentSessionId: number | null = null;
 
@@ -125,20 +137,45 @@ export function getCurrentStaffUserId() {
   return currentStaffUserId;
 }
 
-export function requireStaff(db: any, action: string) {
-  if (!currentStaffUserId) {
-    const err = new Error("UNAUTHORIZED");
-    (err as any).code = "UNAUTHORIZED";
-    throw err;
-  }
+export function getCurrentStaff(db: any) {
+  if (!currentStaffUserId) return null;
+  const user = db.prepare(`SELECT * FROM staff_users WHERE id = ?`).get(currentStaffUserId) as StaffUserRow | undefined;
+  if (!user) return null;
+  return user;
+}
 
-  // audit (minimal)
+// Staff required (any role)
+export function requireStaff(db: any, action: string) {
+  if (!currentStaffUserId) unauthorized();
+
+  const staff = db
+    .prepare(`SELECT id, role, active FROM staff_users WHERE id = ?`)
+    .get(currentStaffUserId) as { id: number; role: Role; active: number } | undefined;
+
+  if (!staff || Number(staff.active) !== 1) unauthorized();
+
   db.prepare(
     `
     INSERT INTO audit_log (staffUserId, action, entity, entityId, details)
     VALUES (?, ?, NULL, NULL, NULL)
   `
   ).run(currentStaffUserId, action);
+
+  return currentStaffUserId;
+}
+
+// Admin required
+export function requireAdmin(db: any, action: string) {
+  const staffUserId = requireStaff(db, action);
+
+  const staff = db
+    .prepare(`SELECT id, role, active FROM staff_users WHERE id = ?`)
+    .get(staffUserId) as { id: number; role: Role; active: number } | undefined;
+
+  if (!staff || Number(staff.active) !== 1) unauthorized();
+  if (staff.role !== "Admin") forbidden();
+
+  return staffUserId;
 }
 
 export function audit(
@@ -203,9 +240,7 @@ export function registerStaffHandlers(db: any) {
       );
     }
 
-    const session = db
-      .prepare(`INSERT INTO staff_sessions (staffUserId) VALUES (?)`)
-      .run(user.id);
+    const session = db.prepare(`INSERT INTO staff_sessions (staffUserId) VALUES (?)`).run(user.id);
 
     currentStaffUserId = user.id;
     currentSessionId = Number(session.lastInsertRowid);
@@ -228,10 +263,7 @@ export function registerStaffHandlers(db: any) {
       );
     }
 
-    audit(db, {
-      action: "STAFF_LOGOUT",
-      details: "Logged out",
-    });
+    audit(db, { action: "STAFF_LOGOUT", details: "Logged out" });
 
     currentStaffUserId = null;
     currentSessionId = null;
@@ -240,21 +272,15 @@ export function registerStaffHandlers(db: any) {
   });
 
   registerHandler("staff:list-users", () => {
-    // read-only allowed without login (optional); you can change later
+    // list is allowed without login (optional)
     return db
       .prepare(`SELECT id, name, role, active, createdAt FROM staff_users ORDER BY role DESC, id ASC`)
       .all();
   });
 
+  // Admin only
   registerHandler("staff:create-user", (_event, data: CreateUserData) => {
-    // must be admin
-    if (!currentStaffUserId) throw new Error("UNAUTHORIZED");
-
-    const current = db
-      .prepare(`SELECT * FROM staff_users WHERE id = ?`)
-      .get(currentStaffUserId) as StaffUserRow | undefined;
-
-    if (!current || current.role !== "Admin") throw new Error("FORBIDDEN");
+    requireAdmin(db, "STAFF_CREATE_USER");
 
     const name = String(data?.name ?? "").trim();
     const role = data?.role === "Admin" ? "Admin" : "Staff";
@@ -277,14 +303,9 @@ export function registerStaffHandlers(db: any) {
     return { id: Number(result.lastInsertRowid), changes: result.changes };
   });
 
+  // Admin only
   registerHandler("staff:set-user-active", (_event, payload: { userId: number; active: boolean }) => {
-    if (!currentStaffUserId) throw new Error("UNAUTHORIZED");
-
-    const current = db
-      .prepare(`SELECT * FROM staff_users WHERE id = ?`)
-      .get(currentStaffUserId) as StaffUserRow | undefined;
-
-    if (!current || current.role !== "Admin") throw new Error("FORBIDDEN");
+    requireAdmin(db, "STAFF_SET_ACTIVE");
 
     db.prepare(`UPDATE staff_users SET active = ? WHERE id = ?`).run(payload.active ? 1 : 0, payload.userId);
 

@@ -1,5 +1,5 @@
 import { ipcMain } from "electron";
-import { requireStaff, audit } from "./staff";
+import { requireAdmin, audit } from "./staff";
 
 type AddExpenseData = {
   title: string;
@@ -102,8 +102,8 @@ export function registerBillingHandlers(db: any) {
       .prepare(
         `
           SELECT
-            COALESCE(SUM(CASE WHEN status = 'Open' THEN amount ELSE 0 END), 0) AS openDebt,
-            COALESCE(SUM(CASE WHEN status = 'Paid' THEN amount ELSE 0 END), 0) AS collectedDebt
+            COALESCE(SUM(CASE WHEN status = 'Open' THEN (amount - COALESCE(paidAmount,0)) ELSE 0 END), 0) AS openDebt,
+            COALESCE(SUM(CASE WHEN status = 'Paid' THEN COALESCE(paidAmount, amount) ELSE 0 END), 0) AS collectedDebt
           FROM guest_debts
         `
       )
@@ -138,7 +138,6 @@ export function registerBillingHandlers(db: any) {
       sessionRevenue,
       tournamentRevenue,
       storeRevenue,
-
       earnedRevenue: sessionRevenue + tournamentRevenue + storeRevenue,
 
       walletTopUps: totalTopUps,
@@ -158,15 +157,11 @@ export function registerBillingHandlers(db: any) {
 
       playerDebt,
       guestOpenDebt,
-
       totalOutstandingDebt: playerDebt + guestOpenDebt,
 
       guestDebtCollected,
-
       cashInflow,
-
       expenses: totalExpenses,
-
       netCash,
     };
   });
@@ -344,7 +339,9 @@ export function registerBillingHandlers(db: any) {
     const guestPayments = db
       .prepare(
         `
-          SELECT id, guestName, phone, amount, settledAt
+          SELECT id, guestName, phone,
+                 COALESCE(paidAmount, amount) AS amount,
+                 settledAt
           FROM guest_debts
           WHERE status = 'Paid'
           ORDER BY id DESC
@@ -448,8 +445,9 @@ export function registerBillingHandlers(db: any) {
       .all();
   });
 
+  // Admin only
   registerHandler("billing:add-expense", (_event, data: AddExpenseData) => {
-    requireStaff(db, "BILLING_ADD_EXPENSE");
+    requireAdmin(db, "BILLING_ADD_EXPENSE");
 
     const title = data.title?.trim();
     const category = data.category?.trim() || "Other";
@@ -480,11 +478,11 @@ export function registerBillingHandlers(db: any) {
     return { id: Number(result.lastInsertRowid), changes: result.changes };
   });
 
+  // Admin only
   registerHandler("billing:delete-expense", (_event, expenseId: number) => {
-    requireStaff(db, "BILLING_DELETE_EXPENSE");
+    requireAdmin(db, "BILLING_DELETE_EXPENSE");
 
     const row = db.prepare(`SELECT * FROM expenses WHERE id = ?`).get(expenseId) as any;
-
     const result = db.prepare(`DELETE FROM expenses WHERE id = ?`).run(expenseId);
 
     audit(db, {

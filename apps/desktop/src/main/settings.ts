@@ -1,5 +1,5 @@
 import { ipcMain } from "electron";
-import { requireStaff, audit } from "./staff";
+import { requireAdmin, audit } from "./staff";
 
 type RoundingMode = "minute" | "quarter_hour" | "hour";
 
@@ -39,10 +39,7 @@ function ensureSettingsTable(db: any) {
 
 export function getSetting(db: any, key: string) {
   ensureSettingsTable(db);
-  const row = db
-    .prepare(`SELECT value FROM app_settings WHERE key = ?`)
-    .get(key) as { value: string } | undefined;
-
+  const row = db.prepare(`SELECT value FROM app_settings WHERE key = ?`).get(key) as { value: string } | undefined;
   return row?.value ?? null;
 }
 
@@ -60,21 +57,13 @@ export function setSetting(db: any, key: string, value: string) {
 export function getAllSettings(db: any): AppSettings {
   const currency = getSetting(db, "currency") ?? DEFAULT_SETTINGS.currency;
 
-  const roundingModeRaw =
-    getSetting(db, "roundingMode") ?? DEFAULT_SETTINGS.roundingMode;
-
+  const roundingModeRaw = getSetting(db, "roundingMode") ?? DEFAULT_SETTINGS.roundingMode;
   const roundingMode: RoundingMode =
-    roundingModeRaw === "minute" ||
-    roundingModeRaw === "quarter_hour" ||
-    roundingModeRaw === "hour"
+    roundingModeRaw === "minute" || roundingModeRaw === "quarter_hour" || roundingModeRaw === "hour"
       ? roundingModeRaw
       : DEFAULT_SETTINGS.roundingMode;
 
-  const minimumMinutes = clampInt(
-    getSetting(db, "minimumMinutes") ?? DEFAULT_SETTINGS.minimumMinutes,
-    1,
-    240
-  );
+  const minimumMinutes = clampInt(getSetting(db, "minimumMinutes") ?? DEFAULT_SETTINGS.minimumMinutes, 1, 240);
 
   const defaultGuestPaymentRaw =
     getSetting(db, "defaultGuestPayment") ?? DEFAULT_SETTINGS.defaultGuestPayment;
@@ -84,12 +73,7 @@ export function getAllSettings(db: any): AppSettings {
       ? defaultGuestPaymentRaw
       : DEFAULT_SETTINGS.defaultGuestPayment;
 
-  return {
-    currency,
-    roundingMode,
-    minimumMinutes,
-    defaultGuestPayment,
-  };
+  return { currency, roundingMode, minimumMinutes, defaultGuestPayment };
 }
 
 export function registerSettingsHandlers(db: any) {
@@ -100,28 +84,20 @@ export function registerSettingsHandlers(db: any) {
   });
 
   registerHandler("settings:update", (_event, updates: Partial<AppSettings>) => {
-    // PROTECT
-    requireStaff(db, "SETTINGS_UPDATE");
+    // Admin only
+    requireAdmin(db, "SETTINGS_UPDATE");
 
     const current = getAllSettings(db);
 
     const next: AppSettings = {
-      currency:
-        typeof updates.currency === "string" && updates.currency.trim()
-          ? updates.currency.trim()
-          : current.currency,
+      currency: typeof updates.currency === "string" && updates.currency.trim() ? updates.currency.trim() : current.currency,
 
       roundingMode:
-        updates.roundingMode === "minute" ||
-        updates.roundingMode === "quarter_hour" ||
-        updates.roundingMode === "hour"
+        updates.roundingMode === "minute" || updates.roundingMode === "quarter_hour" || updates.roundingMode === "hour"
           ? updates.roundingMode
           : current.roundingMode,
 
-      minimumMinutes:
-        typeof updates.minimumMinutes !== "undefined"
-          ? clampInt(updates.minimumMinutes, 1, 240)
-          : current.minimumMinutes,
+      minimumMinutes: typeof updates.minimumMinutes !== "undefined" ? clampInt(updates.minimumMinutes, 1, 240) : current.minimumMinutes,
 
       defaultGuestPayment:
         updates.defaultGuestPayment === "cash" || updates.defaultGuestPayment === "debt"
@@ -134,11 +110,7 @@ export function registerSettingsHandlers(db: any) {
     setSetting(db, "minimumMinutes", String(next.minimumMinutes));
     setSetting(db, "defaultGuestPayment", next.defaultGuestPayment);
 
-    audit(db, {
-      action: "SETTINGS_UPDATED",
-      entity: "app_settings",
-      details: JSON.stringify(next),
-    });
+    audit(db, { action: "SETTINGS_UPDATED", entity: "app_settings", details: JSON.stringify(next) });
 
     return next;
   });
