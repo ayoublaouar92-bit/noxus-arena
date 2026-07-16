@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { RefreshCw, Settings as SettingsIcon, SlidersHorizontal, Save } from "lucide-react";
+import { handleUnauthorized } from "../lib/auth";
 
 type AppSettings = {
   currency: string;
@@ -12,7 +13,6 @@ const fieldClass =
   "h-11 w-full rounded-lg border border-white/10 bg-[#080b16] px-4 text-sm text-white outline-none placeholder:text-white/25 focus:border-violet-400/60";
 
 function normalizeInt(value: string) {
-  // accept Arabic digits too
   const map: Record<string, string> = {
     "\u0660": "0",
     "\u0661": "1",
@@ -93,8 +93,9 @@ export default function Settings() {
 
       setSettings(result);
       window.alert("تم حفظ الإعدادات");
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      if (handleUnauthorized(e)) return;
       setError("تعذر حفظ الإعدادات");
     } finally {
       setSaving(false);
@@ -173,7 +174,9 @@ export default function Settings() {
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-xs text-white/45">الحد الأدنى للجلسة (دقائق) / Minimum minutes</span>
+              <span className="mb-2 block text-xs text-white/45">
+                الحد الأدنى للجلسة (دقائق) / Minimum minutes
+              </span>
               <input
                 dir="ltr"
                 type="text"
@@ -193,7 +196,9 @@ export default function Settings() {
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-xs text-white/45">Guest الدفع الافتراضي / Default guest payment</span>
+              <span className="mb-2 block text-xs text-white/45">
+                Guest الدفع الافتراضي / Default guest payment
+              </span>
               <select
                 value={settings.defaultGuestPayment}
                 onChange={(e) =>
@@ -234,15 +239,9 @@ export default function Settings() {
           </div>
 
           <div className="space-y-3 p-5 text-sm text-white/50">
-            <p>
-              - التقريب والحد الأدنى يؤثران على حساب مدة الجلسة والسعر النهائي.
-            </p>
-            <p>
-              - إذا لم تختر طريقة دفع Guest عند الإنهاء، سيتم استخدام الإعداد الافتراضي.
-            </p>
-            <p>
-              - الإعدادات محفوظة داخل SQLite (ستنتقل مع قاعدة البيانات).
-            </p>
+            <p>- التقريب والحد الأدنى يؤثران على حساب مدة الجلسة والسعر النهائي.</p>
+            <p>- إذا لم تختر طريقة دفع Guest عند الإنهاء، سيتم استخدام الإعداد الافتراضي.</p>
+            <p>- الإعدادات محفوظة داخل SQLite (ستنتقل مع قاعدة البيانات).</p>
           </div>
         </article>
       </section>
