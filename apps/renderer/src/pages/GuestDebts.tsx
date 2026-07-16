@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { RefreshCw, Search, Coins, Plus, CheckCircle2 } from "lucide-react";
 import { handleUnauthorized } from "../lib/auth";
+import { isAdmin, loadCurrentStaff, type StaffUser } from "../lib/staff-ui";
 
 type GuestDebt = {
   id: number;
@@ -34,47 +35,44 @@ function startOfRange(range: Range) {
     d.setHours(0, 0, 0, 0);
     return d.toISOString();
   }
-
   if (range === "week") {
     const d = new Date(now);
-    const day = d.getDay(); // 0 Sunday
-    const diff = (day + 6) % 7; // Monday=0
+    const day = d.getDay();
+    const diff = (day + 6) % 7;
     d.setDate(d.getDate() - diff);
     d.setHours(0, 0, 0, 0);
     return d.toISOString();
   }
-
   if (range === "month") {
     const d = new Date(now);
     d.setDate(1);
     d.setHours(0, 0, 0, 0);
     return d.toISOString();
   }
-
   return "";
 }
 
 export default function GuestDebts() {
   const api = (window as any).api;
 
+  const [current, setCurrent] = useState<StaffUser | null>(null);
+  const canAddManual = useMemo(() => isAdmin(current), [current]);
+
   const [debts, setDebts] = useState<GuestDebt[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  // filters
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"Open" | "Paid" | "All">("Open");
   const [range, setRange] = useState<Range>("month");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
 
-  // settle
   const [settleId, setSettleId] = useState<number | null>(null);
   const [settleAmount, setSettleAmount] = useState("0");
   const [settleNote, setSettleNote] = useState("");
 
-  // add manual (Admin only on backend)
   const [addName, setAddName] = useState("");
   const [addPhone, setAddPhone] = useState("");
   const [addNotes, setAddNotes] = useState("");
@@ -86,10 +84,18 @@ export default function GuestDebts() {
       if (showLoading) setLoading(true);
       setError("");
 
+      const staffUser = await loadCurrentStaff(api);
+      setCurrent(staffUser);
+
       const start =
-        range === "custom" ? (customStart ? new Date(customStart).toISOString() : "") : startOfRange(range);
+        range === "custom"
+          ? (customStart ? new Date(customStart).toISOString() : "")
+          : startOfRange(range);
+
       const end =
-        range === "custom" ? (customEnd ? new Date(customEnd).toISOString() : "") : "";
+        range === "custom"
+          ? (customEnd ? new Date(customEnd).toISOString() : "")
+          : "";
 
       const rows = await api.getGuestDebts({
         query: query.trim(),
@@ -165,6 +171,12 @@ export default function GuestDebts() {
   async function addManualDebt(event: FormEvent) {
     event.preventDefault();
 
+    if (!canAddManual) {
+      window.alert("إضافة دين يدوي: Admin فقط");
+      window.location.hash = "#/staff";
+      return;
+    }
+
     try {
       setBusy(true);
       setError("");
@@ -212,9 +224,7 @@ export default function GuestDebts() {
         <div>
           <p className="mb-2 text-sm text-violet-300">Business</p>
           <h1 className="text-3xl font-semibold">ديون الضيوف / Guest Debts</h1>
-          <p className="mt-2 text-sm text-white/45">
-            بحث + تحصيل جزئي/كامل + فلترة حسب الفترة
-          </p>
+          <p className="mt-2 text-sm text-white/45">بحث + تحصيل جزئي/كامل + فلترة حسب الفترة</p>
         </div>
 
         <button
@@ -281,10 +291,7 @@ export default function GuestDebts() {
                 </div>
               )}
 
-              <button
-                type="submit"
-                className="flex h-11 items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-medium"
-              >
+              <button type="submit" className="flex h-11 items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-medium">
                 تطبيق الفلاتر
               </button>
             </form>
@@ -294,15 +301,11 @@ export default function GuestDebts() {
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-xl border border-white/[0.08] bg-[#090d18] p-4">
                 <p className="text-xs text-white/35">إجمالي الدين المفتوح</p>
-                <p dir="ltr" className="mt-2 text-lg font-semibold text-amber-300">
-                  {money(totals.totalOpen)}
-                </p>
+                <p dir="ltr" className="mt-2 text-lg font-semibold text-amber-300">{money(totals.totalOpen)}</p>
               </div>
               <div className="rounded-xl border border-white/[0.08] bg-[#090d18] p-4">
                 <p className="text-xs text-white/35">إجمالي المحصل</p>
-                <p dir="ltr" className="mt-2 text-lg font-semibold text-emerald-300">
-                  {money(totals.totalCollected)}
-                </p>
+                <p dir="ltr" className="mt-2 text-lg font-semibold text-emerald-300">{money(totals.totalCollected)}</p>
               </div>
             </div>
 
@@ -316,8 +319,7 @@ export default function GuestDebts() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="truncate text-sm font-semibold">
-                            {d.guestName}{" "}
-                            <span className="text-xs text-white/35">#{d.id}</span>
+                            {d.guestName} <span className="text-xs text-white/35">#{d.id}</span>
                           </p>
                           <p className="mt-1 text-xs text-white/35">
                             {d.phone || "—"} · {d.status} · {d.source}
@@ -328,15 +330,9 @@ export default function GuestDebts() {
                         </div>
 
                         <div className="text-right">
-                          <p dir="ltr" className="text-xs text-white/40">
-                            Total {money(d.amount)}
-                          </p>
-                          <p dir="ltr" className="text-xs text-emerald-300">
-                            Paid {money(d.paidAmount || 0)}
-                          </p>
-                          <p dir="ltr" className="text-sm font-semibold text-amber-300">
-                            Rem {money(d.remaining || 0)}
-                          </p>
+                          <p dir="ltr" className="text-xs text-white/40">Total {money(d.amount)}</p>
+                          <p dir="ltr" className="text-xs text-emerald-300">Paid {money(d.paidAmount || 0)}</p>
+                          <p dir="ltr" className="text-sm font-semibold text-amber-300">Rem {money(d.remaining || 0)}</p>
                         </div>
                       </div>
 
@@ -402,30 +398,39 @@ export default function GuestDebts() {
           </div>
         </article>
 
+        {/* Admin-only manual add */}
         <aside className="space-y-6">
-          <article className="rounded-xl border border-violet-400/15 bg-[#0c101d]">
-            <div className="border-b border-white/[0.08] p-5">
-              <h2 className="font-semibold">إضافة دين يدوي</h2>
-              <p className="mt-1 text-xs text-white/30">Admin فقط</p>
-            </div>
+          {canAddManual ? (
+            <article className="rounded-xl border border-violet-400/15 bg-[#0c101d]">
+              <div className="border-b border-white/[0.08] p-5">
+                <h2 className="font-semibold">إضافة دين يدوي</h2>
+                <p className="mt-1 text-xs text-white/30">Admin فقط</p>
+              </div>
 
-            <form onSubmit={addManualDebt} className="space-y-3 p-5">
-              <input value={addName} onChange={(e) => setAddName(e.target.value)} className={fieldClass} placeholder="اسم الضيف" />
-              <input dir="ltr" value={addPhone} onChange={(e) => setAddPhone(e.target.value)} className={fieldClass} placeholder="Phone (optional)" />
-              <input value={addNotes} onChange={(e) => setAddNotes(e.target.value)} className={fieldClass} placeholder="ملاحظات الهوية (اختياري)" />
-              <input dir="ltr" value={addAmount} onChange={(e) => setAddAmount(e.target.value)} className={fieldClass} placeholder="Amount" />
-              <input value={addNote} onChange={(e) => setAddNote(e.target.value)} className={fieldClass} placeholder="Note (optional)" />
+              <form onSubmit={addManualDebt} className="space-y-3 p-5">
+                <input value={addName} onChange={(e) => setAddName(e.target.value)} className={fieldClass} placeholder="اسم الضيف" />
+                <input dir="ltr" value={addPhone} onChange={(e) => setAddPhone(e.target.value)} className={fieldClass} placeholder="Phone (optional)" />
+                <input value={addNotes} onChange={(e) => setAddNotes(e.target.value)} className={fieldClass} placeholder="ملاحظات الهوية (اختياري)" />
+                <input dir="ltr" value={addAmount} onChange={(e) => setAddAmount(e.target.value)} className={fieldClass} placeholder="Amount" />
+                <input value={addNote} onChange={(e) => setAddNote(e.target.value)} className={fieldClass} placeholder="Note (optional)" />
 
-              <button
-                type="submit"
-                disabled={busy}
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-medium disabled:opacity-40"
-              >
-                <Plus size={16} />
-                إضافة
-              </button>
-            </form>
-          </article>
+                <button
+                  type="submit"
+                  disabled={busy}
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-medium disabled:opacity-40"
+                >
+                  <Plus size={16} />
+                  إضافة
+                </button>
+              </form>
+            </article>
+          ) : (
+            <article className="rounded-xl border border-amber-400/15 bg-[#0c101d]">
+              <div className="p-5 text-sm text-amber-200">
+                إضافة دين يدوي Admin فقط.
+              </div>
+            </article>
+          )}
         </aside>
       </section>
     </div>

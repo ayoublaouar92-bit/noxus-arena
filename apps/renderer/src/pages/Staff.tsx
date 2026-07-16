@@ -1,5 +1,6 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { KeyRound, LogOut, RefreshCw, Shield, UserPlus } from "lucide-react";
+import { isAdmin } from "../lib/staff-ui";
 
 type StaffUser = {
   id: number;
@@ -39,6 +40,8 @@ export default function Staff() {
   const [newName, setNewName] = useState("");
   const [newRole, setNewRole] = useState<"Admin" | "Staff">("Staff");
   const [newPin, setNewPin] = useState("");
+
+  const canManageUsers = useMemo(() => isAdmin(current), [current]);
 
   async function loadAll(showLoading = false) {
     try {
@@ -104,6 +107,11 @@ export default function Staff() {
   async function createUser(event: FormEvent) {
     event.preventDefault();
 
+    if (!canManageUsers) {
+      setError("فقط Admin يستطيع إنشاء مستخدمين");
+      return;
+    }
+
     try {
       setBusy(true);
       setError("");
@@ -121,7 +129,6 @@ export default function Staff() {
       await loadAll();
     } catch (e: any) {
       console.error(e);
-
       const msg = String(e?.message || "");
       if (msg.includes("UNAUTHORIZED")) setError("سجّل الدخول أولًا");
       else if (msg.includes("FORBIDDEN")) setError("فقط Admin يستطيع إنشاء مستخدمين");
@@ -132,6 +139,11 @@ export default function Staff() {
   }
 
   async function toggleActive(user: StaffUser) {
+    if (!canManageUsers) {
+      setError("فقط Admin يستطيع تفعيل/تعطيل المستخدمين");
+      return;
+    }
+
     try {
       setBusy(true);
       setError("");
@@ -144,7 +156,6 @@ export default function Staff() {
       await loadAll();
     } catch (e: any) {
       console.error(e);
-
       const msg = String(e?.message || "");
       if (msg.includes("FORBIDDEN")) setError("فقط Admin يستطيع تفعيل/تعطيل المستخدمين");
       else setError("تعذر تعديل حالة المستخدم");
@@ -177,6 +188,12 @@ export default function Staff() {
       {error && (
         <div className="rounded-lg border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
           {error}
+        </div>
+      )}
+
+      {!canManageUsers && current && (
+        <div className="rounded-lg border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          إدارة المستخدمين (Create/Disable) Admin فقط.
         </div>
       )}
 
@@ -214,9 +231,7 @@ export default function Staff() {
               </div>
             ) : (
               <form onSubmit={login} className="space-y-4">
-                <p className="text-sm text-white/45">
-                  أدخل PIN لتسجيل الدخول. (الأدمن الافتراضي: 0000)
-                </p>
+                <p className="text-sm text-white/45">أدخل PIN لتسجيل الدخول. (الأدمن الافتراضي: 0000)</p>
 
                 <input
                   dir="ltr"
@@ -240,52 +255,54 @@ export default function Staff() {
         </article>
 
         <aside className="space-y-6">
-          <article className="rounded-xl border border-violet-400/15 bg-[#0c101d]">
-            <div className="border-b border-white/[0.08] p-5">
-              <div className="flex items-center gap-3">
-                <UserPlus className="text-violet-300" />
-                <div>
-                  <h2 className="font-semibold">إضافة مستخدم</h2>
-                  <p className="mt-1 text-xs text-white/30">Admin only</p>
+          {canManageUsers && (
+            <article className="rounded-xl border border-violet-400/15 bg-[#0c101d]">
+              <div className="border-b border-white/[0.08] p-5">
+                <div className="flex items-center gap-3">
+                  <UserPlus className="text-violet-300" />
+                  <div>
+                    <h2 className="font-semibold">إضافة مستخدم</h2>
+                    <p className="mt-1 text-xs text-white/30">Admin only</p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <form onSubmit={createUser} className="space-y-4 p-5">
-              <input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="اسم المستخدم"
-                className={fieldClass}
-              />
+              <form onSubmit={createUser} className="space-y-4 p-5">
+                <input
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="اسم المستخدم"
+                  className={fieldClass}
+                />
 
-              <select
-                value={newRole}
-                onChange={(e) => setNewRole(e.target.value as any)}
-                className={fieldClass}
-              >
-                <option value="Staff">Staff</option>
-                <option value="Admin">Admin</option>
-              </select>
+                <select
+                  value={newRole}
+                  onChange={(e) => setNewRole(e.target.value as any)}
+                  className={fieldClass}
+                >
+                  <option value="Staff">Staff</option>
+                  <option value="Admin">Admin</option>
+                </select>
 
-              <input
-                dir="ltr"
-                value={newPin}
-                onChange={(e) => setNewPin(e.target.value)}
-                placeholder="PIN (min 4)"
-                className={fieldClass}
-              />
+                <input
+                  dir="ltr"
+                  value={newPin}
+                  onChange={(e) => setNewPin(e.target.value)}
+                  placeholder="PIN (min 4)"
+                  className={fieldClass}
+                />
 
-              <button
-                type="submit"
-                disabled={busy}
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-medium disabled:opacity-40"
-              >
-                <UserPlus size={17} />
-                إنشاء
-              </button>
-            </form>
-          </article>
+                <button
+                  type="submit"
+                  disabled={busy}
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-medium disabled:opacity-40"
+                >
+                  <UserPlus size={17} />
+                  إنشاء
+                </button>
+              </form>
+            </article>
+          )}
 
           <article className="rounded-xl border border-white/[0.08] bg-[#0c101d]">
             <div className="border-b border-white/[0.08] p-5">
@@ -303,14 +320,16 @@ export default function Staff() {
                     </p>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => void toggleActive(u)}
-                    disabled={busy}
-                    className="h-9 rounded-lg bg-white/[0.05] px-3 text-xs text-white/65 disabled:opacity-40"
-                  >
-                    {Number(u.active) === 1 ? "تعطيل" : "تفعيل"}
-                  </button>
+                  {canManageUsers ? (
+                    <button
+                      type="button"
+                      onClick={() => void toggleActive(u)}
+                      disabled={busy}
+                      className="h-9 rounded-lg bg-white/[0.05] px-3 text-xs text-white/65 disabled:opacity-40"
+                    >
+                      {Number(u.active) === 1 ? "تعطيل" : "تفعيل"}
+                    </button>
+                  ) : null}
                 </div>
               ))}
             </div>
@@ -329,9 +348,7 @@ export default function Staff() {
             <div key={a.id} className="p-4">
               <p className="text-sm font-medium">
                 {a.action}{" "}
-                <span className="text-xs text-white/35">
-                  · {a.staffName || "System"}
-                </span>
+                <span className="text-xs text-white/35">· {a.staffName || "System"}</span>
               </p>
 
               <p className="mt-1 text-xs text-white/35">

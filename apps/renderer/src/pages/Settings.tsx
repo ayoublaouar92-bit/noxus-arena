@@ -1,6 +1,7 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { RefreshCw, Settings as SettingsIcon, SlidersHorizontal, Save } from "lucide-react";
 import { handleUnauthorized } from "../lib/auth";
+import { isAdmin, loadCurrentStaff, type StaffUser } from "../lib/staff-ui";
 
 type AppSettings = {
   currency: string;
@@ -36,17 +37,17 @@ function normalizeInt(value: string) {
     "\u06F9": "9",
   };
 
-  const cleaned = value
+  return value
     .split("")
     .map((c) => map[c] ?? c)
     .join("")
     .replace(/[^\d]/g, "");
-
-  return cleaned;
 }
 
 export default function Settings() {
   const api = (window as any).api;
+
+  const [current, setCurrent] = useState<StaffUser | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -59,11 +60,19 @@ export default function Settings() {
     defaultGuestPayment: "cash",
   });
 
+  const canEdit = useMemo(() => isAdmin(current), [current]);
+
   async function loadSettings(showLoading = false) {
     try {
       if (showLoading) setLoading(true);
       setError("");
-      const result = await api.getSettings();
+
+      const [staffUser, result] = await Promise.all([
+        loadCurrentStaff(api),
+        api.getSettings(),
+      ]);
+
+      setCurrent(staffUser);
       setSettings(result);
     } catch (e) {
       console.error(e);
@@ -75,10 +84,17 @@ export default function Settings() {
 
   useEffect(() => {
     void loadSettings(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function save(event: FormEvent) {
     event.preventDefault();
+
+    if (!canEdit) {
+      window.alert("هذه الصفحة Admin فقط");
+      window.location.hash = "#/staff";
+      return;
+    }
 
     try {
       setSaving(true);
@@ -109,7 +125,7 @@ export default function Settings() {
           <p className="mb-2 text-sm text-violet-300">System Settings</p>
           <h1 className="text-3xl font-semibold">الإعدادات / Settings</h1>
           <p className="mt-2 text-sm text-white/45">
-            هذه الإعدادات محفوظة في SQLite وتؤثر على الحسابات فعليًا.
+            {canEdit ? "Admin mode" : "Admin فقط (Staff للعرض فقط)"}
           </p>
         </div>
 
@@ -123,6 +139,12 @@ export default function Settings() {
           تحديث
         </button>
       </section>
+
+      {!canEdit && (
+        <div className="rounded-lg border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          هذه الصفحة Admin فقط. لتسجيل الدخول: Staff → PIN
+        </div>
+      )}
 
       {error && (
         <div className="rounded-lg border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
@@ -150,8 +172,8 @@ export default function Settings() {
               <input
                 value={settings.currency}
                 onChange={(e) => setSettings((prev) => ({ ...prev, currency: e.target.value }))}
-                placeholder="DA"
                 className={fieldClass}
+                disabled={!canEdit}
               />
             </label>
 
@@ -166,6 +188,7 @@ export default function Settings() {
                   }))
                 }
                 className={fieldClass}
+                disabled={!canEdit}
               >
                 <option value="minute">بالدقيقة (Minute)</option>
                 <option value="quarter_hour">ربع ساعة (15 min)</option>
@@ -189,10 +212,8 @@ export default function Settings() {
                   }))
                 }
                 className={fieldClass}
+                disabled={!canEdit}
               />
-              <p className="mt-2 text-[11px] leading-5 text-white/30">
-                مثال: إذا اخترت 15 دقيقة، أي جلسة أقل من 15 سيتم حسابها 15.
-              </p>
             </label>
 
             <label className="block">
@@ -208,6 +229,7 @@ export default function Settings() {
                   }))
                 }
                 className={fieldClass}
+                disabled={!canEdit}
               >
                 <option value="cash">Cash (نقدًا)</option>
                 <option value="debt">Debt (تسجيل دين)</option>
@@ -216,7 +238,7 @@ export default function Settings() {
 
             <button
               type="submit"
-              disabled={saving}
+              disabled={!canEdit || saving}
               className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-medium disabled:opacity-50"
             >
               {saving ? <RefreshCw size={17} className="animate-spin" /> : <Save size={17} />}
@@ -239,9 +261,8 @@ export default function Settings() {
           </div>
 
           <div className="space-y-3 p-5 text-sm text-white/50">
-            <p>- التقريب والحد الأدنى يؤثران على حساب مدة الجلسة والسعر النهائي.</p>
-            <p>- إذا لم تختر طريقة دفع Guest عند الإنهاء، سيتم استخدام الإعداد الافتراضي.</p>
-            <p>- الإعدادات محفوظة داخل SQLite (ستنتقل مع قاعدة البيانات).</p>
+            <p>- فقط Admin يمكنه تعديل الإعدادات.</p>
+            <p>- Staff يستطيع مشاهدة القيم فقط.</p>
           </div>
         </article>
       </section>

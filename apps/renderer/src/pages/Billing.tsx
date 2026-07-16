@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { RefreshCw, Plus, Trash2 } from "lucide-react";
 import { handleUnauthorized } from "../lib/auth";
+import { isAdmin, loadCurrentStaff, type StaffUser } from "../lib/staff-ui";
 
 type Summary = Record<string, any>;
 
@@ -60,6 +61,8 @@ function money(n: number) {
 export default function Billing() {
   const api = (window as any).api;
 
+  const [current, setCurrent] = useState<StaffUser | null>(null);
+
   const [summary, setSummary] = useState<Summary | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,11 +74,20 @@ export default function Billing() {
   const [amount, setAmount] = useState("0");
   const [note, setNote] = useState("");
 
+  const canEdit = useMemo(() => isAdmin(current), [current]);
+
   async function loadAll(showLoading = false) {
     try {
       if (showLoading) setLoading(true);
       setError("");
-      const [s, e] = await Promise.all([api.getBillingSummary(), api.getExpenses()]);
+
+      const [staffUser, s, e] = await Promise.all([
+        loadCurrentStaff(api),
+        api.getBillingSummary(),
+        api.getExpenses(),
+      ]);
+
+      setCurrent(staffUser);
       setSummary(s);
       setExpenses(e);
     } catch (e) {
@@ -88,12 +100,19 @@ export default function Billing() {
 
   useEffect(() => {
     void loadAll(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const netCash = useMemo(() => Number(summary?.netCash || 0), [summary]);
 
   async function addExpense(event: FormEvent) {
     event.preventDefault();
+
+    if (!canEdit) {
+      window.alert("إضافة/حذف المصروفات: Admin فقط");
+      window.location.hash = "#/staff";
+      return;
+    }
 
     try {
       setSaving(true);
@@ -122,6 +141,12 @@ export default function Billing() {
   }
 
   async function removeExpense(id: number) {
+    if (!canEdit) {
+      window.alert("حذف المصروفات: Admin فقط");
+      window.location.hash = "#/staff";
+      return;
+    }
+
     if (!window.confirm("حذف المصروف؟")) return;
 
     try {
@@ -141,7 +166,9 @@ export default function Billing() {
         <div>
           <p className="mb-2 text-sm text-violet-300">Business</p>
           <h1 className="text-3xl font-semibold">Billing / الفوترة</h1>
-          <p className="mt-2 text-sm text-white/45">إيرادات + مصروفات + صافي</p>
+          <p className="mt-2 text-sm text-white/45">
+            {canEdit ? "Admin mode" : "Staff: عرض فقط"}
+          </p>
         </div>
 
         <button
@@ -153,6 +180,12 @@ export default function Billing() {
           تحديث
         </button>
       </section>
+
+      {!canEdit && (
+        <div className="rounded-lg border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          إضافة/حذف المصروفات Admin فقط.
+        </div>
+      )}
 
       {error && (
         <div className="rounded-lg border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
@@ -192,27 +225,47 @@ export default function Billing() {
           )}
         </article>
 
+        {/* Admin-only form */}
         <aside className="rounded-xl border border-violet-400/15 bg-[#0c101d]">
           <div className="border-b border-white/[0.08] p-5">
             <h2 className="font-semibold">إضافة مصروف</h2>
-            <p className="mt-1 text-xs text-white/30">يتطلب تسجيل دخول Staff</p>
+            <p className="mt-1 text-xs text-white/30">Admin فقط</p>
           </div>
 
           <form onSubmit={addExpense} className="space-y-4 p-5">
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="عنوان المصروف" className={fieldClass} />
-            <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Category" className={fieldClass} />
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="عنوان المصروف"
+              className={fieldClass}
+              disabled={!canEdit}
+            />
+            <input
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="Category"
+              className={fieldClass}
+              disabled={!canEdit}
+            />
             <input
               dir="ltr"
               value={amount}
               onChange={(e) => setAmount(normalizeNumber(e.target.value))}
               placeholder="Amount"
               className={fieldClass}
+              disabled={!canEdit}
             />
-            <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="ملاحظة (اختياري)" className={fieldClass} />
+            <input
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="ملاحظة (اختياري)"
+              className={fieldClass}
+              disabled={!canEdit}
+            />
 
             <button
               type="submit"
-              disabled={saving}
+              disabled={!canEdit || saving}
               className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-medium disabled:opacity-50"
             >
               {saving ? <RefreshCw size={17} className="animate-spin" /> : <Plus size={17} />}
@@ -243,13 +296,15 @@ export default function Billing() {
                   {money(Number(e.amount || 0))}
                 </p>
 
-                <button
-                  type="button"
-                  onClick={() => void removeExpense(e.id)}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-rose-500/10 text-rose-300"
-                >
-                  <Trash2 size={15} />
-                </button>
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={() => void removeExpense(e.id)}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-rose-500/10 text-rose-300"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                )}
               </div>
             </div>
           ))}
