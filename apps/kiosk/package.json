@@ -1,0 +1,17 @@
+{
+  "name": "noxus-kiosk",
+  "private": true,
+  "version": "0.1.0",
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "tsx src/main.ts",
+    "build": "node ./scripts/build.mjs",
+    "start": "electron dist/main.js"
+  },
+  "devDependencies": {
+    "electron": "^34.5.8",
+    "esbuild": "^0.28.1",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

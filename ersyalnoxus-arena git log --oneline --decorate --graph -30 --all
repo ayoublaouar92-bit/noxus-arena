@@ -1,0 +1,27 @@
+* [33m707980d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m chore: allow deleting devices with session history
+* [33ma307993[m feat: kiosk server + devices edit/delete + pause sessions
+* [33m07a1947[m feat: add updateDevice/deleteDevice preload api
+* [33meb42283[m ux: hide admin-only UI for staff
+* [33me52bd42[m feat: enforce admin/staff permissions
+* [33m0b1b904[m wip: sync before office pc
+* [33mcfb13ab[m wip: latest work (guest debts, staff auth, reports)
+* [33m9d1fdeb[m feat: advanced reports (store profit, categories, inventory valuation)
+* [33m89dd298[m ux: redirect to staff on unauthorized in store/inventory
+* [33m1f12718[m ux: redirect to staff on unauthorized actions
+* [33mec870bf[m[33m ([m[1;32mfeature/staff-pin[m[33m)[m fix: pos store page updates
+* [33ma249d6b[m feat: staff pin auth and audit log
+* [33m239f5c7[m feat: add staff route and sidebar link
+* [33ma5d6aaf[m[33m ([m[1;32mfeature/store-inventory[m[33m)[m feat: add edit product modal in inventory
+* [33m10015e9[m ui: add clear labels to inventory forms
+* [33mdd73707[m ui: pos layout with categories and checkout sidebar
+* [33m4fb8eb2[m[33m ([m[1;32mfeature/settings[m[33m)[m feat: settings stored in sqlite and affect pricing
+* [33meb1aace[m feat: add reporting dashboard
+* [33m1ca9d87[m[33m ([m[1;31morigin/feature/billing[m[33m, [m[1;32mfeature/billing[m[33m)[m feat: add billing and expense management
+* [33m1aa3f2a[m feat: add tournament management
+* [33m88494ea[m[33m ([m[1;31morigin/feature/tournaments[m[33m, [m[1;32mfeature/tournaments[m[33m)[m feat: add tournament management
+* [33m7b05af2[m fix: support multilingual wallet input
+* [33maa92786[m[33m ([m[1;31morigin/feature/wallet-debt[m[33m, [m[1;32mfeature/wallet-debt[m[33m)[m feat: add wallets debts and guest alerts
+* [33mcb25aa1[m refactor: merge players and members
+* [33m73ea726[m feat: persist and redesign players
+* [33mb4ad5d8[m backup: add Noxus Arena database
+* [33m73b1929[m chore: establish stable Noxus Arena baseline

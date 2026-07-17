@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Noxus Kiosk</title>
+  <style>
+    body { margin:0; font-family: Arial, sans-serif; background:#070a14; color:#fff; }
+    .wrap { height:100vh; display:flex; align-items:center; justify-content:center; }
+    .card { width: 540px; border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:28px; background:#0c101d; }
+    h1 { margin:0 0 8px; font-size:26px; letter-spacing: 0.12em; }
+    p { margin:0 0 18px; color:rgba(255,255,255,.55); font-size:13px; line-height:1.6; }
+    input { width:100%; height:52px; border-radius:12px; border:1px solid rgba(255,255,255,.12); background:#080b16; color:#fff; padding:0 16px; font-size:16px; outline:none; }
+    button { width:100%; height:52px; margin-top:14px; border-radius:12px; border:0; background:#7c3aed; color:#fff; font-size:16px; font-weight:700; cursor:pointer; }
+    button:disabled { opacity:.55; cursor:not-allowed; }
+    .err { margin-top:12px; color:#fca5a5; font-size:13px; min-height:18px;}
+    .meta { margin-top:14px; color: rgba(255,255,255,.25); font-size: 11px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>NOXUS</h1>
+    <p>Enter your <b>username</b> to start your session.</p>
+
+    <input id="u" placeholder="username" autofocus />
+    <button id="b">Start</button>
+
+    <div class="err" id="e"></div>
+    <div class="meta" id="m"></div>
+  </div>
+</div>
+
+<script>
+  const elU = document.getElementById('u');
+  const elE = document.getElementById('e');
+  const elB = document.getElementById('b');
+  const elM = document.getElementById('m');
+
+  async function init() {
+    try {
+      const info = await window.kioskApi.getInfo();
+      elM.textContent = `MAC: ${info.mac || "?"} · Manager: ${info.managerUrl || "?"}`;
+    } catch {}
+  }
+
+  async function submit() {
+    elE.textContent = "";
+    const username = (elU.value || "").trim();
+    if (!username) { elE.textContent = "Username required"; return; }
+
+    elB.disabled = true;
+    elB.textContent = "Starting...";
+
+    try {
+      await window.kioskApi.start(username);
+      // main process will quit on success
+    } catch (err) {
+      elE.textContent = String(err && err.message || err);
+    } finally {
+      elB.disabled = false;
+      elB.textContent = "Start";
+    }
+  }
+
+  elB.addEventListener('click', submit);
+  elU.addEventListener('keydown', (e) => { if (e.key === "Enter") submit(); });
+
+  init();
+</script>
+</body>
+</html>
