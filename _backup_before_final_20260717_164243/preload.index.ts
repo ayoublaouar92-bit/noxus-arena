@@ -89,34 +89,6 @@ const api = {
     playerPaymentMethod?: "cash" | "wallet";
   }) => ipcRenderer.invoke("finance:end-session", data),
 
-  // CS round groups and waiting list
-  getRoundState: () => ipcRenderer.invoke("rounds:get-state"),
-  startRoundGroup: (data: {
-    playerIds: number[];
-    fixedPrice: number;
-    title?: string;
-  }) => ipcRenderer.invoke("rounds:start-group", data),
-  endRoundGroup: (groupId: number) =>
-    ipcRenderer.invoke("rounds:end-group", groupId),
-  addWaitingPlayer: (playerId: number) =>
-    ipcRenderer.invoke("rounds:add-waiting-player", playerId),
-  removeWaitingPlayer: (waitingId: number) =>
-    ipcRenderer.invoke("rounds:remove-waiting-player", waitingId),
-  finishAndStartNextRound: (data: {
-    groupId: number;
-    winnerPlayerIds: number[];
-  }) => ipcRenderer.invoke("rounds:finish-and-start-next", data),
-
-  // VIP
-  getVipOverview: () => ipcRenderer.invoke("vip:get-overview"),
-  updateVipSettings: (data: {
-    spendPerPoint: number;
-    roundPoints: number;
-    autoVipThreshold: number;
-  }) => ipcRenderer.invoke("vip:update-settings", data),
-  setManualVip: (data: { playerId: number; enabled: boolean }) =>
-    ipcRenderer.invoke("vip:set-manual", data),
-
   // Guest Debts v2
   getGuestDebts: (query?: {
     query?: string;

@@ -1,0 +1,954 @@
+import {
+  FormEvent,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import {
+  AlertTriangle,
+  Banknote,
+  Clock3,
+  Gamepad2,
+  Monitor,
+  Play,
+  RefreshCw,
+  ShieldAlert,
+  Square,
+  UserRound,
+} from "lucide-react";
+
+type Device = {
+  id: number;
+  name: string;
+  type: string;
+  price: string;
+  status:
+    | "Available"
+    | "Busy";
+};
+
+type Player = {
+  id: number;
+  name: string;
+  username: string;
+  walletBalance: number;
+  debtBalance: number;
+};
+
+type Session = {
+  id: number;
+  deviceId: number;
+  playerId: number | null;
+  customerName: string;
+  guestPhone: string | null;
+  guestNotes: string | null;
+  startTime: string;
+  deviceName: string;
+  deviceType: string;
+  hourlyPrice: string;
+  playerUsername: string | null;
+  playerWallet: number | null;
+  playerDebt: number | null;
+};
+
+type GuestDebt = {
+  id: number;
+  sessionId: number | null;
+  guestName: string;
+  phone: string | null;
+  identityNotes: string | null;
+  amount: number;
+  status: string;
+  createdAt: string;
+};
+
+const fieldClass =
+  "h-11 w-full rounded-lg border border-white/10 bg-[#080b16] px-4 text-sm text-white outline-none placeholder:text-white/25 focus:border-violet-400/60";
+
+export default function Sessions() {
+  const [devices, setDevices] =
+    useState<Device[]>([]);
+
+  const [players, setPlayers] =
+    useState<Player[]>([]);
+
+  const [sessions, setSessions] =
+    useState<Session[]>([]);
+
+  const [
+    guestDebts,
+    setGuestDebts,
+  ] = useState<GuestDebt[]>([]);
+
+  const [mode, setMode] =
+    useState<
+      "player" | "guest"
+    >("player");
+
+  const [
+    selectedDeviceId,
+    setSelectedDeviceId,
+  ] = useState("");
+
+  const [
+    selectedPlayerId,
+    setSelectedPlayerId,
+  ] = useState("");
+
+  const [
+    guestName,
+    setGuestName,
+  ] = useState("");
+
+  const [
+    guestPhone,
+    setGuestPhone,
+  ] = useState("");
+
+  const [
+    guestNotes,
+    setGuestNotes,
+  ] = useState("");
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [starting, setStarting] =
+    useState(false);
+
+  const [endingId, setEndingId] =
+    useState<number | null>(null);
+
+  const [
+    settlingId,
+    setSettlingId,
+  ] = useState<number | null>(
+    null
+  );
+
+  const [error, setError] =
+    useState("");
+
+  const [, setTick] =
+    useState(Date.now());
+
+  const api = (window as any).api;
+
+  async function loadData(
+    showLoading = false
+  ) {
+    try {
+      if (showLoading) {
+        setLoading(true);
+      }
+
+      setError("");
+
+      const [
+        deviceResult,
+        playerResult,
+        sessionResult,
+        debtResult,
+      ] = await Promise.all([
+        api.getDevices(),
+        api.getPlayers(),
+        api.getActiveSessions(),
+        api.getGuestDebts(),
+      ]);
+
+      setDevices(deviceResult);
+      setPlayers(playerResult);
+      setSessions(sessionResult);
+      setGuestDebts(debtResult);
+    } catch (loadError) {
+      console.error(loadError);
+
+      setError(
+        "تعذر تحميل بيانات الجلسات"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadData(true);
+
+    const clock =
+      window.setInterval(() => {
+        setTick(Date.now());
+      }, 1000);
+
+    const refresh =
+      window.setInterval(() => {
+        void loadData();
+      }, 5000);
+
+    return () => {
+      window.clearInterval(clock);
+      window.clearInterval(refresh);
+    };
+  }, []);
+
+  const availableDevices =
+    useMemo(
+      () =>
+        devices.filter(
+          (device) =>
+            device.status ===
+            "Available"
+        ),
+      [devices]
+    );
+
+  const selectedPlayer =
+    players.find(
+      (player) =>
+        player.id ===
+        Number(selectedPlayerId)
+    );
+
+  function getMinutes(
+    startTime: string
+  ) {
+    return Math.max(
+      1,
+      Math.ceil(
+        (
+          Date.now() -
+          new Date(
+            startTime
+          ).getTime()
+        ) / 60000
+      )
+    );
+  }
+
+  function getPrice(
+    startTime: string,
+    price: string
+  ) {
+    return (
+      (getMinutes(startTime) /
+        60) *
+      Number(price || 0)
+    ).toFixed(2);
+  }
+
+  async function startSession(
+    event:
+      FormEvent<HTMLFormElement>
+  ) {
+    event.preventDefault();
+
+    if (!selectedDeviceId) {
+      setError("اختر جهازًا");
+      return;
+    }
+
+    if (
+      mode === "player" &&
+      !selectedPlayerId
+    ) {
+      setError("اختر لاعبًا");
+      return;
+    }
+
+    if (
+      mode === "guest" &&
+      !guestName.trim()
+    ) {
+      setError(
+        "أدخل اسم أو لقب Guest"
+      );
+      return;
+    }
+
+    try {
+      setStarting(true);
+      setError("");
+
+      await api.startSession({
+        deviceId: Number(
+          selectedDeviceId
+        ),
+
+        playerId:
+          mode === "player"
+            ? Number(
+                selectedPlayerId
+              )
+            : null,
+
+        customerName:
+          mode === "guest"
+            ? guestName.trim()
+            : undefined,
+
+        guestPhone:
+          mode === "guest"
+            ? guestPhone.trim()
+            : undefined,
+
+        guestNotes:
+          mode === "guest"
+            ? guestNotes.trim()
+            : undefined,
+      });
+
+      setSelectedDeviceId("");
+      setSelectedPlayerId("");
+      setGuestName("");
+      setGuestPhone("");
+      setGuestNotes("");
+
+      await loadData();
+    } catch (startError) {
+      console.error(startError);
+
+      setError(
+        "تعذر بدء الجلسة"
+      );
+    } finally {
+      setStarting(false);
+    }
+  }
+
+  async function finishSession(
+    session: Session,
+    guestPaymentMethod:
+      | "cash"
+      | "debt" = "cash"
+  ) {
+    if (
+      !session.playerId &&
+      guestPaymentMethod === "debt"
+    ) {
+      const confirmed =
+        window.confirm(
+          `تسجيل ${getPrice(
+            session.startTime,
+            session.hourlyPrice
+          )} DA كدين على ${session.customerName}؟`
+        );
+
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    try {
+      setEndingId(session.id);
+      setError("");
+
+      const result =
+        await api.endSession({
+          sessionId: session.id,
+          guestPaymentMethod,
+        });
+
+      window.alert(
+        `انتهت الجلسة\n` +
+          `المدة: ${result.minutes} دقيقة\n` +
+          `الإجمالي: ${result.total} DA\n` +
+          `من المحفظة: ${result.walletPaid} DA\n` +
+          `أضيف للدين: ${result.debtAdded} DA\n` +
+          `نقدًا: ${result.cashPaid} DA`
+      );
+
+      await loadData();
+    } catch (endError) {
+      console.error(endError);
+
+      setError(
+        "تعذر إنهاء الجلسة"
+      );
+    } finally {
+      setEndingId(null);
+    }
+  }
+
+  async function settleDebt(
+    debt: GuestDebt
+  ) {
+    const confirmed =
+      window.confirm(
+        `تأكيد استلام ${debt.amount} DA من ${debt.guestName}؟`
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setSettlingId(debt.id);
+      setError("");
+
+      await api.settleGuestDebt(
+        debt.id
+      );
+
+      await loadData();
+    } catch (settleError) {
+      console.error(settleError);
+
+      setError(
+        "تعذر تسوية الدين"
+      );
+    } finally {
+      setSettlingId(null);
+    }
+  }
+
+  const guestDebtTotal =
+    guestDebts.reduce(
+      (total, debt) =>
+        total +
+        Number(debt.amount || 0),
+      0
+    );
+
+  return (
+    <div
+      dir="rtl"
+      className="space-y-6"
+    >
+      <section>
+        <p className="mb-2 text-sm text-violet-300">
+          Session Control
+        </p>
+
+        <h1 className="text-3xl font-semibold">
+          الجلسات / Sessions
+        </h1>
+
+        <p className="mt-2 text-sm text-white/45">
+          إدارة جلسات اللاعبين
+          والزوار
+        </p>
+      </section>
+
+      {guestDebts.length > 0 && (
+        <section className="rounded-xl border border-rose-400/25 bg-rose-500/[0.07]">
+          <div className="flex items-center justify-between border-b border-rose-400/15 p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-rose-500/15 text-rose-300">
+                <ShieldAlert
+                  size={20}
+                />
+              </div>
+
+              <div>
+                <h2 className="font-semibold text-rose-100">
+                  تنبيهات ديون Guest
+                </h2>
+
+                <p className="mt-1 text-xs text-rose-200/50">
+                  معلومات داخلية لتذكّر
+                  الزوار غير المسددين
+                </p>
+              </div>
+            </div>
+
+            <div className="text-left">
+              <p className="text-xs text-white/35">
+                إجمالي الدين
+              </p>
+
+              <p
+                dir="ltr"
+                className="mt-1 font-semibold text-rose-300"
+              >
+                {guestDebtTotal.toFixed(
+                  2
+                )}{" "}
+                DA
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-3 p-4 lg:grid-cols-2 2xl:grid-cols-3">
+            {guestDebts.map(
+              (debt) => (
+                <article
+                  key={debt.id}
+                  className="rounded-lg border border-rose-400/15 bg-[#0b0d17] p-4"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-semibold">
+                        {debt.guestName}
+                      </h3>
+
+                      <p
+                        dir="ltr"
+                        className="mt-1 text-xs text-white/35"
+                      >
+                        {debt.phone ||
+                          "No phone"}
+                      </p>
+                    </div>
+
+                    <span
+                      dir="ltr"
+                      className="text-sm font-semibold text-rose-300"
+                    >
+                      {Number(
+                        debt.amount
+                      ).toFixed(2)}{" "}
+                      DA
+                    </span>
+                  </div>
+
+                  <div className="mt-3 rounded-lg bg-amber-500/[0.07] p-3">
+                    <div className="mb-2 flex items-center gap-2 text-xs text-amber-300">
+                      <AlertTriangle
+                        size={14}
+                      />
+
+                      ملاحظات تعريفية
+                    </div>
+
+                    <p className="whitespace-pre-wrap text-xs leading-5 text-white/50">
+                      {debt.identityNotes ||
+                        "لا توجد ملاحظات"}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void settleDebt(
+                        debt
+                      )
+                    }
+                    disabled={
+                      settlingId ===
+                      debt.id
+                    }
+                    className="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-emerald-500/15 text-xs font-medium text-emerald-300 disabled:opacity-50"
+                  >
+                    {settlingId ===
+                    debt.id ? (
+                      <RefreshCw
+                        size={15}
+                        className="animate-spin"
+                      />
+                    ) : (
+                      <Banknote
+                        size={15}
+                      />
+                    )}
+
+                    تم استلام المبلغ
+                  </button>
+                </article>
+              )
+            )}
+          </div>
+        </section>
+      )}
+
+      {error && (
+        <div className="rounded-lg border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-rose-200">
+          {error}
+        </div>
+      )}
+
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_370px]">
+        <article className="rounded-xl border border-white/[0.08] bg-[#0c101d]">
+          <div className="flex items-center justify-between border-b border-white/[0.08] p-5">
+            <div>
+              <h2 className="font-semibold">
+                الجلسات النشطة
+              </h2>
+
+              <p className="mt-1 text-xs text-white/30">
+                Live Sessions
+              </p>
+            </div>
+
+            <span className="rounded-lg bg-violet-500/10 px-3 py-1 text-xs text-violet-300">
+              {sessions.length} Live
+            </span>
+          </div>
+
+          <div className="p-5">
+            {loading ? (
+              <div className="flex min-h-72 items-center justify-center text-white/35">
+                جارٍ التحميل...
+              </div>
+            ) : sessions.length ===
+              0 ? (
+              <div className="flex min-h-72 flex-col items-center justify-center text-center">
+                <Clock3 className="mb-3 text-white/20" />
+
+                <p>
+                  لا توجد جلسات نشطة
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-4 lg:grid-cols-2">
+                {sessions.map(
+                  (session) => (
+                    <article
+                      key={session.id}
+                      className="rounded-xl border border-violet-400/15 bg-[#090d18] p-5"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-500/10 text-violet-300">
+                            <Monitor
+                              size={19}
+                            />
+                          </div>
+
+                          <div>
+                            <h3 className="font-semibold">
+                              {
+                                session.deviceName
+                              }
+                            </h3>
+
+                            <p className="mt-1 text-xs text-emerald-300">
+                              ● Running
+                            </p>
+                          </div>
+                        </div>
+
+                        <span className="text-xs text-white/30">
+                          {session.playerId
+                            ? "PLAYER"
+                            : "GUEST"}
+                        </span>
+                      </div>
+
+                      <div className="my-4 h-px bg-white/[0.08]" />
+
+                      <div className="space-y-3 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-white/35">
+                            اللاعب
+                          </span>
+
+                          <span>
+                            {
+                              session.customerName
+                            }
+                          </span>
+                        </div>
+
+                        <div className="flex justify-between">
+                          <span className="text-white/35">
+                            المدة
+                          </span>
+
+                          <span className="text-sky-300">
+                            {getMinutes(
+                              session.startTime
+                            )}{" "}
+                            min
+                          </span>
+                        </div>
+
+                        <div className="flex justify-between">
+                          <span className="text-white/35">
+                            السعر الحالي
+                          </span>
+
+                          <span className="text-emerald-300">
+                            {getPrice(
+                              session.startTime,
+                              session.hourlyPrice
+                            )}{" "}
+                            DA
+                          </span>
+                        </div>
+                      </div>
+
+                      {session.playerId ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void finishSession(
+                              session
+                            )
+                          }
+                          disabled={
+                            endingId ===
+                            session.id
+                          }
+                          className="mt-4 flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-medium disabled:opacity-50"
+                        >
+                          {endingId ===
+                          session.id ? (
+                            <RefreshCw
+                              size={15}
+                              className="animate-spin"
+                            />
+                          ) : (
+                            <Square
+                              size={15}
+                            />
+                          )}
+
+                          إنهاء والخصم
+                        </button>
+                      ) : (
+                        <div className="mt-4 grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void finishSession(
+                                session,
+                                "cash"
+                              )
+                            }
+                            disabled={
+                              endingId ===
+                              session.id
+                            }
+                            className="flex h-10 items-center justify-center gap-2 rounded-lg bg-emerald-500/15 text-xs text-emerald-300 disabled:opacity-50"
+                          >
+                            <Banknote
+                              size={15}
+                            />
+
+                            دفع نقدي
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void finishSession(
+                                session,
+                                "debt"
+                              )
+                            }
+                            disabled={
+                              endingId ===
+                              session.id
+                            }
+                            className="flex h-10 items-center justify-center gap-2 rounded-lg bg-rose-500/15 text-xs text-rose-300 disabled:opacity-50"
+                          >
+                            <AlertTriangle
+                              size={15}
+                            />
+
+                            تسجيل دين
+                          </button>
+                        </div>
+                      )}
+                    </article>
+                  )
+                )}
+              </div>
+            )}
+          </div>
+        </article>
+
+        <aside className="h-fit rounded-xl border border-violet-400/15 bg-[#0c101d]">
+          <div className="border-b border-white/[0.08] p-5">
+            <h2 className="font-semibold">
+              جلسة جديدة
+            </h2>
+
+            <p className="mt-1 text-xs text-white/30">
+              Start Session
+            </p>
+          </div>
+
+          <form
+            onSubmit={startSession}
+            className="space-y-4 p-5"
+          >
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  setMode("player")
+                }
+                className={`flex h-10 items-center justify-center gap-2 rounded-lg text-xs ${
+                  mode === "player"
+                    ? "bg-violet-600"
+                    : "bg-white/[0.05] text-white/40"
+                }`}
+              >
+                <UserRound size={15} />
+                لاعب
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setMode("guest")
+                }
+                className={`flex h-10 items-center justify-center gap-2 rounded-lg text-xs ${
+                  mode === "guest"
+                    ? "bg-violet-600"
+                    : "bg-white/[0.05] text-white/40"
+                }`}
+              >
+                <Gamepad2 size={15} />
+                Guest
+              </button>
+            </div>
+
+            <select
+              value={selectedDeviceId}
+              onChange={(event) =>
+                setSelectedDeviceId(
+                  event.target.value
+                )
+              }
+              className={fieldClass}
+            >
+              <option value="">
+                اختر الجهاز
+              </option>
+
+              {availableDevices.map(
+                (device) => (
+                  <option
+                    key={device.id}
+                    value={device.id}
+                  >
+                    {device.name} —{" "}
+                    {device.price} DA/h
+                  </option>
+                )
+              )}
+            </select>
+
+            {mode === "player" ? (
+              <>
+                <select
+                  value={
+                    selectedPlayerId
+                  }
+                  onChange={(event) =>
+                    setSelectedPlayerId(
+                      event.target.value
+                    )
+                  }
+                  className={fieldClass}
+                >
+                  <option value="">
+                    اختر اللاعب
+                  </option>
+
+                  {players.map(
+                    (player) => (
+                      <option
+                        key={player.id}
+                        value={player.id}
+                      >
+                        {player.name}
+                      </option>
+                    )
+                  )}
+                </select>
+
+                {selectedPlayer && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-lg bg-emerald-500/[0.07] p-3">
+                      <p className="text-[10px] text-white/35">
+                        المحفظة
+                      </p>
+
+                      <p className="mt-1 text-sm text-emerald-300">
+                        {Number(
+                          selectedPlayer.walletBalance ||
+                            0
+                        ).toFixed(2)}{" "}
+                        DA
+                      </p>
+                    </div>
+
+                    <div className="rounded-lg bg-rose-500/[0.07] p-3">
+                      <p className="text-[10px] text-white/35">
+                        الدين
+                      </p>
+
+                      <p className="mt-1 text-sm text-rose-300">
+                        {Number(
+                          selectedPlayer.debtBalance ||
+                            0
+                        ).toFixed(2)}{" "}
+                        DA
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <input
+                  value={guestName}
+                  onChange={(event) =>
+                    setGuestName(
+                      event.target.value
+                    )
+                  }
+                  placeholder="اسم أو لقب Guest"
+                  className={fieldClass}
+                />
+
+                <input
+                  dir="ltr"
+                  value={guestPhone}
+                  onChange={(event) =>
+                    setGuestPhone(
+                      event.target.value
+                    )
+                  }
+                  placeholder="Phone (optional)"
+                  className={fieldClass}
+                />
+
+                <textarea
+                  value={guestNotes}
+                  onChange={(event) =>
+                    setGuestNotes(
+                      event.target.value
+                    )
+                  }
+                  placeholder="ملاحظات تعريفية مؤقتة: الملابس، وقت الزيارة، الجهاز..."
+                  rows={4}
+                  className="w-full resize-none rounded-lg border border-amber-400/15 bg-amber-500/[0.05] p-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-amber-400/40"
+                />
+
+                <p className="text-[10px] leading-5 text-amber-200/50">
+                  استخدم ملاحظات محايدة
+                  ومؤقتة فقط، ولا تسجل
+                  صفات حساسة.
+                </p>
+              </>
+            )}
+
+            <button
+              type="submit"
+              disabled={
+                starting ||
+                !selectedDeviceId
+              }
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-medium disabled:opacity-40"
+            >
+              {starting ? (
+                <RefreshCw
+                  size={17}
+                  className="animate-spin"
+                />
+              ) : (
+                <Play size={17} />
+              )}
+
+              بدء الجلسة
+            </button>
+          </form>
+        </aside>
+      </section>
+    </div>
+  );
+}

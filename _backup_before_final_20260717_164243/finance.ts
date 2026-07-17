@@ -1,8 +1,6 @@
-﻿import { ipcMain } from "electron";
+import { ipcMain } from "electron";
 import { getAllSettings } from "./settings";
 import { requireStaff, requireAdmin, audit } from "./staff";
-import { advanceRoundQueue } from "./rounds";
-import { applyVipDiscount } from "./vip";
 
 type StartSessionData = {
   deviceId: number;
@@ -87,7 +85,6 @@ type SessionRow = {
   // billing mode support
   sessionType?: "timed" | "round";
   fixedPrice?: number;
-  roundGroupId?: number | null;
 };
 
 type GuestDebtRow = {
@@ -783,18 +780,10 @@ export function registerFinanceHandlers(db: any) {
     const sessionType = session.sessionType || "timed";
     const fixedPrice = Math.max(0, Number(session.fixedPrice || 0));
 
-    const baseTotal =
+    const total =
       sessionType === "round"
         ? Number(fixedPrice.toFixed(2))
         : Number(((minutes / 60) * Number(device.price || 0)).toFixed(2));
-
-    const vipPricing = applyVipDiscount(
-      db,
-      session.playerId,
-      baseTotal,
-    );
-
-    const total = vipPricing.total;
 
     let walletPaid = 0;
     let debtAdded = 0;
@@ -818,9 +807,7 @@ export function registerFinanceHandlers(db: any) {
 
         if (!player) throw new Error("Player not found");
 
-        const playerPaymentMethod = session.roundGroupId
-          ? "wallet"
-          : data.playerPaymentMethod || "wallet";
+        const playerPaymentMethod = data.playerPaymentMethod || "wallet";
 
         if (playerPaymentMethod === "cash") {
           cashPaid = total;
@@ -921,10 +908,6 @@ export function registerFinanceHandlers(db: any) {
 
     transaction();
 
-    const queuedSession = session.roundGroupId
-      ? advanceRoundQueue(db, Number(session.roundGroupId), session.deviceId)
-      : null;
-
     audit(db, {
       action: "SESSION_ENDED",
       entity: "sessions",
@@ -948,7 +931,6 @@ export function registerFinanceHandlers(db: any) {
       cashPaid: cashPaid.toFixed(2),
       pausedMinutes: String(pausedMinutes),
       sessionType,
-      queuedSession,
     };
   });
 
@@ -1122,4 +1104,3 @@ export function registerFinanceHandlers(db: any) {
     },
   );
 }
-

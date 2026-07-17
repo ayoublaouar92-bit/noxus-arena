@@ -5,12 +5,10 @@ import { join } from "node:path";
 import { registerBillingHandlers } from "./billing";
 import { registerFinanceHandlers } from "./finance";
 import { registerReportsHandlers } from "./reports";
-import { registerRoundHandlers } from "./rounds";
 import { registerSettingsHandlers } from "./settings";
 import { registerStaffHandlers } from "./staff";
 import { registerStoreHandlers } from "./store";
 import { registerTournamentHandlers } from "./tournaments";
-import { registerVipHandlers } from "./vip";
 import { startKioskServer } from "./kioskServer";
 
 type TableColumn = {
@@ -139,7 +137,6 @@ db.exec(`
     -- Session billing mode (v3)
     sessionType TEXT NOT NULL DEFAULT 'timed',
     fixedPrice REAL NOT NULL DEFAULT 0,
-    roundGroupId INTEGER,
 
     FOREIGN KEY (deviceId) REFERENCES devices(id),
     FOREIGN KEY (playerId) REFERENCES players(id)
@@ -164,7 +161,6 @@ const sessionMigrations = [
   { name: "pausedMinutes", definition: "INTEGER NOT NULL DEFAULT 0" },
   { name: "sessionType", definition: "TEXT NOT NULL DEFAULT 'timed'" },
   { name: "fixedPrice", definition: "REAL NOT NULL DEFAULT 0" },
-  { name: "roundGroupId", definition: "INTEGER" },
 ];
 
 for (const migration of sessionMigrations) {
@@ -247,10 +243,8 @@ db.exec(`
 registerStaffHandlers(db);
 registerSettingsHandlers(db);
 registerFinanceHandlers(db);
-registerRoundHandlers(db);
 registerTournamentHandlers(db);
 registerStoreHandlers(db);
-registerVipHandlers(db);
 registerBillingHandlers(db);
 registerReportsHandlers(db);
 

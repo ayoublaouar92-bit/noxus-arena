@@ -89,23 +89,20 @@ const api = {
     playerPaymentMethod?: "cash" | "wallet";
   }) => ipcRenderer.invoke("finance:end-session", data),
 
-  // CS round groups and waiting list
+  // CS round groups
+  getRoundPriceOptions: () => ipcRenderer.invoke("rounds:get-price-options"),
+  addRoundPriceOption: (data: { name: string; price: number }) =>
+    ipcRenderer.invoke("rounds:add-price-option", data),
+  deleteRoundPriceOption: (optionId: number) =>
+    ipcRenderer.invoke("rounds:delete-price-option", optionId),
   getRoundState: () => ipcRenderer.invoke("rounds:get-state"),
   startRoundGroup: (data: {
     playerIds: number[];
-    fixedPrice: number;
+    priceOptionId: number;
     title?: string;
   }) => ipcRenderer.invoke("rounds:start-group", data),
   endRoundGroup: (groupId: number) =>
     ipcRenderer.invoke("rounds:end-group", groupId),
-  addWaitingPlayer: (playerId: number) =>
-    ipcRenderer.invoke("rounds:add-waiting-player", playerId),
-  removeWaitingPlayer: (waitingId: number) =>
-    ipcRenderer.invoke("rounds:remove-waiting-player", waitingId),
-  finishAndStartNextRound: (data: {
-    groupId: number;
-    winnerPlayerIds: number[];
-  }) => ipcRenderer.invoke("rounds:finish-and-start-next", data),
 
   // VIP
   getVipOverview: () => ipcRenderer.invoke("vip:get-overview"),
