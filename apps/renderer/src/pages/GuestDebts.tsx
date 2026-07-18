@@ -19,6 +19,17 @@ type GuestDebt = {
   settledAt: string | null;
 };
 
+type Player = {
+  id: number;
+  name: string;
+  username: string;
+  phone: string | null;
+  walletBalance: number;
+  debtBalance: number;
+  image: string | null;
+  createdAt: string;
+};
+
 type Range = "today" | "week" | "month" | "custom";
 
 const fieldClass =
@@ -59,11 +70,13 @@ export default function GuestDebts() {
   const canAddManual = useMemo(() => isAdmin(current), [current]);
 
   const [debts, setDebts] = useState<GuestDebt[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   const [query, setQuery] = useState("");
+  const [playerQuery, setPlayerQuery] = useState("");
   const [status, setStatus] = useState<"Open" | "Paid" | "All">("Open");
   const [range, setRange] = useState<Range>("month");
   const [customStart, setCustomStart] = useState("");
@@ -97,18 +110,22 @@ export default function GuestDebts() {
           ? (customEnd ? new Date(customEnd).toISOString() : "")
           : "";
 
-      const rows = await api.getGuestDebts({
-        query: query.trim(),
-        status,
-        start: start || undefined,
-        end: end || undefined,
-        limit: 300,
-      });
+      const [rows, playerRows] = await Promise.all([
+        api.getGuestDebts({
+          query: query.trim(),
+          status,
+          start: start || undefined,
+          end: end || undefined,
+          limit: 300,
+        }),
+        api.getPlayers(),
+      ]);
 
       setDebts(rows);
+      setPlayers(playerRows);
     } catch (e) {
       console.error(e);
-      setError("تعذر تحميل ديون الضيوف");
+      setError("Could not load finance data");
     } finally {
       setLoading(false);
     }
@@ -126,8 +143,16 @@ export default function GuestDebts() {
 
     const totalCollected = debts.reduce((t, d) => t + Number(d.paidAmount || 0), 0);
 
-    return { totalOpen, totalCollected };
-  }, [debts]);
+    const playerDebtOpen = players.reduce(
+      (t, p) => t + Math.max(0, Number(p.debtBalance || 0)),
+      0,
+    );
+    const playerWalletTotal = players.reduce(
+      (t, p) => t + Math.max(0, Number(p.walletBalance || 0)),
+      0,
+    );
+    return { totalOpen, totalCollected, playerDebtOpen, playerWalletTotal };
+  }, [debts, players]);
 
   async function applyFilters(event: FormEvent) {
     event.preventDefault();
@@ -141,7 +166,7 @@ export default function GuestDebts() {
 
       const paid = Number(settleAmount || 0);
       if (!Number.isFinite(paid) || paid <= 0) {
-        setError("أدخل مبلغ التحصيل");
+        setError("Enter paid amount");
         return;
       }
 
@@ -161,8 +186,102 @@ export default function GuestDebts() {
       if (handleUnauthorized(e)) return;
 
       const msg = String(e?.message || "");
-      if (msg.includes("exceeds remaining")) setError("المبلغ أكبر من المتبقي");
-      else setError("تعذر تسوية الدين");
+      if (msg.includes("exceeds remaining")) setError("Amount exceeds remaining");
+      else setError("Could not settle debt");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const filteredPlayers = useMemo(() => {
+    const q = playerQuery.trim().toLowerCase();
+    return players
+      .filter((p) => {
+        if (!q) return Number(p.debtBalance || 0) > 0;
+        return (
+          p.name.toLowerCase().includes(q) ||
+          p.username.toLowerCase().includes(q) ||
+          String(p.phone || "").toLowerCase().includes(q)
+        );
+      })
+      .sort((a, b) => Number(b.debtBalance || 0) - Number(a.debtBalance || 0));
+  }, [players, playerQuery]);
+
+  async function topUpPlayer(player: Player) {
+    const raw = window.prompt(`Top up amount for ${player.name}:`);
+    if (raw === null) return;
+    const amount = Number(raw.replace(",", "."));
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setError("Enter a valid top-up amount");
+      return;
+    }
+    try {
+      setBusy(true);
+      setError("");
+      const result = await api.topUpPlayer({ playerId: player.id, amount, note: "Wallet top-up from finance page" });
+      window.alert(`Wallet topped up\nAmount: ${money(result.amount)}\nNew balance: ${money(result.walletBalance)}`);
+      await load(true);
+    } catch (e) {
+      console.error(e);
+      setError("Could not top up wallet");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function correctPlayerWallet(player: Player) {
+    const current = Math.max(0, Number(player.walletBalance || 0));
+    const raw = window.prompt(`Current wallet: ${money(current)}
+
+Enter correct balance:`, current.toFixed(2));
+    if (raw === null) return;
+    const newBalance = Number(raw.replace(",", "."));
+    if (!Number.isFinite(newBalance) || newBalance < 0) {
+      setError("Enter a valid balance");
+      return;
+    }
+    const reason = window.prompt("Correction reason:", "Wallet correction") || "";
+    if (!window.confirm(`Confirm wallet correction for ${player.name}?
+From ${money(current)} to ${money(newBalance)}`)) return;
+    try {
+      setBusy(true);
+      setError("");
+      await api.setPlayerWalletBalance({ playerId: player.id, newBalance, reason });
+      await load(true);
+    } catch (e) {
+      console.error(e);
+      setError("Could not correct wallet");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function payPlayerDebt(player: Player, full = false) {
+    const currentDebt = Math.max(0, Number(player.debtBalance || 0));
+    if (currentDebt <= 0) {
+      setError("This player has no debt");
+      return;
+    }
+    let amount = currentDebt;
+    if (!full) {
+      const raw = window.prompt(`Text`);
+      if (raw === null) return;
+      amount = Number(raw.replace(",", "."));
+    }
+    if (!Number.isFinite(amount) || amount <= 0 || amount > currentDebt) {
+      setError("Invalid payment amount");
+      return;
+    }
+    if (!window.confirm(`Confirm collecting ${money(amount)} from ${player.name}?
+Remaining: ${money(currentDebt - amount)}`)) return;
+    try {
+      setBusy(true);
+      setError("");
+      await api.payPlayerDebt({ playerId: player.id, amount, note: full ? "Full player debt payment" : "Partial player debt payment" });
+      await load(true);
+    } catch (e) {
+      console.error(e);
+      setError("Could not pay player debt");
     } finally {
       setBusy(false);
     }
@@ -172,7 +291,7 @@ export default function GuestDebts() {
     event.preventDefault();
 
     if (!canAddManual) {
-      window.alert("إضافة دين يدوي: Admin فقط");
+      window.alert("Manual debt is Admin only");
       window.location.hash = "#/staff";
       return;
     }
@@ -183,11 +302,11 @@ export default function GuestDebts() {
 
       const amount = Number(addAmount || 0);
       if (!addName.trim()) {
-        setError("اسم الضيف مطلوب");
+        setError("Guest name is required");
         return;
       }
       if (!Number.isFinite(amount) || amount <= 0) {
-        setError("مبلغ الدين غير صحيح");
+        setError("Invalid debt amount");
         return;
       }
 
@@ -211,8 +330,8 @@ export default function GuestDebts() {
       if (handleUnauthorized(e)) return;
 
       const msg = String(e?.message || "");
-      if (msg.includes("FORBIDDEN")) setError("هذه العملية Admin فقط");
-      else setError("تعذر إضافة دين يدوي");
+      if (msg.includes("FORBIDDEN")) setError("This action is Admin only");
+      else setError("Could not add manual debt");
     } finally {
       setBusy(false);
     }
@@ -223,8 +342,8 @@ export default function GuestDebts() {
       <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="mb-2 text-sm text-violet-300">Business</p>
-          <h1 className="text-3xl font-semibold">ديون الضيوف / Guest Debts</h1>
-          <p className="mt-2 text-sm text-white/45">بحث + تحصيل جزئي/كامل + فلترة حسب الفترة</p>
+          <h1 className="text-3xl font-semibold">Finance / Wallets & Debts</h1>
+          <p className="mt-2 text-sm text-white/45">Player wallets, player debts, and guest debts</p>
         </div>
 
         <button
@@ -233,7 +352,7 @@ export default function GuestDebts() {
           className="flex h-11 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-4 text-sm"
         >
           <RefreshCw size={17} className={loading ? "animate-spin" : ""} />
-          تحديث
+          Refresh
         </button>
       </section>
 
@@ -252,16 +371,16 @@ export default function GuestDebts() {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="بحث بالاسم أو الهاتف..."
+                  placeholder="Search by name or phone..."
                   className="min-w-0 flex-1 bg-transparent text-sm outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <select value={status} onChange={(e) => setStatus(e.target.value as any)} className={fieldClass}>
-                  <option value="Open">Open (مفتوح)</option>
-                  <option value="Paid">Paid (مدفوع)</option>
-                  <option value="All">All (الكل)</option>
+                  <option value="Open">Open (Open)</option>
+                  <option value="Paid">Paid (Paid)</option>
+                  <option value="All">All (All)</option>
                 </select>
 
                 <select value={range} onChange={(e) => setRange(e.target.value as any)} className={fieldClass}>
@@ -292,26 +411,33 @@ export default function GuestDebts() {
               )}
 
               <button type="submit" className="flex h-11 items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-medium">
-                تطبيق الفلاتر
+                Apply filters
               </button>
             </form>
           </div>
 
           <div className="p-5">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl border border-white/[0.08] bg-[#090d18] p-4">
-                <p className="text-xs text-white/35">إجمالي الدين المفتوح</p>
-                <p dir="ltr" className="mt-2 text-lg font-semibold text-amber-300">{money(totals.totalOpen)}</p>
-              </div>
-              <div className="rounded-xl border border-white/[0.08] bg-[#090d18] p-4">
-                <p className="text-xs text-white/35">إجمالي المحصل</p>
-                <p dir="ltr" className="mt-2 text-lg font-semibold text-emerald-300">{money(totals.totalCollected)}</p>
-              </div>
+            <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+              <div className="rounded-xl border border-white/[0.08] bg-[#090d18] p-4"><p className="text-xs text-white/35">Open guest debt</p><p dir="ltr" className="mt-2 text-lg font-semibold text-amber-300">{money(totals.totalOpen)}</p></div>
+              <div className="rounded-xl border border-white/[0.08] bg-[#090d18] p-4"><p className="text-xs text-white/35">Player debts</p><p dir="ltr" className="mt-2 text-lg font-semibold text-rose-300">{money(totals.playerDebtOpen)}</p></div>
+              <div className="rounded-xl border border-white/[0.08] bg-[#090d18] p-4"><p className="text-xs text-white/35">Player wallets</p><p dir="ltr" className="mt-2 text-lg font-semibold text-sky-300">{money(totals.playerWalletTotal)}</p></div>
+              <div className="rounded-xl border border-white/[0.08] bg-[#090d18] p-4"><p className="text-xs text-white/35">Guest collected</p><p dir="ltr" className="mt-2 text-lg font-semibold text-emerald-300">{money(totals.totalCollected)}</p></div>
             </div>
+
+            <div className="mt-4 rounded-xl border border-sky-400/15 bg-[#090d18] p-4">
+              <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div><h2 className="font-semibold">Player wallets & debts</h2><p className="mt-1 text-xs text-white/35">Search, top up wallets, correct balances, and collect debts</p></div>
+                <div className="flex h-10 items-center gap-2 rounded-lg border border-white/10 bg-[#080b16] px-3 lg:w-80"><Search size={15} className="text-white/25" /><input value={playerQuery} onChange={(e) => setPlayerQuery(e.target.value)} placeholder="Search player..." className="min-w-0 flex-1 bg-transparent text-sm outline-none" /></div>
+              </div>
+              {filteredPlayers.length === 0 ? <div className="rounded-lg bg-white/[0.03] p-6 text-center text-sm text-white/35">No matching players or no open player debts</div> : (
+                <div className="grid gap-3 lg:grid-cols-2">{filteredPlayers.slice(0, 80).map((player) => <div key={player.id} className="rounded-lg border border-white/[0.08] bg-[#080b16] p-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-sm font-semibold">{player.name}</p><p className="mt-1 text-xs text-white/35">@{player.username} · {player.phone || "—"}</p></div><div className="text-left" dir="ltr"><p className="text-xs text-sky-300">Wallet {money(player.walletBalance)}</p><p className="text-xs font-semibold text-rose-300">Debt {money(player.debtBalance)}</p></div></div><div className="mt-3 grid grid-cols-2 gap-2"><button type="button" disabled={busy} onClick={() => void topUpPlayer(player)} className="h-9 rounded-lg bg-emerald-500/15 text-xs text-emerald-300 disabled:opacity-40">Top up wallet</button><button type="button" disabled={busy} onClick={() => void correctPlayerWallet(player)} className="h-9 rounded-lg bg-sky-500/15 text-xs text-sky-300 disabled:opacity-40">Correct wallet</button><button type="button" disabled={busy || Number(player.debtBalance || 0) <= 0} onClick={() => void payPlayerDebt(player, false)} className="h-9 rounded-lg bg-amber-500/15 text-xs text-amber-300 disabled:opacity-30">Partial debt</button><button type="button" disabled={busy || Number(player.debtBalance || 0) <= 0} onClick={() => void payPlayerDebt(player, true)} className="h-9 rounded-lg bg-rose-500/15 text-xs text-rose-300 disabled:opacity-30">Full debt</button></div></div>)}</div>
+              )}
+            </div>
+            <h2 className="mt-6 mb-3 font-semibold">Guest debts</h2>
 
             <div className="mt-4 rounded-xl border border-white/[0.08] bg-[#090d18] overflow-hidden">
               {debts.length === 0 ? (
-                <div className="p-8 text-center text-sm text-white/35">لا توجد نتائج</div>
+                <div className="p-8 text-center text-sm text-white/35">No results</div>
               ) : (
                 <div className="divide-y divide-white/[0.06]">
                   {debts.map((d) => (
@@ -349,7 +475,7 @@ export default function GuestDebts() {
                               className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 text-sm font-medium"
                             >
                               <Coins size={16} />
-                              تحصيل / Collect
+                              Collect
                             </button>
                           ) : (
                             <div className="space-y-2">
@@ -364,7 +490,7 @@ export default function GuestDebts() {
                                 value={settleNote}
                                 onChange={(e) => setSettleNote(e.target.value)}
                                 className={fieldClass}
-                                placeholder="ملاحظة (اختياري)"
+                                placeholder="Note (optional)"
                               />
 
                               <div className="grid grid-cols-2 gap-2">
@@ -375,7 +501,7 @@ export default function GuestDebts() {
                                   className="flex h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 text-sm font-medium disabled:opacity-40"
                                 >
                                   <CheckCircle2 size={16} />
-                                  تأكيد
+                                  Confirm
                                 </button>
 
                                 <button
@@ -383,7 +509,7 @@ export default function GuestDebts() {
                                   onClick={() => setSettleId(null)}
                                   className="h-11 rounded-lg bg-white/[0.06] text-sm text-white/70"
                                 >
-                                  إلغاء
+                                  Cancel
                                 </button>
                               </div>
                             </div>
@@ -403,14 +529,14 @@ export default function GuestDebts() {
           {canAddManual ? (
             <article className="rounded-xl border border-violet-400/15 bg-[#0c101d]">
               <div className="border-b border-white/[0.08] p-5">
-                <h2 className="font-semibold">إضافة دين يدوي</h2>
-                <p className="mt-1 text-xs text-white/30">Admin فقط</p>
+                <h2 className="font-semibold">Add manual debt</h2>
+                <p className="mt-1 text-xs text-white/30">Admin only</p>
               </div>
 
               <form onSubmit={addManualDebt} className="space-y-3 p-5">
-                <input value={addName} onChange={(e) => setAddName(e.target.value)} className={fieldClass} placeholder="اسم الضيف" />
+                <input value={addName} onChange={(e) => setAddName(e.target.value)} className={fieldClass} placeholder="Guest name" />
                 <input dir="ltr" value={addPhone} onChange={(e) => setAddPhone(e.target.value)} className={fieldClass} placeholder="Phone (optional)" />
-                <input value={addNotes} onChange={(e) => setAddNotes(e.target.value)} className={fieldClass} placeholder="ملاحظات الهوية (اختياري)" />
+                <input value={addNotes} onChange={(e) => setAddNotes(e.target.value)} className={fieldClass} placeholder="Identity notes (optional)" />
                 <input dir="ltr" value={addAmount} onChange={(e) => setAddAmount(e.target.value)} className={fieldClass} placeholder="Amount" />
                 <input value={addNote} onChange={(e) => setAddNote(e.target.value)} className={fieldClass} placeholder="Note (optional)" />
 
@@ -420,14 +546,14 @@ export default function GuestDebts() {
                   className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-medium disabled:opacity-40"
                 >
                   <Plus size={16} />
-                  إضافة
+                  Add
                 </button>
               </form>
             </article>
           ) : (
             <article className="rounded-xl border border-amber-400/15 bg-[#0c101d]">
               <div className="p-5 text-sm text-amber-200">
-                إضافة دين يدوي Admin فقط.
+                Add manual debt Admin only.
               </div>
             </article>
           )}
@@ -436,3 +562,5 @@ export default function GuestDebts() {
     </div>
   );
 }
+
+

@@ -34,6 +34,8 @@ type Session = {
   deviceId: number;
   playerId: number | null;
   customerName: string;
+  guestPhone?: string | null;
+  guestNotes?: string | null;
   startTime: string;
   deviceName: string;
   hourlyPrice: string;
@@ -90,6 +92,10 @@ export default function Sessions() {
 
   const [singleDevice, setSingleDevice] = useState("");
   const [singlePlayer, setSinglePlayer] = useState("");
+  const [singleCustomerType, setSingleCustomerType] = useState<"player" | "guest">("player");
+  const [singleGuestName, setSingleGuestName] = useState("");
+  const [singleGuestPhone, setSingleGuestPhone] = useState("");
+  const [singleGuestNotes, setSingleGuestNotes] = useState("");
   const [singleKind, setSingleKind] = useState<"timed" | "round">("timed");
   const [singlePrice, setSinglePrice] = useState("");
 
@@ -112,7 +118,7 @@ export default function Sessions() {
       setParticipants(roundState.participants || []);
     } catch (loadError) {
       console.error(loadError);
-      setError("تعذر تحميل بيانات الجلسات");
+      setError("Could not load sessions data / تعذر تحميل بيانات الجلسات");
     } finally {
       setLoading(false);
     }
@@ -181,9 +187,9 @@ export default function Sessions() {
   async function startGroup() {
     const fixedPrice = Number(groupPrice);
     if (!selectedPlayers.length)
-      return setError("اختر لاعبًا واحدًا على الأقل");
+      return setError("Select at least one player / اختر لاعبًا واحدًا على الأقل");
     if (!Number.isFinite(fixedPrice) || fixedPrice <= 0)
-      return setError("أدخل سعر الجولة لكل لاعب");
+      return setError("Enter round price per player / أدخل سعر الجولة لكل لاعب");
     try {
       setBusy(true);
       setError("");
@@ -193,14 +199,16 @@ export default function Sessions() {
         title: groupTitle.trim() || "CS Round",
       });
       window.alert(
-        `بدأت الجولة\nعلى الأجهزة: ${result.started.length}\nأضيف للانتظار: ${result.queued.length}`,
+        `Round started / بدأت الجولة
+Devices: ${result.started.length}
+Waiting: ${result.queued.length}`,
       );
       setSelectedPlayers([]);
       setGroupSearch("");
       await loadData();
     } catch (actionError) {
       console.error(actionError);
-      setError("تعذر بدء المجموعة");
+      setError("Could not start group / تعذر بدء المجموعة");
     } finally {
       setBusy(false);
     }
@@ -214,7 +222,7 @@ export default function Sessions() {
       await loadData();
     } catch (actionError) {
       console.error(actionError);
-      setError("اللاعب موجود في الانتظار أو لديه جلسة نشطة");
+      setError("Player is already waiting or has an active session / اللاعب موجود في الانتظار أو لديه جلسة نشطة");
     } finally {
       setBusy(false);
     }
@@ -226,7 +234,7 @@ export default function Sessions() {
       await loadData();
     } catch (actionError) {
       console.error(actionError);
-      setError("تعذر حذف اللاعب من الانتظار");
+      setError("Could not remove player from waiting list / تعذر حذف اللاعب من الانتظار");
     } finally {
       setBusy(false);
     }
@@ -245,7 +253,7 @@ export default function Sessions() {
   }
   async function finishAndNext() {
     if (!endingGroup) return;
-    if (!window.confirm("إنهاء الجولة، خصم الحسابات، وبدء الجولة التالية؟"))
+    if (!window.confirm("Finish round and start next? / إنهاء الجولة وبدء التالية؟"))
       return;
     try {
       setBusy(true);
@@ -254,20 +262,23 @@ export default function Sessions() {
         winnerPlayerIds: winnerIds,
       });
       window.alert(
-        `انتهت الجولة\nالمنتصرون: ${result.winners}\nمن الانتظار: ${result.takenFromWaiting}\nبدأ الجولة التالية: ${result.started.length}`,
+        `Round finished / انتهت الجولة
+Winners: ${result.winners}
+From waiting: ${result.takenFromWaiting}
+Started next: ${result.started.length}`,
       );
       setEndingGroup(null);
       setWinnerIds([]);
       await loadData();
     } catch (actionError) {
       console.error(actionError);
-      setError("تعذر بدء الجولة التالية");
+      setError("Could not start next round / تعذر بدء الجولة التالية");
     } finally {
       setBusy(false);
     }
   }
   async function endOnly(group: RoundGroup) {
-    if (!window.confirm("إنهاء الجولة وإخلاء الأجهزة دون جولة تالية؟")) return;
+    if (!window.confirm("End round and release devices? / إنهاء الجولة وإخلاء الأجهزة؟")) return;
     try {
       setBusy(true);
       await api.endRoundGroup(group.id);
@@ -275,7 +286,7 @@ export default function Sessions() {
       await loadData();
     } catch (actionError) {
       console.error(actionError);
-      setError("تعذر إنهاء الجولة");
+      setError("Could not end round / تعذر إنهاء الجولة");
     } finally {
       setBusy(false);
     }
@@ -295,7 +306,7 @@ export default function Sessions() {
       await loadData();
     } catch (actionError) {
       console.error(actionError);
-      setError("تعذر إنهاء الجلسة");
+      setError("Could not end session / تعذر إنهاء الجلسة");
     } finally {
       setBusy(false);
     }
@@ -303,32 +314,50 @@ export default function Sessions() {
 
   async function startSingle(event: FormEvent) {
     event.preventDefault();
-    if (!singleDevice || !singlePlayer) return setError("اختر الجهاز واللاعب");
+    if (!singleDevice) return setError("Select device / اختر الجهاز");
+    if (singleCustomerType === "player" && !singlePlayer)
+      return setError("Select player / اختر اللاعب");
+    if (singleCustomerType === "guest" && !singleGuestName.trim())
+      return setError("Enter guest name / أدخل اسم الضيف");
+
     try {
       setBusy(true);
+      setError("");
+
+      const commonData = {
+        deviceId: Number(singleDevice),
+        playerId: singleCustomerType === "player" ? Number(singlePlayer) : null,
+        customerName:
+          singleCustomerType === "guest" ? singleGuestName.trim() : undefined,
+        guestPhone:
+          singleCustomerType === "guest" ? singleGuestPhone.trim() : undefined,
+        guestNotes:
+          singleCustomerType === "guest" ? singleGuestNotes.trim() : undefined,
+      };
+
       if (singleKind === "round") {
         const fixedPrice = Number(singlePrice);
         if (!Number.isFinite(fixedPrice) || fixedPrice <= 0)
-          return setError("أدخل سعرًا صحيحًا");
+          return setError("Enter a valid price / أدخل سعرًا صحيحًا");
         await api.startRoundSession({
-          deviceId: Number(singleDevice),
-          playerId: Number(singlePlayer),
+          ...commonData,
           fixedPrice,
           roundTitle: "CS Round",
         });
       } else {
-        await api.startSession({
-          deviceId: Number(singleDevice),
-          playerId: Number(singlePlayer),
-        });
+        await api.startSession(commonData);
       }
+
       setSingleDevice("");
       setSinglePlayer("");
+      setSingleGuestName("");
+      setSingleGuestPhone("");
+      setSingleGuestNotes("");
       setSinglePrice("");
       await loadData();
     } catch (actionError) {
       console.error(actionError);
-      setError("تعذر بدء الجلسة");
+      setError("Could not start session / تعذر بدء الجلسة");
     } finally {
       setBusy(false);
     }
@@ -343,9 +372,9 @@ export default function Sessions() {
       <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="mb-2 text-sm text-violet-300">Session Control</p>
-          <h1 className="text-3xl font-semibold">الجلسات وجولات CS</h1>
+          <h1 className="text-3xl font-semibold">Sessions & CS Rounds / الجلسات وجولات CS</h1>
           <p className="mt-2 text-sm text-white/45">
-            المجموعات، المنتصرون، وقائمة الانتظار
+            Groups, winners, and waiting list / المجموعات والمنتصرون وقائمة الانتظار
           </p>
         </div>
         <button
@@ -353,7 +382,7 @@ export default function Sessions() {
           className="flex h-11 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-4 text-sm"
         >
           <RefreshCw size={17} className={loading ? "animate-spin" : ""} />{" "}
-          تحديث
+          Refresh / تحديث
         </button>
       </section>
       {error && (
@@ -366,10 +395,10 @@ export default function Sessions() {
         <article className="rounded-xl border border-amber-400/20 bg-[#0c101d]">
           <div className="border-b border-white/[0.08] p-5">
             <h2 className="flex items-center gap-2 font-semibold text-amber-200">
-              <Users size={19} /> بدء جولة جماعية
+              <Users size={19} /> Start group round / بدء جولة جماعية
             </h2>
             <p className="mt-1 text-xs text-white/35">
-              ابحث عن اللاعبين وحدد سعر كل لاعب مباشرة
+              Search players and set price per player / ابحث وحدد السعر
             </p>
           </div>
           <div className="p-5">
@@ -378,7 +407,7 @@ export default function Sessions() {
               <input
                 value={groupSearch}
                 onChange={(e) => setGroupSearch(e.target.value)}
-                placeholder="ابحث باسم اللاعب أو Username"
+                placeholder="Search player name or username / ابحث باسم اللاعب"
                 className="min-w-0 flex-1 bg-transparent text-sm outline-none"
               />
               <span className="text-xs text-white/30">
@@ -404,7 +433,7 @@ export default function Sessions() {
                 className={fieldClass}
                 value={groupTitle}
                 onChange={(e) => setGroupTitle(e.target.value)}
-                placeholder="اسم الجولة"
+                placeholder="Round title / اسم الجولة"
               />
               <input
                 dir="ltr"
@@ -414,7 +443,7 @@ export default function Sessions() {
                 className={fieldClass}
                 value={groupPrice}
                 onChange={(e) => setGroupPrice(e.target.value)}
-                placeholder="سعر كل لاعب DA"
+                placeholder="Price per player DA / سعر كل لاعب"
               />
             </div>
             <button
@@ -422,18 +451,17 @@ export default function Sessions() {
               onClick={() => void startGroup()}
               className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-amber-500 font-semibold text-black disabled:opacity-40"
             >
-              <Play size={17} /> بدء {selectedPlayers.length} لاعب
-            </button>
+              <Play size={17} /> Start {selectedPlayers.length} players / بدء {selectedPlayers.length} لاعب</button>
           </div>
         </article>
 
         <aside className="rounded-xl border border-sky-400/20 bg-[#0c101d]">
           <div className="border-b border-white/[0.08] p-5">
             <h2 className="flex items-center gap-2 font-semibold text-sky-200">
-              <ListOrdered size={18} /> قائمة الانتظار ({waiting.length})
+              <ListOrdered size={18} /> Waiting list / قائمة الانتظار ({waiting.length})
             </h2>
             <p className="mt-1 text-xs text-white/35">
-              كل لاعب جديد يضاف أسفل الترتيب
+              New players are added at the bottom / يضاف اللاعب أسفل القائمة
             </p>
           </div>
           <div className="p-5">
@@ -442,7 +470,7 @@ export default function Sessions() {
               <input
                 value={waitingSearch}
                 onChange={(e) => setWaitingSearch(e.target.value)}
-                placeholder="ابحث لإضافة لاعب"
+                placeholder="Search to add player / ابحث لإضافة لاعب"
                 className="min-w-0 flex-1 bg-transparent text-sm outline-none"
               />
             </div>
@@ -480,7 +508,7 @@ export default function Sessions() {
               ))}
               {waiting.length === 0 && (
                 <p className="py-8 text-center text-sm text-white/30">
-                  القائمة فارغة
+                  Waiting list is empty / القائمة فارغة
                 </p>
               )}
             </div>
@@ -499,7 +527,7 @@ export default function Sessions() {
                 <div>
                   <h3 className="font-semibold">{group.title}</h3>
                   <p className="mt-1 text-xs text-white/40">
-                    {group.activeCount} لاعب نشط
+                    {group.activeCount} active players / لاعب نشط
                   </p>
                 </div>
                 <span className="text-amber-300">
@@ -510,7 +538,7 @@ export default function Sessions() {
                 onClick={() => openWinners(group)}
                 className="mt-4 flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-amber-500/15 text-sm text-amber-300"
               >
-                <Trophy size={16} /> إنهاء واختيار المنتصرين
+                <Trophy size={16} /> Finish and choose winners / إنهاء واختيار المنتصرين
               </button>
             </article>
           ))}
@@ -522,17 +550,16 @@ export default function Sessions() {
           <div className="flex items-start justify-between">
             <div>
               <h2 className="flex items-center gap-2 font-semibold text-amber-200">
-                <Trophy size={19} /> اختر من سيلعب الجولة التالية
+                <Trophy size={19} /> Choose next-round players / اختر لاعبي الجولة التالية
               </h2>
-              <p className="mt-1 text-xs text-white/40">
-                سيتم ملء الأماكن الباقية تلقائيًا من أعلى قائمة الانتظار
+              <p className="mt-1 text-xs text-white/40">                Remaining slots will be filled from the waiting list / سيتم ملء الأماكن من قائمة الانتظار
               </p>
             </div>
             <button
               onClick={() => setEndingGroup(null)}
               className="text-white/40"
             >
-              إغلاق
+              Close / إغلاق
             </button>
           </div>
           <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -555,14 +582,14 @@ export default function Sessions() {
               onClick={() => void finishAndNext()}
               className="h-11 rounded-lg bg-amber-500 font-semibold text-black disabled:opacity-40"
             >
-              بدء الجولة التالية ({winnerIds.length} منتصر)
+              Start next round ({winnerIds.length} winners) / بدء الجولة التالية
             </button>
             <button
               disabled={busy}
               onClick={() => void endOnly(endingGroup)}
               className="h-11 rounded-lg bg-rose-500/15 text-rose-300 disabled:opacity-40"
             >
-              إنهاء فقط وإخلاء الأجهزة
+              End only & release devices / إنهاء وإخلاء الأجهزة
             </button>
           </div>
         </section>
@@ -571,7 +598,7 @@ export default function Sessions() {
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_350px]">
         <article className="rounded-xl border border-white/[0.08] bg-[#0c101d]">
           <div className="border-b border-white/[0.08] p-5">
-            <h2 className="font-semibold">الجلسات النشطة</h2>
+            <h2 className="font-semibold">Active sessions / الجلسات النشطة</h2>
           </div>
           <div className="grid gap-4 p-5 lg:grid-cols-2">
             {sessions.map((session) => (
@@ -592,46 +619,69 @@ export default function Sessions() {
                 </div>
                 <div className="my-3 space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-white/35">اللاعب</span>
+                    <span className="text-white/35">{session.playerId ? "Player / اللاعب" : "Guest"}</span>
                     <span>{session.customerName}</span>
                   </div>
+                  {!session.playerId && session.guestNotes && (
+                    <div className="rounded-lg border border-amber-400/15 bg-amber-500/[0.06] p-2 text-xs text-amber-100">
+                      <span className="text-amber-300">Payment note / ملاحظة السداد: </span>
+                      {session.guestNotes}
+                    </div>
+                  )}
+                  {!session.playerId && session.guestPhone && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-white/35">Phone / الهاتف</span>
+                      <span dir="ltr">{session.guestPhone}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
-                    <span className="text-white/35">المدة</span>
+                    <span className="text-white/35">Duration / المدة</span>
                     <span>{minutes(session.startTime)} min</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/35">السعر</span>
+                    <span className="text-white/35">Price / السعر</span>
                     <span className="text-emerald-300">
                       {price(session)} DA
                     </span>
                   </div>
                 </div>
-                {!session.roundGroupId && (
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => void finishSession(session, "cash")}
-                      className="h-9 rounded-lg bg-emerald-500/15 text-xs text-emerald-300"
-                    >
-                      <Banknote size={14} className="inline" /> نقدًا
-                    </button>
-                    <button
-                      onClick={() =>
-                        void finishSession(
-                          session,
-                          session.playerId ? "wallet" : "debt",
-                        )
-                      }
-                      className="h-9 rounded-lg bg-violet-500/15 text-xs text-violet-300"
-                    >
-                      {session.playerId ? "المحفظة" : "دين"}
-                    </button>
-                  </div>
-                )}
+                {!session.roundGroupId &&
+                  (session.playerId ? (
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => void finishSession(session, "cash")}
+                        className="h-9 rounded-lg bg-emerald-500/15 text-xs text-emerald-300"
+                      >
+                        <Banknote size={14} className="inline" /> Cash / نقدًا
+                      </button>
+                      <button
+                        onClick={() => void finishSession(session, "wallet")}
+                        className="h-9 rounded-lg bg-violet-500/15 text-xs text-violet-300"
+                      >
+                        Wallet / المحفظة
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => void finishSession(session, "cash")}
+                        className="h-9 rounded-lg bg-emerald-500/15 text-xs text-emerald-300"
+                      >
+                        <Banknote size={14} className="inline" /> Cash / كاش
+                      </button>
+                      <button
+                        onClick={() => void finishSession(session, "debt")}
+                        className="h-9 rounded-lg bg-rose-500/15 text-xs text-rose-300"
+                      >
+                        Debt / دين
+                      </button>
+                    </div>
+                  ))}
               </article>
             ))}
             {!loading && !sessions.length && (
               <p className="col-span-full py-12 text-center text-white/30">
-                لا توجد جلسات
+                No active sessions / لا توجد جلسات
               </p>
             )}
           </div>
@@ -641,7 +691,7 @@ export default function Sessions() {
           className="h-fit rounded-xl border border-white/[0.08] bg-[#0c101d] p-5"
         >
           <h2 className="mb-4 flex items-center gap-2 font-semibold">
-            <UserRound size={18} /> جلسة فردية
+            <UserRound size={18} /> Single session / جلسة فردية
           </h2>
           <div className="mb-3 grid grid-cols-2 gap-2">
             <button
@@ -649,14 +699,14 @@ export default function Sessions() {
               onClick={() => setSingleKind("timed")}
               className={`h-10 rounded-lg text-xs ${singleKind === "timed" ? "bg-violet-600" : "bg-white/[0.05]"}`}
             >
-              بالوقت
+              Timed / بالوقت
             </button>
             <button
               type="button"
               onClick={() => setSingleKind("round")}
               className={`h-10 rounded-lg text-xs ${singleKind === "round" ? "bg-amber-500/20 text-amber-300" : "bg-white/[0.05]"}`}
             >
-              جولة ثابتة
+              Fixed round / جولة ثابتة
             </button>
           </div>
           <select
@@ -664,25 +714,64 @@ export default function Sessions() {
             value={singleDevice}
             onChange={(e) => setSingleDevice(e.target.value)}
           >
-            <option value="">اختر الجهاز</option>
+            <option value="">Select device / اختر الجهاز</option>
             {availableDevices.map((d) => (
               <option key={d.id} value={d.id}>
                 {d.name}
               </option>
             ))}
           </select>
-          <select
-            className={`${fieldClass} mt-3`}
-            value={singlePlayer}
-            onChange={(e) => setSinglePlayer(e.target.value)}
-          >
-            <option value="">اختر اللاعب</option>
-            {players.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setSingleCustomerType("player")}
+              className={`h-10 rounded-lg text-xs ${singleCustomerType === "player" ? "bg-cyan-500/20 text-cyan-300" : "bg-white/[0.05]"}`}
+            >Player / لاعب</button>
+            <button
+              type="button"
+              onClick={() => setSingleCustomerType("guest")}
+              className={`h-10 rounded-lg text-xs ${singleCustomerType === "guest" ? "bg-emerald-500/20 text-emerald-300" : "bg-white/[0.05]"}`}
+            >
+              Guest
+            </button>
+          </div>
+
+          {singleCustomerType === "player" ? (
+            <select
+              className={`${fieldClass} mt-3`}
+              value={singlePlayer}
+              onChange={(e) => setSinglePlayer(e.target.value)}
+            >
+              <option value="">Select player / اختر اللاعب</option>
+              {players.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div className="mt-3 space-y-3">
+              <input
+                className={fieldClass}
+                value={singleGuestName}
+                onChange={(e) => setSingleGuestName(e.target.value)}
+                placeholder="Guest name / اسم الضيف"
+              />
+              <input
+                dir="ltr"
+                className={fieldClass}
+                value={singleGuestPhone}
+                onChange={(e) => setSingleGuestPhone(e.target.value)}
+                placeholder="Phone (optional) / الهاتف اختياري"
+              />
+              <input
+                className={fieldClass}
+                value={singleGuestNotes}
+                onChange={(e) => setSingleGuestNotes(e.target.value)}
+                placeholder="Note (optional) / ملاحظة اختيارية"
+              />
+            </div>
+          )}
           {singleKind === "round" && (
             <input
               dir="ltr"
@@ -690,17 +779,18 @@ export default function Sessions() {
               className={`${fieldClass} mt-3`}
               value={singlePrice}
               onChange={(e) => setSinglePrice(e.target.value)}
-              placeholder="السعر DA"
+              placeholder="Price / السعر DA"
             />
           )}
           <button
             disabled={busy}
             className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 disabled:opacity-40"
           >
-            <Play size={16} /> بدء الجلسة
-          </button>
+            <Play size={16} /> Start session / بدء الجلسة</button>
         </form>
       </section>
     </div>
   );
 }
+
+
