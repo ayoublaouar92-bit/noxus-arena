@@ -1,4 +1,5 @@
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Camera,
   CircleDollarSign,
@@ -11,6 +12,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
+import { handleUnauthorized } from "../lib/auth";
 
 type Player = {
   id: number;
@@ -43,6 +45,38 @@ type VipSettings = {
 const fieldClass =
   "h-11 w-full rounded-lg border border-white/10 bg-[#080b16] px-4 text-sm text-white outline-none placeholder:text-white/25 focus:border-violet-400/60";
 
+function parseMoneyInput(input: string) {
+  const digitMap: Record<string, string> = {
+    "٠": "0",
+    "١": "1",
+    "٢": "2",
+    "٣": "3",
+    "٤": "4",
+    "٥": "5",
+    "٦": "6",
+    "٧": "7",
+    "٨": "8",
+    "٩": "9",
+    "۰": "0",
+    "۱": "1",
+    "۲": "2",
+    "۳": "3",
+    "۴": "4",
+    "۵": "5",
+    "۶": "6",
+    "۷": "7",
+    "۸": "8",
+    "۹": "9",
+  };
+  const normalized = input
+    .split("")
+    .map((character) => digitMap[character] ?? character)
+    .join("")
+    .replace(/,/g, ".")
+    .replace(/[^0-9.-]/g, "");
+  return Number(normalized);
+}
+
 export default function Players() {
   const api = (window as any).api;
   const [players, setPlayers] = useState<Player[]>([]);
@@ -56,7 +90,11 @@ export default function Players() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [summaryView, setSummaryView] = useState<"all" | "vip" | "wallet" | "debt" | null>(null);
+  const [topUpTarget, setTopUpTarget] = useState<Player | null>(null);
+  const [topUpAmount, setTopUpAmount] = useState("");
+  const [summaryView, setSummaryView] = useState<
+    "all" | "vip" | "wallet" | "debt" | null
+  >(null);
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
@@ -129,24 +167,40 @@ export default function Players() {
     }
   }
 
-  async function topUp(player: Player) {
-    const raw = window.prompt(`مبلغ شحن محفظة ${player.name} بالدينار:`);
-    if (!raw) return;
-    const amount = Number(raw.replace(",", "."));
+  function topUp(player: Player) {
+    setError("");
+    setTopUpTarget(player);
+    setTopUpAmount("");
+  }
+
+  async function submitTopUp(event: FormEvent) {
+    event.preventDefault();
+    if (!topUpTarget) return;
+    const amount = parseMoneyInput(topUpAmount);
     if (!Number.isFinite(amount) || amount <= 0) {
       setError("أدخل مبلغًا صحيحًا");
       return;
     }
     try {
       setSaving(true);
-      const result = await api.topUpPlayer({ playerId: player.id, amount });
-      window.alert(
-        `تم استلام ${result.amount} DA\nسداد الدين: ${result.debtPaid} DA\nإضافة للمحفظة: ${result.walletAdded} DA`,
-      );
+      await api.topUpPlayer({
+        playerId: topUpTarget.id,
+        amount,
+        note: "شحن المحفظة من صفحة اللاعبين",
+      });
+      setTopUpTarget(null);
+      setTopUpAmount("");
+      window.alert(`تم شحن المحفظة بمبلغ ${amount.toFixed(2)} DA`);
       await loadPlayers();
-    } catch (actionError) {
+    } catch (actionError: any) {
       console.error(actionError);
-      setError("تعذر شحن المحفظة");
+      if (handleUnauthorized(actionError)) return;
+      const message = String(actionError?.message || actionError || "");
+      setError(
+        message.includes("SHIFT_REQUIRED")
+          ? "يجب فتح وردية قبل شحن محفظة اللاعب"
+          : "تعذر شحن المحفظة",
+      );
     } finally {
       setSaving(false);
     }
@@ -237,7 +291,9 @@ export default function Players() {
 
   const summaryPlayers = useMemo(() => {
     if (summaryView === "vip") {
-      const vipIds = new Set(vipRows.filter((row) => row.isVip).map((row) => row.playerId));
+      const vipIds = new Set(
+        vipRows.filter((row) => row.isVip).map((row) => row.playerId),
+      );
       return players.filter((player) => vipIds.has(player.id));
     }
     if (summaryView === "wallet") {
@@ -295,24 +351,46 @@ export default function Players() {
       )}
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <button type="button" onClick={() => setSummaryView("all")} className="rounded-xl border border-white/[0.08] bg-[#0c101d] p-5 text-right transition hover:border-violet-400/30 hover:bg-violet-500/[0.06]">
+        <button
+          type="button"
+          onClick={() => setSummaryView("all")}
+          className="rounded-xl border border-white/[0.08] bg-[#0c101d] p-5 text-right transition hover:border-violet-400/30 hover:bg-violet-500/[0.06]"
+        >
           <Users className="text-violet-300" />
           <p className="mt-4 text-2xl font-semibold">{players.length}</p>
-          <p className="text-xs text-white/35">Total players / إجمالي اللاعبين</p>
+          <p className="text-xs text-white/35">
+            Total players / إجمالي اللاعبين
+          </p>
         </button>
-        <button type="button" onClick={() => setSummaryView("vip")} className="rounded-xl border border-amber-400/20 bg-amber-500/[0.06] p-5 text-right transition hover:border-amber-300/50 hover:bg-amber-500/[0.1]">
+        <button
+          type="button"
+          onClick={() => setSummaryView("vip")}
+          className="rounded-xl border border-amber-400/20 bg-amber-500/[0.06] p-5 text-right transition hover:border-amber-300/50 hover:bg-amber-500/[0.1]"
+        >
           <Crown className="text-amber-300" />
           <p className="mt-4 text-2xl font-semibold">{vipCount}</p>
           <p className="text-xs text-white/35">VIP members / أعضاء VIP</p>
         </button>
-        <button type="button" onClick={() => setSummaryView("wallet")} className="rounded-xl border border-white/[0.08] bg-[#0c101d] p-5 text-right transition hover:border-emerald-400/30 hover:bg-emerald-500/[0.06]">
+        <button
+          type="button"
+          onClick={() => setSummaryView("wallet")}
+          className="rounded-xl border border-white/[0.08] bg-[#0c101d] p-5 text-right transition hover:border-emerald-400/30 hover:bg-emerald-500/[0.06]"
+        >
           <Wallet className="text-emerald-300" />
-          <p className="mt-4 text-2xl font-semibold">{totalWallet.toFixed(2)} DA</p>
+          <p className="mt-4 text-2xl font-semibold">
+            {totalWallet.toFixed(2)} DA
+          </p>
           <p className="text-xs text-white/35">Wallet funds / أموال المحافظ</p>
         </button>
-        <button type="button" onClick={() => setSummaryView("debt")} className="rounded-xl border border-white/[0.08] bg-[#0c101d] p-5 text-right transition hover:border-rose-400/30 hover:bg-rose-500/[0.06]">
+        <button
+          type="button"
+          onClick={() => setSummaryView("debt")}
+          className="rounded-xl border border-white/[0.08] bg-[#0c101d] p-5 text-right transition hover:border-rose-400/30 hover:bg-rose-500/[0.06]"
+        >
           <CircleDollarSign className="text-rose-300" />
-          <p className="mt-4 text-2xl font-semibold">{totalDebt.toFixed(2)} DA</p>
+          <p className="mt-4 text-2xl font-semibold">
+            {totalDebt.toFixed(2)} DA
+          </p>
           <p className="text-xs text-white/35">Total debts / إجمالي الديون</p>
         </button>
       </section>
@@ -563,53 +641,150 @@ export default function Players() {
         </aside>
       </section>
 
-      {summaryView && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" onClick={() => setSummaryView(null)}>
-          <div className="max-h-[82vh] w-full max-w-3xl overflow-hidden rounded-xl border border-white/10 bg-[#0c101d] shadow-2xl" onClick={(event) => event.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-white/10 p-5">
-              <div>
-                <h2 className="text-lg font-semibold">{summaryTitle}</h2>
-                <p className="mt-1 text-xs text-white/35">{summaryPlayers.length} players</p>
-              </div>
-              <button type="button" onClick={() => setSummaryView(null)} className="rounded-lg bg-white/[0.06] px-3 py-2 text-sm text-white/70 hover:bg-white/[0.1]">Close</button>
+      {topUpTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={() => !saving && setTopUpTarget(null)}
+        >
+          <form
+            onSubmit={submitTopUp}
+            onClick={(event) => event.stopPropagation()}
+            className="w-full max-w-md rounded-xl border border-emerald-400/20 bg-[#0c101d] p-5 shadow-2xl"
+          >
+            <h2 className="flex items-center gap-2 text-lg font-semibold">
+              <Wallet size={19} className="text-emerald-300" /> شحن محفظة اللاعب
+            </h2>
+            <p className="mt-2 text-sm text-white/45">
+              {topUpTarget.name} · الرصيد الحالي{" "}
+              {Number(topUpTarget.walletBalance || 0).toFixed(2)} DA
+            </p>
+            <label className="mt-5 block text-xs text-white/45">
+              مبلغ الشحن
+              <input
+                autoFocus
+                dir="ltr"
+                value={topUpAmount}
+                onChange={(event) => setTopUpAmount(event.target.value)}
+                className={`${fieldClass} mt-2`}
+                placeholder="0.00"
+              />
+            </label>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => setTopUpTarget(null)}
+                className="h-11 rounded-lg border border-white/10 bg-white/[0.04] text-sm disabled:opacity-40"
+              >
+                إلغاء
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="h-11 rounded-lg bg-emerald-600 text-sm font-medium disabled:opacity-40"
+              >
+                {saving ? "جاري الشحن..." : "تأكيد الشحن"}
+              </button>
             </div>
-            <div className="max-h-[65vh] overflow-y-auto p-4">
-              {summaryPlayers.length === 0 ? (
-                <div className="py-12 text-center text-sm text-white/35">No players found</div>
-              ) : (
-                <div className="space-y-2">
-                  {summaryPlayers.map((player) => {
-                    const vip = vipMap.get(player.id);
-                    return (
-                      <div key={player.id} className="grid gap-3 rounded-lg border border-white/[0.07] bg-[#080b16] p-3 sm:grid-cols-[1fr_auto_auto] sm:items-center">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold">{player.name}</p>
-                          <p dir="ltr" className="mt-1 text-xs text-violet-300">@{player.username}</p>
-                          {player.phone && <p dir="ltr" className="mt-1 text-xs text-white/30">{player.phone}</p>}
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 text-xs sm:w-56">
-                          <div className="rounded-lg bg-emerald-500/[0.07] p-2">
-                            <p className="text-white/35">Wallet</p>
-                            <p className="text-emerald-300">{Number(player.walletBalance || 0).toFixed(2)} DA</p>
-                          </div>
-                          <div className="rounded-lg bg-rose-500/[0.07] p-2">
-                            <p className="text-white/35">Debt</p>
-                            <p className="text-rose-300">{Number(player.debtBalance || 0).toFixed(2)} DA</p>
-                          </div>
-                        </div>
-                        <div className="text-left text-xs sm:w-32">
-                          {vip?.isVip ? <span className="rounded-lg bg-amber-500/15 px-2 py-1 text-amber-300">VIP</span> : <span className="text-white/25">Regular</span>}
-                          <p className="mt-2 text-white/35">Points: {vip?.points || 0}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
+          </form>
         </div>
       )}
+
+      {summaryView &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+            onClick={() => setSummaryView(null)}
+          >
+            <div
+              className="max-h-[82vh] w-full max-w-3xl overflow-hidden rounded-xl border border-white/10 bg-[#0c101d] shadow-2xl"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-white/10 p-5">
+                <div>
+                  <h2 className="text-lg font-semibold">{summaryTitle}</h2>
+                  <p className="mt-1 text-xs text-white/35">
+                    {summaryPlayers.length} players
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSummaryView(null)}
+                  className="rounded-lg bg-white/[0.06] px-3 py-2 text-sm text-white/70 hover:bg-white/[0.1]"
+                >
+                  Close
+                </button>
+              </div>
+              <div className="max-h-[65vh] overflow-y-auto p-4">
+                {summaryPlayers.length === 0 ? (
+                  <div className="py-12 text-center text-sm text-white/35">
+                    No players found
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {summaryPlayers.map((player) => {
+                      const vip = vipMap.get(player.id);
+                      return (
+                        <div
+                          key={player.id}
+                          className="grid gap-3 rounded-lg border border-white/[0.07] bg-[#080b16] p-3 sm:grid-cols-[1fr_auto_auto] sm:items-center"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold">
+                              {player.name}
+                            </p>
+                            <p
+                              dir="ltr"
+                              className="mt-1 text-xs text-violet-300"
+                            >
+                              @{player.username}
+                            </p>
+                            {player.phone && (
+                              <p
+                                dir="ltr"
+                                className="mt-1 text-xs text-white/30"
+                              >
+                                {player.phone}
+                              </p>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-xs sm:w-56">
+                            <div className="rounded-lg bg-emerald-500/[0.07] p-2">
+                              <p className="text-white/35">Wallet</p>
+                              <p className="text-emerald-300">
+                                {Number(player.walletBalance || 0).toFixed(2)}{" "}
+                                DA
+                              </p>
+                            </div>
+                            <div className="rounded-lg bg-rose-500/[0.07] p-2">
+                              <p className="text-white/35">Debt</p>
+                              <p className="text-rose-300">
+                                {Number(player.debtBalance || 0).toFixed(2)} DA
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-left text-xs sm:w-32">
+                            {vip?.isVip ? (
+                              <span className="rounded-lg bg-amber-500/15 px-2 py-1 text-amber-300">
+                                VIP
+                              </span>
+                            ) : (
+                              <span className="text-white/25">Regular</span>
+                            )}
+                            <p className="mt-2 text-white/35">
+                              Points: {vip?.points || 0}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

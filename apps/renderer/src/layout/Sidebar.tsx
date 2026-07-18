@@ -5,6 +5,7 @@ import {
   Clock3,
   Gamepad2,
   LayoutDashboard,
+  LogOut,
   Monitor,
   Receipt,
   Settings,
@@ -15,12 +16,23 @@ import {
   Wifi,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import type { StaffUser } from "../lib/staff-ui";
+
+type SidebarProps = {
+  currentStaff: StaffUser;
+  onLogout: () => Promise<void>;
+};
 
 const navigationGroups = [
   {
     title: "CONTROL",
     items: [
-      { title: "Dashboard", arabic: "الرئيسية", path: "/", icon: LayoutDashboard },
+      {
+        title: "Dashboard",
+        arabic: "الرئيسية",
+        path: "/",
+        icon: LayoutDashboard,
+      },
       { title: "Devices", arabic: "الأجهزة", path: "/devices", icon: Monitor },
       { title: "Sessions", arabic: "الجلسات", path: "/sessions", icon: Clock3 },
     ],
@@ -28,8 +40,18 @@ const navigationGroups = [
   {
     title: "ARENA",
     items: [
-      { title: "Players & Members", arabic: "اللاعبون والأعضاء", path: "/players", icon: UserRound },
-      { title: "Tournaments", arabic: "البطولات", path: "/tournaments", icon: Trophy },
+      {
+        title: "Players & Members",
+        arabic: "اللاعبون والأعضاء",
+        path: "/players",
+        icon: UserRound,
+      },
+      {
+        title: "Tournaments",
+        arabic: "البطولات",
+        path: "/tournaments",
+        icon: Trophy,
+      },
     ],
   },
   {
@@ -37,17 +59,32 @@ const navigationGroups = [
     items: [
       { title: "Billing", arabic: "الفوترة", path: "/billing", icon: Receipt },
       { title: "Store", arabic: "المتجر", path: "/store", icon: ShoppingBag },
-      { title: "Inventory", arabic: "المخزون", path: "/inventory", icon: Boxes },
-      { title: "Guest Debts", arabic: "ديون الضيوف", path: "/guest-debts", icon: BadgeDollarSign },
-      { title: "Reports", arabic: "التقارير", path: "/reports", icon: BarChart3 },
+      {
+        title: "Inventory",
+        arabic: "المخزون",
+        path: "/inventory",
+        icon: Boxes,
+      },
+      {
+        title: "Guest Debts",
+        arabic: "ديون الضيوف",
+        path: "/guest-debts",
+        icon: BadgeDollarSign,
+      },
+      {
+        title: "Reports",
+        arabic: "التقارير",
+        path: "/reports",
+        icon: BarChart3,
+      },
       { title: "Staff", arabic: "الموظفون", path: "/staff", icon: Shield },
     ],
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ currentStaff, onLogout }: SidebarProps) {
   return (
-    <aside className="relative z-20 flex h-screen w-[244px] shrink-0 flex-col border-r border-white/[0.07] bg-[#070a14]/95 backdrop-blur-xl">
+    <aside className="noxus-sidebar relative z-20 flex h-screen w-[244px] shrink-0 flex-col border-r border-white/[0.07] bg-[#070a14]/95 backdrop-blur-xl">
       <div className="flex h-[86px] shrink-0 items-center border-b border-white/[0.07] px-5">
         <div className="flex items-center gap-3">
           <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white shadow-[0_0_30px_rgba(139,92,246,0.28)]">
@@ -57,7 +94,9 @@ export default function Sidebar() {
 
           <div>
             <h1 className="text-base font-bold tracking-[0.16em]">NOXUS</h1>
-            <p className="mt-1 text-[10px] tracking-[0.18em] text-white/35">ARENA MANAGER</p>
+            <p className="mt-1 text-[10px] tracking-[0.18em] text-white/35">
+              ARENA MANAGER
+            </p>
           </div>
         </div>
       </div>
@@ -102,8 +141,12 @@ export default function Sidebar() {
                         />
 
                         <div className="min-w-0 leading-tight">
-                          <p className="truncate text-[13px] font-medium">{item.title}</p>
-                          <p className="mt-0.5 truncate text-[9px] text-white/30">{item.arabic}</p>
+                          <p className="truncate text-[13px] font-medium">
+                            {item.title}
+                          </p>
+                          <p className="mt-0.5 truncate text-[9px] text-white/30">
+                            {item.arabic}
+                          </p>
                         </div>
                       </>
                     )}
@@ -130,6 +173,28 @@ export default function Sidebar() {
           <span>Settings</span>
           <span className="ml-auto text-[10px] text-white/25">الإعدادات</span>
         </NavLink>
+
+        <div className="mb-3 rounded-lg border border-violet-400/10 bg-violet-400/[0.05] p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate text-xs font-medium text-white/80">
+                {currentStaff.name}
+              </p>
+              <p className="mt-1 text-[9px] uppercase tracking-wider text-violet-300/70">
+                {currentStaff.role}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => void onLogout()}
+              title="تسجيل الخروج"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-300 transition hover:bg-rose-500/20"
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
+        </div>
 
         <div className="rounded-lg border border-emerald-400/10 bg-emerald-400/[0.05] p-3">
           <div className="flex items-center gap-2 text-xs text-emerald-300">

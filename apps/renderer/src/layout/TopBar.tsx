@@ -1,9 +1,4 @@
-import {
-  Bell,
-  Gamepad2,
-  Search,
-  ShieldCheck,
-} from "lucide-react";
+import { Bell, Gamepad2, Search, ShieldCheck } from "lucide-react";
 
 import { useLocation } from "react-router-dom";
 
@@ -76,45 +71,34 @@ export default function TopBar() {
   const location = useLocation();
 
   const currentPage =
-    pageInformation[location.pathname] ??
-    pageInformation["/"];
+    pageInformation[location.pathname] ?? pageInformation["/"];
 
-  const currentDate = new Date().toLocaleDateString(
-    "ar-DZ",
-    {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-    }
-  );
+  const currentDate = new Date().toLocaleDateString("ar-DZ", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
 
   return (
     <header
       dir="ltr"
-      className="flex h-[86px] shrink-0 items-center gap-6 border-b border-white/[0.07] bg-[#070a14]/80 px-6 backdrop-blur-xl"
+      className="noxus-topbar flex h-[86px] shrink-0 items-center gap-6 border-b border-white/[0.07] bg-[#070a14]/80 px-6 backdrop-blur-xl"
     >
       <div className="min-w-48">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">
-            {currentPage.title}
-          </h1>
+          <h1 className="text-lg font-semibold">{currentPage.title}</h1>
 
           <span className="rounded bg-violet-500/10 px-2 py-0.5 text-[10px] text-violet-300">
             {currentPage.arabic}
           </span>
         </div>
 
-        <p className="mt-1 text-xs text-white/30">
-          {currentPage.description}
-        </p>
+        <p className="mt-1 text-xs text-white/30">{currentPage.description}</p>
       </div>
 
       <div className="hidden min-w-0 max-w-xl flex-1 lg:block">
         <div className="flex h-10 items-center gap-3 rounded-lg border border-white/[0.08] bg-[#0b0f1c] px-4 transition focus-within:border-violet-400/35">
-          <Search
-            size={16}
-            className="shrink-0 text-white/25"
-          />
+          <Search size={16} className="shrink-0 text-white/25" />
 
           <input
             placeholder="Search pages, players, devices..."
@@ -129,10 +113,7 @@ export default function TopBar() {
 
       <div className="ml-auto flex items-center gap-3">
         <div className="hidden text-right 2xl:block">
-          <p
-            dir="rtl"
-            className="text-xs text-white/45"
-          >
+          <p dir="rtl" className="text-xs text-white/45">
             {currentDate}
           </p>
 
@@ -162,25 +143,17 @@ export default function TopBar() {
         <div className="flex h-11 items-center gap-3 rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5">
           <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-600 text-xs font-bold">
             AY
-
             <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#0a0d18] bg-emerald-400" />
           </div>
 
           <div className="hidden text-left xl:block">
             <div className="flex items-center gap-1.5">
-              <p className="text-xs font-medium">
-                Ayoub
-              </p>
+              <p className="text-xs font-medium">Ayoub</p>
 
-              <ShieldCheck
-                size={12}
-                className="text-violet-300"
-              />
+              <ShieldCheck size={12} className="text-violet-300" />
             </div>
 
-            <p className="mt-0.5 text-[9px] text-white/30">
-              Administrator
-            </p>
+            <p className="mt-0.5 text-[9px] text-white/30">Administrator</p>
           </div>
         </div>
       </div>
