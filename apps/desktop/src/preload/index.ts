@@ -50,6 +50,11 @@ const api = {
     defaultGuestPayment?: "cash" | "debt";
   }) => ipcRenderer.invoke("settings:update", updates),
 
+  // Kiosk control (Admin only in the main process)
+  getKioskMode: () => ipcRenderer.invoke("kiosk:get-mode"),
+  setKioskMode: (data: { enabled: boolean; force?: boolean }) =>
+    ipcRenderer.invoke("kiosk:set-mode", data),
+
   // Finance
   getPlayers: () => ipcRenderer.invoke("finance:get-players"),
   addPlayer: (player: {
@@ -59,6 +64,13 @@ const api = {
     initialDeposit?: number;
     image?: string;
   }) => ipcRenderer.invoke("finance:add-player", player),
+  updatePlayer: (player: {
+    playerId: number;
+    name: string;
+    username: string;
+    phone?: string;
+    image?: string | null;
+  }) => ipcRenderer.invoke("finance:update-player", player),
   deletePlayer: (playerId: number) =>
     ipcRenderer.invoke("finance:delete-player", playerId),
   topUpPlayer: (data: { playerId: number; amount: number; note?: string }) =>

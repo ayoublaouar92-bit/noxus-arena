@@ -14,6 +14,7 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
+import { useLanguage } from "../lib/i18n";
 
 type Device = {
   id: number;
@@ -69,6 +70,9 @@ const fieldClass =
   "h-11 w-full rounded-lg border border-white/10 bg-[#080b16] px-4 text-sm text-white outline-none placeholder:text-white/25 focus:border-violet-400/60";
 
 export default function Sessions() {
+  const { dir, language } = useLanguage();
+  const tr = (en: string, ar: string, fr: string) =>
+    language === "ar" ? ar : language === "fr" ? fr : en;
   const api = (window as any).api;
   const [devices, setDevices] = useState<Device[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -368,13 +372,13 @@ Started next: ${result.started.length}`,
     : [];
 
   return (
-    <div dir="rtl" className="space-y-6">
+    <div dir={dir} className="space-y-6">
       <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="mb-2 text-sm text-violet-300">Session Control</p>
-          <h1 className="text-3xl font-semibold">Sessions & CS Rounds / الجلسات وجولات CS</h1>
+          <p className="mb-2 text-sm text-violet-300">{tr("Session Control", "التحكم في الجلسات", "Contrôle des sessions")}</p>
+          <h1 className="text-3xl font-semibold">{tr("Sessions & CS Rounds", "الجلسات وجولات CS", "Sessions et manches CS")}</h1>
           <p className="mt-2 text-sm text-white/45">
-            Groups, winners, and waiting list / المجموعات والمنتصرون وقائمة الانتظار
+            {tr("Groups, winners, and waiting list", "المجموعات والفائزون وقائمة الانتظار", "Groupes, gagnants et liste d’attente")}
           </p>
         </div>
         <button
@@ -382,7 +386,7 @@ Started next: ${result.started.length}`,
           className="flex h-11 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-4 text-sm"
         >
           <RefreshCw size={17} className={loading ? "animate-spin" : ""} />{" "}
-          Refresh / تحديث
+          {tr("Refresh", "تحديث", "Actualiser")}
         </button>
       </section>
       {error && (
@@ -395,10 +399,10 @@ Started next: ${result.started.length}`,
         <article className="rounded-xl border border-amber-400/20 bg-[#0c101d]">
           <div className="border-b border-white/[0.08] p-5">
             <h2 className="flex items-center gap-2 font-semibold text-amber-200">
-              <Users size={19} /> Start group round / بدء جولة جماعية
+              <Users size={19} /> {tr("Start group round", "بدء جولة جماعية", "Démarrer une manche de groupe")}
             </h2>
             <p className="mt-1 text-xs text-white/35">
-              Search players and set price per player / ابحث وحدد السعر
+              {tr("Search players and set price per player", "ابحث عن اللاعبين وحدد السعر لكل لاعب", "Rechercher des joueurs et définir le prix par joueur")}
             </p>
           </div>
           <div className="p-5">
@@ -407,7 +411,7 @@ Started next: ${result.started.length}`,
               <input
                 value={groupSearch}
                 onChange={(e) => setGroupSearch(e.target.value)}
-                placeholder="Search player name or username / ابحث باسم اللاعب"
+                placeholder={tr("Search player name or username", "ابحث باسم اللاعب أو اسم المستخدم", "Rechercher un joueur ou un identifiant")}
                 className="min-w-0 flex-1 bg-transparent text-sm outline-none"
               />
               <span className="text-xs text-white/30">
@@ -433,7 +437,7 @@ Started next: ${result.started.length}`,
                 className={fieldClass}
                 value={groupTitle}
                 onChange={(e) => setGroupTitle(e.target.value)}
-                placeholder="Round title / اسم الجولة"
+                placeholder={tr("Round title", "اسم الجولة", "Nom de la manche")}
               />
               <input
                 dir="ltr"
@@ -443,7 +447,7 @@ Started next: ${result.started.length}`,
                 className={fieldClass}
                 value={groupPrice}
                 onChange={(e) => setGroupPrice(e.target.value)}
-                placeholder="Price per player DA / سعر كل لاعب"
+                placeholder={tr("Price per player (DA)", "سعر كل لاعب (دج)", "Prix par joueur (DA)")}
               />
             </div>
             <button
@@ -451,17 +455,17 @@ Started next: ${result.started.length}`,
               onClick={() => void startGroup()}
               className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-amber-500 font-semibold text-black disabled:opacity-40"
             >
-              <Play size={17} /> Start {selectedPlayers.length} players / بدء {selectedPlayers.length} لاعب</button>
+              <Play size={17} /> {tr(`Start ${selectedPlayers.length} players`, `بدء ${selectedPlayers.length} لاعب`, `Démarrer ${selectedPlayers.length} joueurs`)}</button>
           </div>
         </article>
 
         <aside className="rounded-xl border border-sky-400/20 bg-[#0c101d]">
           <div className="border-b border-white/[0.08] p-5">
             <h2 className="flex items-center gap-2 font-semibold text-sky-200">
-              <ListOrdered size={18} /> Waiting list / قائمة الانتظار ({waiting.length})
+              <ListOrdered size={18} /> {tr(`Waiting list (${waiting.length})`, `قائمة الانتظار (${waiting.length})`, `Liste d’attente (${waiting.length})`)}
             </h2>
             <p className="mt-1 text-xs text-white/35">
-              New players are added at the bottom / يضاف اللاعب أسفل القائمة
+              {tr("New players are added at the bottom", "يُضاف اللاعبون الجدد في أسفل القائمة", "Les nouveaux joueurs sont ajoutés en bas")}
             </p>
           </div>
           <div className="p-5">
@@ -470,7 +474,7 @@ Started next: ${result.started.length}`,
               <input
                 value={waitingSearch}
                 onChange={(e) => setWaitingSearch(e.target.value)}
-                placeholder="Search to add player / ابحث لإضافة لاعب"
+                placeholder={tr("Search to add player", "ابحث لإضافة لاعب", "Rechercher pour ajouter un joueur")}
                 className="min-w-0 flex-1 bg-transparent text-sm outline-none"
               />
             </div>
@@ -508,7 +512,7 @@ Started next: ${result.started.length}`,
               ))}
               {waiting.length === 0 && (
                 <p className="py-8 text-center text-sm text-white/30">
-                  Waiting list is empty / القائمة فارغة
+                  {tr("Waiting list is empty", "قائمة الانتظار فارغة", "La liste d’attente est vide")}
                 </p>
               )}
             </div>
@@ -527,7 +531,7 @@ Started next: ${result.started.length}`,
                 <div>
                   <h3 className="font-semibold">{group.title}</h3>
                   <p className="mt-1 text-xs text-white/40">
-                    {group.activeCount} active players / لاعب نشط
+                    {group.activeCount} {tr("active players", "لاعبون نشطون", "joueurs actifs")}
                   </p>
                 </div>
                 <span className="text-amber-300">
@@ -538,7 +542,7 @@ Started next: ${result.started.length}`,
                 onClick={() => openWinners(group)}
                 className="mt-4 flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-amber-500/15 text-sm text-amber-300"
               >
-                <Trophy size={16} /> Finish and choose winners / إنهاء واختيار المنتصرين
+                <Trophy size={16} /> {tr("Finish and choose winners", "إنهاء واختيار الفائزين", "Terminer et choisir les gagnants")}
               </button>
             </article>
           ))}
@@ -550,16 +554,16 @@ Started next: ${result.started.length}`,
           <div className="flex items-start justify-between">
             <div>
               <h2 className="flex items-center gap-2 font-semibold text-amber-200">
-                <Trophy size={19} /> Choose next-round players / اختر لاعبي الجولة التالية
+                <Trophy size={19} /> {tr("Choose next-round players", "اختر لاعبي الجولة التالية", "Choisir les joueurs du prochain tour")}
               </h2>
-              <p className="mt-1 text-xs text-white/40">                Remaining slots will be filled from the waiting list / سيتم ملء الأماكن من قائمة الانتظار
+              <p className="mt-1 text-xs text-white/40">{tr("Remaining slots will be filled from the waiting list", "سيتم ملء الأماكن المتبقية من قائمة الانتظار", "Les places restantes seront remplies depuis la liste d’attente")}
               </p>
             </div>
             <button
               onClick={() => setEndingGroup(null)}
               className="text-white/40"
             >
-              Close / إغلاق
+              {tr("Close", "إغلاق", "Fermer")}
             </button>
           </div>
           <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -582,14 +586,14 @@ Started next: ${result.started.length}`,
               onClick={() => void finishAndNext()}
               className="h-11 rounded-lg bg-amber-500 font-semibold text-black disabled:opacity-40"
             >
-              Start next round ({winnerIds.length} winners) / بدء الجولة التالية
+              {tr(`Start next round (${winnerIds.length} winners)`, `بدء الجولة التالية (${winnerIds.length} فائزين)`, `Démarrer le tour suivant (${winnerIds.length} gagnants)`)}
             </button>
             <button
               disabled={busy}
               onClick={() => void endOnly(endingGroup)}
               className="h-11 rounded-lg bg-rose-500/15 text-rose-300 disabled:opacity-40"
             >
-              End only & release devices / إنهاء وإخلاء الأجهزة
+              {tr("End only & release devices", "إنهاء وإخلاء الأجهزة", "Terminer et libérer les appareils")}
             </button>
           </div>
         </section>
@@ -598,7 +602,7 @@ Started next: ${result.started.length}`,
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_350px]">
         <article className="rounded-xl border border-white/[0.08] bg-[#0c101d]">
           <div className="border-b border-white/[0.08] p-5">
-            <h2 className="font-semibold">Active sessions / الجلسات النشطة</h2>
+            <h2 className="font-semibold">{tr("Active sessions", "الجلسات النشطة", "Sessions actives")}</h2>
           </div>
           <div className="grid gap-4 p-5 lg:grid-cols-2">
             {sessions.map((session) => (
@@ -619,27 +623,27 @@ Started next: ${result.started.length}`,
                 </div>
                 <div className="my-3 space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-white/35">{session.playerId ? "Player / اللاعب" : "Guest"}</span>
+                    <span className="text-white/35">{session.playerId ? tr("Player", "اللاعب", "Joueur") : tr("Guest", "ضيف", "Invité")}</span>
                     <span>{session.customerName}</span>
                   </div>
                   {!session.playerId && session.guestNotes && (
                     <div className="rounded-lg border border-amber-400/15 bg-amber-500/[0.06] p-2 text-xs text-amber-100">
-                      <span className="text-amber-300">Payment note / ملاحظة السداد: </span>
+                      <span className="text-amber-300">{tr("Payment note: ", "ملاحظة السداد: ", "Note de paiement : ")}</span>
                       {session.guestNotes}
                     </div>
                   )}
                   {!session.playerId && session.guestPhone && (
                     <div className="flex justify-between text-xs">
-                      <span className="text-white/35">Phone / الهاتف</span>
+                      <span className="text-white/35">{tr("Phone", "الهاتف", "Téléphone")}</span>
                       <span dir="ltr">{session.guestPhone}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span className="text-white/35">Duration / المدة</span>
+                    <span className="text-white/35">{tr("Duration", "المدة", "Durée")}</span>
                     <span>{minutes(session.startTime)} min</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/35">Price / السعر</span>
+                    <span className="text-white/35">{tr("Price", "السعر", "Prix")}</span>
                     <span className="text-emerald-300">
                       {price(session)} DA
                     </span>
@@ -652,13 +656,13 @@ Started next: ${result.started.length}`,
                         onClick={() => void finishSession(session, "cash")}
                         className="h-9 rounded-lg bg-emerald-500/15 text-xs text-emerald-300"
                       >
-                        <Banknote size={14} className="inline" /> Cash / نقدًا
+                        <Banknote size={14} className="inline" /> {tr("Cash", "نقدًا", "Espèces")}
                       </button>
                       <button
                         onClick={() => void finishSession(session, "wallet")}
                         className="h-9 rounded-lg bg-violet-500/15 text-xs text-violet-300"
                       >
-                        Wallet / المحفظة
+                        {tr("Wallet", "المحفظة", "Portefeuille")}
                       </button>
                     </div>
                   ) : (
@@ -667,13 +671,13 @@ Started next: ${result.started.length}`,
                         onClick={() => void finishSession(session, "cash")}
                         className="h-9 rounded-lg bg-emerald-500/15 text-xs text-emerald-300"
                       >
-                        <Banknote size={14} className="inline" /> Cash / كاش
+                        <Banknote size={14} className="inline" /> {tr("Cash", "كاش", "Espèces")}
                       </button>
                       <button
                         onClick={() => void finishSession(session, "debt")}
                         className="h-9 rounded-lg bg-rose-500/15 text-xs text-rose-300"
                       >
-                        Debt / دين
+                        {tr("Debt", "دين", "Dette")}
                       </button>
                     </div>
                   ))}
@@ -681,7 +685,7 @@ Started next: ${result.started.length}`,
             ))}
             {!loading && !sessions.length && (
               <p className="col-span-full py-12 text-center text-white/30">
-                No active sessions / لا توجد جلسات
+                {tr("No active sessions", "لا توجد جلسات", "Aucune session active")}
               </p>
             )}
           </div>
@@ -691,7 +695,7 @@ Started next: ${result.started.length}`,
           className="h-fit rounded-xl border border-white/[0.08] bg-[#0c101d] p-5"
         >
           <h2 className="mb-4 flex items-center gap-2 font-semibold">
-            <UserRound size={18} /> Single session / جلسة فردية
+            <UserRound size={18} /> {tr("Single session", "جلسة فردية", "Session individuelle")}
           </h2>
           <div className="mb-3 grid grid-cols-2 gap-2">
             <button
@@ -699,14 +703,14 @@ Started next: ${result.started.length}`,
               onClick={() => setSingleKind("timed")}
               className={`h-10 rounded-lg text-xs ${singleKind === "timed" ? "bg-violet-600" : "bg-white/[0.05]"}`}
             >
-              Timed / بالوقت
+              {tr("Timed", "بالوقت", "Chronométrée")}
             </button>
             <button
               type="button"
               onClick={() => setSingleKind("round")}
               className={`h-10 rounded-lg text-xs ${singleKind === "round" ? "bg-amber-500/20 text-amber-300" : "bg-white/[0.05]"}`}
             >
-              Fixed round / جولة ثابتة
+              {tr("Fixed round", "جولة ثابتة", "Manche fixe")}
             </button>
           </div>
           <select
@@ -714,7 +718,7 @@ Started next: ${result.started.length}`,
             value={singleDevice}
             onChange={(e) => setSingleDevice(e.target.value)}
           >
-            <option value="">Select device / اختر الجهاز</option>
+            <option value="">{tr("Select device", "اختر الجهاز", "Sélectionner un appareil")}</option>
             {availableDevices.map((d) => (
               <option key={d.id} value={d.id}>
                 {d.name}
@@ -726,13 +730,13 @@ Started next: ${result.started.length}`,
               type="button"
               onClick={() => setSingleCustomerType("player")}
               className={`h-10 rounded-lg text-xs ${singleCustomerType === "player" ? "bg-cyan-500/20 text-cyan-300" : "bg-white/[0.05]"}`}
-            >Player / لاعب</button>
+            >{tr("Player", "لاعب", "Joueur")}</button>
             <button
               type="button"
               onClick={() => setSingleCustomerType("guest")}
               className={`h-10 rounded-lg text-xs ${singleCustomerType === "guest" ? "bg-emerald-500/20 text-emerald-300" : "bg-white/[0.05]"}`}
             >
-              Guest
+              {tr("Guest", "ضيف", "Invité")}
             </button>
           </div>
 
@@ -742,7 +746,7 @@ Started next: ${result.started.length}`,
               value={singlePlayer}
               onChange={(e) => setSinglePlayer(e.target.value)}
             >
-              <option value="">Select player / اختر اللاعب</option>
+              <option value="">{tr("Select player", "اختر اللاعب", "Sélectionner un joueur")}</option>
               {players.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
@@ -755,20 +759,20 @@ Started next: ${result.started.length}`,
                 className={fieldClass}
                 value={singleGuestName}
                 onChange={(e) => setSingleGuestName(e.target.value)}
-                placeholder="Guest name / اسم الضيف"
+                placeholder={tr("Guest name", "اسم الضيف", "Nom de l’invité")}
               />
               <input
                 dir="ltr"
                 className={fieldClass}
                 value={singleGuestPhone}
                 onChange={(e) => setSingleGuestPhone(e.target.value)}
-                placeholder="Phone (optional) / الهاتف اختياري"
+                placeholder={tr("Phone (optional)", "الهاتف اختياري", "Téléphone (facultatif)")}
               />
               <input
                 className={fieldClass}
                 value={singleGuestNotes}
                 onChange={(e) => setSingleGuestNotes(e.target.value)}
-                placeholder="Note (optional) / ملاحظة اختيارية"
+                placeholder={tr("Note (optional)", "ملاحظة اختيارية", "Note (facultative)")}
               />
             </div>
           )}
@@ -792,5 +796,3 @@ Started next: ${result.started.length}`,
     </div>
   );
 }
-
-

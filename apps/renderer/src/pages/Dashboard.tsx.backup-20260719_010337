@@ -15,7 +15,6 @@ import {
 import { useEffect, useMemo, useState } from "react";
 
 import { Link } from "react-router-dom";
-import { useLanguage } from "../lib/i18n";
 
 type Device = {
   id: number;
@@ -36,9 +35,6 @@ type Session = {
 };
 
 export default function Dashboard() {
-  const { dir, language, locale } = useLanguage();
-  const tr = (en: string, ar: string, fr: string) =>
-    language === "ar" ? ar : language === "fr" ? fr : en;
   const [devices, setDevices] = useState<Device[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
 
@@ -66,13 +62,7 @@ export default function Dashboard() {
     } catch (loadError) {
       console.error(loadError);
 
-      setError(
-        tr(
-          "Dashboard failed to load",
-          "تعذر تحميل لوحة التحكم",
-          "Impossible de charger le tableau de bord",
-        ),
-      );
+      setError("تعذر تحميل لوحة التحكم / Dashboard failed to load");
     } finally {
       setLoading(false);
     }
@@ -108,7 +98,7 @@ export default function Dashboard() {
   }
 
   function formatStartTime(startTime: string) {
-    return new Date(startTime).toLocaleTimeString(locale, {
+    return new Date(startTime).toLocaleTimeString("ar-DZ", {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -147,7 +137,7 @@ export default function Dashboard() {
 
   const stats = [
     {
-      label: tr("Total devices", "إجمالي الأجهزة", "Total des appareils"),
+      label: "إجمالي الأجهزة",
       english: "Total Devices",
       value: devices.length,
       icon: Monitor,
@@ -155,7 +145,7 @@ export default function Dashboard() {
       surface: "bg-violet-500/10",
     },
     {
-      label: tr("Live sessions", "الجلسات النشطة", "Sessions en cours"),
+      label: "الجلسات النشطة",
       english: "Live Sessions",
       value: sessions.length,
       icon: Activity,
@@ -163,7 +153,7 @@ export default function Dashboard() {
       surface: "bg-emerald-500/10",
     },
     {
-      label: tr("Average duration", "متوسط المدة", "Durée moyenne"),
+      label: "متوسط المدة",
       english: "Average Duration",
       value: `${averageDuration} min`,
       icon: Timer,
@@ -171,7 +161,7 @@ export default function Dashboard() {
       surface: "bg-sky-500/10",
     },
     {
-      label: tr("Current revenue", "الإيراد الحالي", "Revenus actuels"),
+      label: "الإيراد الحالي",
       english: "Current Revenue",
       value: `${estimatedRevenue.toFixed(2)} DA`,
       icon: Banknote,
@@ -182,37 +172,25 @@ export default function Dashboard() {
 
   const quickLinks = [
     {
-      title: tr("Devices", "الأجهزة", "Appareils"),
+      title: "الأجهزة",
       english: "Devices",
-      description: tr(
-        "Manage gaming stations",
-        "إدارة محطات اللعب",
-        "Gérer les postes de jeu",
-      ),
+      description: "إدارة محطات اللعب",
       path: "/devices",
       icon: Monitor,
       color: "text-violet-300",
     },
     {
-      title: tr("Sessions", "الجلسات", "Sessions"),
+      title: "الجلسات",
       english: "Sessions",
-      description: tr(
-        "Start and monitor sessions",
-        "بدء ومتابعة الجلسات",
-        "Démarrer et suivre les sessions",
-      ),
+      description: "بدء ومتابعة الجلسات",
       path: "/sessions",
       icon: Gamepad2,
       color: "text-sky-300",
     },
     {
-      title: tr("Members", "الأعضاء", "Membres"),
+      title: "الأعضاء",
       english: "Members",
-      description: tr(
-        "Manage player memberships",
-        "إدارة عضويات اللاعبين",
-        "Gérer les abonnements des joueurs",
-      ),
+      description: "إدارة عضويات اللاعبين",
       path: "/members",
       icon: Users,
       color: "text-emerald-300",
@@ -220,28 +198,23 @@ export default function Dashboard() {
   ];
 
   return (
-    <div dir={dir} className="noxus-page noxus-dashboard space-y-6">
+    <div dir="rtl" className="noxus-page noxus-dashboard space-y-6">
       <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <div className="mb-3 flex items-center gap-2 text-sm text-violet-300">
             <Zap size={16} />
-            {tr(
-              "Live arena overview",
-              "نظرة مباشرة على القاعة",
-              "Vue en direct de l’arène",
-            )}
+            Live Arena Overview
           </div>
 
           <h1 className="text-3xl font-semibold tracking-tight">
-            {tr("Control center", "مركز التحكم", "Centre de contrôle")}
+            مركز التحكم
+            <span dir="ltr" className="mr-3 text-lg font-normal text-white/35">
+              / Control Center
+            </span>
           </h1>
 
           <p className="mt-2 text-sm text-white/45">
-            {tr(
-              "Monitor arena status and sessions in real time",
-              "متابعة حالة القاعة والجلسات في الوقت الفعلي",
-              "Suivez l’état de l’arène et les sessions en temps réel",
-            )}
+            متابعة حالة القاعة والجلسات في الوقت الفعلي
           </p>
         </div>
 
@@ -252,7 +225,7 @@ export default function Dashboard() {
           className="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 text-xs text-white/55 transition hover:border-violet-400/30 hover:text-white disabled:opacity-50"
         >
           <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
-          {tr("Refresh data", "تحديث البيانات", "Actualiser les données")}
+          تحديث البيانات
         </button>
       </section>
 
@@ -284,6 +257,10 @@ export default function Dashboard() {
               </div>
 
               <p className="mt-5 text-sm font-medium">{stat.label}</p>
+
+              <p dir="ltr" className="mt-1 text-xs text-white/30">
+                {stat.english}
+              </p>
             </article>
           );
         })}
@@ -304,23 +281,18 @@ export default function Dashboard() {
               <div>
                 <span className="inline-flex items-center gap-2 rounded-md border border-emerald-400/15 bg-emerald-400/[0.07] px-3 py-1.5 text-xs text-emerald-300">
                   <Radio size={13} />
-                  {tr("ARENA LIVE", "القاعة مباشرة", "ARÈNE EN DIRECT")}
+                  ARENA LIVE
                 </span>
 
                 <h2 className="mt-5 max-w-lg text-3xl font-semibold leading-tight lg:text-4xl">
-                  {tr(
-                    "Arena operations online",
-                    "القاعة تعمل بكفاءة",
-                    "Opérations de l’arène en ligne",
-                  )}
+                  القاعة تعمل بكفاءة
+                  <span dir="ltr" className="mt-2 block text-violet-300">
+                    Arena Operations Online
+                  </span>
                 </h2>
 
                 <p className="mt-4 max-w-lg text-sm leading-6 text-white/40">
-                  {tr(
-                    "Track device occupancy, live sessions, and revenue in one place.",
-                    "تابع إشغال الأجهزة والجلسات النشطة والإيرادات من مكان واحد.",
-                    "Suivez l’occupation, les sessions et les revenus au même endroit.",
-                  )}
+                  تابع إشغال الأجهزة والجلسات النشطة والإيرادات من مكان واحد.
                 </p>
               </div>
 
@@ -330,26 +302,17 @@ export default function Dashboard() {
                     {occupancyRate}%
                   </p>
 
-                  <p className="mt-1 text-[10px] text-white/35">
-                    {tr("OCCUPANCY", "الإشغال", "OCCUPATION")}
-                  </p>
+                  <p className="mt-1 text-[10px] text-white/35">OCCUPANCY</p>
                 </div>
               </div>
             </div>
 
             <div>
               <div className="mb-3 flex items-center justify-between text-xs">
-                <span className="text-white/40">
-                  {tr(
-                    "Arena occupancy",
-                    "نسبة إشغال القاعة",
-                    "Occupation de l’arène",
-                  )}
-                </span>
+                <span className="text-white/40">نسبة إشغال القاعة</span>
 
                 <span dir="ltr" className="text-violet-300">
-                  {busyDevices.length} / {devices.length}{" "}
-                  {tr("devices", "جهاز", "appareils")}
+                  {busyDevices.length} / {devices.length} devices
                 </span>
               </div>
 
@@ -368,7 +331,7 @@ export default function Dashboard() {
                   className="flex h-10 items-center gap-2 rounded-lg bg-violet-600 px-4 text-sm font-medium transition hover:bg-violet-500"
                 >
                   <Gamepad2 size={17} />
-                  {tr("Manage sessions", "إدارة الجلسات", "Gérer les sessions")}
+                  إدارة الجلسات
                 </Link>
 
                 <Link
@@ -376,7 +339,7 @@ export default function Dashboard() {
                   className="flex h-10 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-4 text-sm text-white/65 transition hover:border-violet-400/30 hover:text-white"
                 >
                   <Monitor size={17} />
-                  {tr("View devices", "عرض الأجهزة", "Voir les appareils")}
+                  عرض الأجهزة
                 </Link>
               </div>
             </div>
@@ -386,16 +349,18 @@ export default function Dashboard() {
         <article className="rounded-xl border border-white/[0.08] bg-[#0c101d]">
           <div className="flex items-center justify-between border-b border-white/[0.08] p-5">
             <div>
-              <h2 className="font-semibold">
-                {tr("Device status", "حالة الأجهزة", "État des appareils")}
-              </h2>
+              <h2 className="font-semibold">حالة الأجهزة</h2>
+
+              <p dir="ltr" className="mt-1 text-xs text-white/30">
+                Device Status
+              </p>
             </div>
 
             <Link
               to="/devices"
               className="text-xs text-violet-300 transition hover:text-violet-200"
             >
-              {tr("View all", "عرض الكل", "Voir tout")}
+              عرض الكل
             </Link>
           </div>
 
@@ -404,9 +369,7 @@ export default function Dashboard() {
               <div className="flex min-h-56 flex-col items-center justify-center text-center">
                 <Monitor size={28} className="mb-3 text-white/20" />
 
-                <p className="text-sm text-white/35">
-                  {tr("No devices", "لا توجد أجهزة", "Aucun appareil")}
-                </p>
+                <p className="text-sm text-white/35">لا توجد أجهزة</p>
               </div>
             ) : (
               devices.slice(0, 5).map((device) => {
@@ -448,9 +411,7 @@ export default function Dashboard() {
                           : "text-[10px] text-rose-300"
                       }
                     >
-                      {available
-                        ? tr("AVAILABLE", "متاح", "DISPONIBLE")
-                        : tr("IN USE", "مشغول", "OCCUPÉ")}
+                      {available ? "AVAILABLE" : "IN USE"}
                     </span>
                   </div>
                 );
@@ -460,9 +421,7 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-2 gap-3 border-t border-white/[0.08] p-4">
             <div className="rounded-lg bg-emerald-500/[0.06] p-3">
-              <p className="text-xs text-white/35">
-                {tr("Available", "متاحة", "Disponibles")}
-              </p>
+              <p className="text-xs text-white/35">متاحة</p>
 
               <p className="mt-1 text-xl font-semibold text-emerald-300">
                 {availableDevices.length}
@@ -470,9 +429,7 @@ export default function Dashboard() {
             </div>
 
             <div className="rounded-lg bg-rose-500/[0.06] p-3">
-              <p className="text-xs text-white/35">
-                {tr("In use", "مشغولة", "Occupés")}
-              </p>
+              <p className="text-xs text-white/35">مشغولة</p>
 
               <p className="mt-1 text-xl font-semibold text-rose-300">
                 {busyDevices.length}
@@ -486,9 +443,11 @@ export default function Dashboard() {
         <article className="rounded-xl border border-white/[0.08] bg-[#0c101d]">
           <div className="flex items-center justify-between border-b border-white/[0.08] p-5">
             <div>
-              <h2 className="font-semibold">
-                {tr("Live sessions", "الجلسات المباشرة", "Sessions en cours")}
-              </h2>
+              <h2 className="font-semibold">الجلسات المباشرة</h2>
+
+              <p dir="ltr" className="mt-1 text-xs text-white/30">
+                Live Sessions
+              </p>
             </div>
 
             <Link
@@ -505,13 +464,7 @@ export default function Dashboard() {
               <div className="flex min-h-44 flex-col items-center justify-center text-center">
                 <Clock3 size={28} className="mb-3 text-white/20" />
 
-                <p className="text-sm text-white/35">
-                  {tr(
-                    "No active sessions right now",
-                    "لا توجد جلسات نشطة الآن",
-                    "Aucune session active actuellement",
-                  )}
-                </p>
+                <p className="text-sm text-white/35">لا توجد جلسات نشطة الآن</p>
               </div>
             ) : (
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -544,9 +497,7 @@ export default function Dashboard() {
 
                     <div className="mt-4 flex items-end justify-between">
                       <div>
-                        <p className="text-[10px] text-white/25">
-                          {tr("DURATION", "المدة", "DURÉE")}
-                        </p>
+                        <p className="text-[10px] text-white/25">DURATION</p>
 
                         <p dir="ltr" className="mt-1 text-sm text-sky-300">
                           {getMinutes(session.startTime)} min
@@ -554,9 +505,7 @@ export default function Dashboard() {
                       </div>
 
                       <div className="text-left">
-                        <p className="text-[10px] text-white/25">
-                          {tr("TOTAL", "الإجمالي", "TOTAL")}
-                        </p>
+                        <p className="text-[10px] text-white/25">TOTAL</p>
 
                         <p dir="ltr" className="mt-1 text-sm text-emerald-300">
                           {getPrice(session.startTime, session.hourlyPrice)} DA
@@ -572,9 +521,11 @@ export default function Dashboard() {
 
         <article className="rounded-xl border border-white/[0.08] bg-[#0c101d]">
           <div className="border-b border-white/[0.08] p-5">
-            <h2 className="font-semibold">
-              {tr("Quick access", "وصول سريع", "Accès rapide")}
-            </h2>
+            <h2 className="font-semibold">وصول سريع</h2>
+
+            <p dir="ltr" className="mt-1 text-xs text-white/30">
+              Quick Access
+            </p>
           </div>
 
           <div className="space-y-2 p-4">
@@ -593,8 +544,9 @@ export default function Dashboard() {
 
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium">{item.title}</p>
-                    <p className="mt-1 text-[10px] text-white/30">
-                      {item.description}
+
+                    <p dir="ltr" className="mt-1 text-[10px] text-white/30">
+                      {item.english}
                     </p>
                   </div>
 

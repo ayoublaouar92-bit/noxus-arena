@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import type { StaffUser } from "../lib/staff-ui";
+import { type AppLanguage, useLanguage } from "../lib/i18n";
 
 type SidebarProps = {
   currentStaff: StaffUser;
@@ -82,7 +83,21 @@ const navigationGroups = [
   },
 ];
 
+const frenchNavigation: Record<string, string> = {
+  "Dashboard": "Tableau de bord", "Devices": "Appareils", "Sessions": "Sessions",
+  "Players & Members": "Joueurs et membres", "Tournaments": "Tournois",
+  "Billing": "Facturation", "Store": "Boutique", "Inventory": "Stock",
+  "Guest Debts": "Dettes clients", "Reports": "Rapports", "Staff": "Personnel",
+};
+
+function navigationLabel(item: { title: string; arabic: string }, language: AppLanguage) {
+  if (language === "ar") return item.arabic;
+  if (language === "fr") return frenchNavigation[item.title] ?? item.title;
+  return item.title;
+}
+
 export default function Sidebar({ currentStaff, onLogout }: SidebarProps) {
+  const { language, t } = useLanguage();
   return (
     <aside className="noxus-sidebar relative z-20 flex h-screen w-[244px] shrink-0 flex-col border-r border-white/[0.07] bg-[#070a14]/95 backdrop-blur-xl">
       <div className="flex h-[86px] shrink-0 items-center border-b border-white/[0.07] px-5">
@@ -105,7 +120,7 @@ export default function Sidebar({ currentStaff, onLogout }: SidebarProps) {
         {navigationGroups.map((group) => (
           <div key={group.title} className="mb-5 last:mb-0">
             <p className="mb-2 px-3 text-[9px] font-semibold tracking-[0.2em] text-white/25">
-              {group.title}
+              {group.title === "CONTROL" ? t("control") : group.title === "ARENA" ? t("arena") : t("business")}
             </p>
 
             <div className="space-y-1">
@@ -142,10 +157,7 @@ export default function Sidebar({ currentStaff, onLogout }: SidebarProps) {
 
                         <div className="min-w-0 leading-tight">
                           <p className="truncate text-[13px] font-medium">
-                            {item.title}
-                          </p>
-                          <p className="mt-0.5 truncate text-[9px] text-white/30">
-                            {item.arabic}
+                            {navigationLabel(item, language)}
                           </p>
                         </div>
                       </>
@@ -170,8 +182,7 @@ export default function Sidebar({ currentStaff, onLogout }: SidebarProps) {
           }
         >
           <Settings size={18} />
-          <span>Settings</span>
-          <span className="ml-auto text-[10px] text-white/25">الإعدادات</span>
+          <span>{t("settings")}</span>
         </NavLink>
 
         <div className="mb-3 rounded-lg border border-violet-400/10 bg-violet-400/[0.05] p-3">
@@ -188,7 +199,7 @@ export default function Sidebar({ currentStaff, onLogout }: SidebarProps) {
             <button
               type="button"
               onClick={() => void onLogout()}
-              title="تسجيل الخروج"
+              title={t("logout")}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-300 transition hover:bg-rose-500/20"
             >
               <LogOut size={16} />
@@ -199,7 +210,7 @@ export default function Sidebar({ currentStaff, onLogout }: SidebarProps) {
         <div className="rounded-lg border border-emerald-400/10 bg-emerald-400/[0.05] p-3">
           <div className="flex items-center gap-2 text-xs text-emerald-300">
             <Wifi size={14} />
-            System Online
+            {t("systemOnline")}
           </div>
 
           <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.07]">

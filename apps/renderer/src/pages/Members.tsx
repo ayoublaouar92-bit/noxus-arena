@@ -1,220 +1,129 @@
 import { useState } from "react";
 
-import {
-  Users,
-  Search,
-  UserPlus,
-  Trash2,
-  Wallet,
-} from "lucide-react";
+import { Users, Search, UserPlus, Trash2, Wallet } from "lucide-react";
+import { useLanguage } from "../lib/i18n";
 
+export default function Members() {
+  const { dir, language } = useLanguage();
+  const tr = (en: string, ar: string, fr: string) =>
+    language === "ar" ? ar : language === "fr" ? fr : en;
 
+  const [members, setMembers] = useState<any[]>([
+    {
+      id: 1,
+      name: "Ayoub",
+      nickname: "Noxus",
+      phone: "0550000000",
+      balance: 500,
+      debt: 0,
+      hours: 25,
+      spent: 2500,
+    },
+  ]);
 
-export default function Members(){
+  const [name, setName] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [phone, setPhone] = useState("");
 
+  const [search, setSearch] = useState("");
 
+  function addMember() {
+    if (!name || !nickname) return;
 
-const [members,setMembers]=useState<any[]>([
+    setMembers([
+      ...members,
 
-{
-id:1,
-name:"Ayoub",
-nickname:"Noxus",
-phone:"0550000000",
-balance:500,
-debt:0,
-hours:25,
-spent:2500
-}
+      {
+        id: Date.now(),
 
-]);
+        name,
 
+        nickname,
 
+        phone,
 
-const [name,setName]=useState("");
-const [nickname,setNickname]=useState("");
-const [phone,setPhone]=useState("");
+        balance: 0,
 
-const [search,setSearch]=useState("");
+        debt: 0,
 
+        hours: 0,
 
+        spent: 0,
+      },
+    ]);
 
+    setName("");
+    setNickname("");
+    setPhone("");
+  }
 
+  function deleteMember(id: number) {
+    setMembers(members.filter((m) => m.id !== id));
+  }
 
-function addMember(){
+  const filtered = members.filter(
+    (m) =>
+      m.name.toLowerCase().includes(search.toLowerCase()) ||
+      m.nickname.toLowerCase().includes(search.toLowerCase()),
+  );
 
-
-if(!name || !nickname)
-return;
-
-
-
-setMembers([
-
-...members,
-
-{
-
-id:Date.now(),
-
-name,
-
-nickname,
-
-phone,
-
-balance:0,
-
-debt:0,
-
-hours:0,
-
-spent:0
-
-}
-
-]);
-
-
-
-setName("");
-setNickname("");
-setPhone("");
-
-}
-
-
-
-
-
-
-function deleteMember(id:number){
-
-
-setMembers(
-
-members.filter(
-
-m=>m.id!==id
-
-)
-
-);
-
-
-}
-
-
-
-
-
-
-
-const filtered = members.filter(m=>
-
-m.name.toLowerCase()
-.includes(search.toLowerCase())
-
-||
-
-m.nickname.toLowerCase()
-.includes(search.toLowerCase())
-
-);
-
-
-
-
-
-
-
-return (
-
-<div className="p-6">
-
-
-
-
-
-<div className="
+  return (
+    <div className="p-6">
+      <div
+        className="
 flex
 items-center
 gap-3
 mb-8
-">
+"
+      >
+        <Users
+          size={36}
 
+          className="text-purple-400"
+        />
 
-<Users
-
-size={36}
-
-className="text-purple-400"
-
-/>
-
-
-
-<div>
-
-<h1 className="
+        <div>
+          <h1
+            className="
 text-3xl
 font-bold
 text-white
-">
+"
+          >
+            Members Database
+          </h1>
 
-Members Database
-
-</h1>
-
-
-<p className="
+          <p
+            className="
 text-gray-400
-">
+"
+          >
+            Players accounts and financial records
+          </p>
+        </div>
+      </div>
 
-Players accounts and financial records
-
-</p>
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-
-
-
-<div className="
+      <div
+        className="
 grid
 grid-cols-3
 gap-6
-">
+"
+      >
+        {/* ADD MEMBER */}
 
-
-
-
-
-
-
-{/* ADD MEMBER */}
-
-
-
-<div className="
+        <div
+          className="
 bg-[#101018]
 border
 border-purple-500/20
 rounded-xl
 p-5
-">
-
-
-
-<h2 className="
+"
+        >
+          <h2
+            className="
 text-white
 font-bold
 text-xl
@@ -222,56 +131,36 @@ flex
 items-center
 gap-2
 mb-5
-">
+"
+          >
+            <UserPlus size={20} />
+            Add Member
+          </h2>
 
+          <input
+            placeholder={tr("Full name", "الاسم الكامل", "Nom complet")}
 
-<UserPlus size={20}/>
+            value={name}
 
-Add Member
+            onChange={(e) => setName(e.target.value)}
 
-
-</h2>
-
-
-
-
-
-<input
-
-placeholder="Full Name"
-
-value={name}
-
-onChange={
-e=>setName(e.target.value)
-}
-
-className="
+            className="
 w-full
 bg-black/30
 p-3
 rounded-lg
 text-white
 "
+          />
 
-/>
+          <input
+            placeholder={tr("Gaming name", "اسم اللعب", "Nom de jeu")}
 
+            value={nickname}
 
+            onChange={(e) => setNickname(e.target.value)}
 
-
-
-
-<input
-
-placeholder="Gaming Name / Nickname"
-
-value={nickname}
-
-onChange={
-e=>setNickname(e.target.value)
-}
-
-className="
+            className="
 w-full
 bg-black/30
 p-3
@@ -279,25 +168,16 @@ rounded-lg
 text-white
 mt-3
 "
+          />
 
-/>
+          <input
+            placeholder={tr("Phone", "الهاتف", "Téléphone")}
 
+            value={phone}
 
+            onChange={(e) => setPhone(e.target.value)}
 
-
-
-
-<input
-
-placeholder="Phone"
-
-value={phone}
-
-onChange={
-e=>setPhone(e.target.value)
-}
-
-className="
+            className="
 w-full
 bg-black/30
 p-3
@@ -305,19 +185,12 @@ rounded-lg
 text-white
 mt-3
 "
+          />
 
-/>
+          <button
+            onClick={addMember}
 
-
-
-
-
-
-<button
-
-onClick={addMember}
-
-className="
+            className="
 mt-4
 w-full
 bg-purple-500/30
@@ -326,46 +199,25 @@ text-white
 py-3
 rounded-lg
 "
+          >
+            Create Member
+          </button>
+        </div>
 
->
+        {/* MEMBERS LIST */}
 
-Create Member
-
-</button>
-
-
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-{/* MEMBERS LIST */}
-
-
-
-
-<div className="
+        <div
+          className="
 col-span-2
 bg-[#101018]
 border
 border-purple-500/20
 rounded-xl
 p-5
-">
-
-
-
-
-
-<div className="
+"
+        >
+          <div
+            className="
 flex
 items-center
 gap-3
@@ -373,228 +225,131 @@ bg-black/30
 p-3
 rounded-lg
 mb-5
-">
+"
+          >
+            <Search className="text-gray-400" />
 
+            <input
+              placeholder={tr(
+                "Search member...",
+                "ابحث عن عضو...",
+                "Rechercher un membre...",
+              )}
 
-<Search
-className="text-gray-400"
-/>
+              value={search}
 
+              onChange={(e) => setSearch(e.target.value)}
 
-<input
-
-placeholder="Search member..."
-
-value={search}
-
-onChange={
-e=>setSearch(e.target.value)
-}
-
-className="
+              className="
 bg-transparent
 outline-none
 text-white
 w-full
 "
+            />
+          </div>
 
-/>
+          <div className="space-y-4">
+            {filtered.map((member) => (
+              <div
+                key={member.id}
 
-
-</div>
-
-
-
-
-
-
-
-
-<div className="space-y-4">
-
-
-
-{
-
-filtered.map(member=>(
-
-
-<div
-
-key={member.id}
-
-className="
+                className="
 bg-white/5
 rounded-xl
 p-4
 flex
 justify-between
 "
-
->
-
-
-
-<div>
-
-
-<h2 className="
+              >
+                <div>
+                  <h2
+                    className="
 text-white
 font-bold
 text-lg
-">
+"
+                  >
+                    {member.name}
+                  </h2>
 
-{member.name}
-
-</h2>
-
-
-
-<p className="
+                  <p
+                    className="
 text-purple-400
-">
+"
+                  >
+                    🎮 {member.nickname}
+                  </p>
 
-🎮 {member.nickname}
-
-</p>
-
-
-
-<p className="
+                  <p
+                    className="
 text-gray-400
-">
+"
+                  >
+                    {member.phone}
+                  </p>
 
-{member.phone}
-
-</p>
-
-
-
-
-
-
-<div className="
+                  <div
+                    className="
 flex
 gap-5
 mt-3
 text-sm
-">
-
-
-<span className="
+"
+                  >
+                    <span
+                      className="
 text-green-400
-">
+"
+                    >
+                      Balance:
+                      {member.balance} DA
+                    </span>
 
-Balance:
-{member.balance} DA
-
-</span>
-
-
-
-<span className="
+                    <span
+                      className="
 text-red-400
-">
+"
+                    >
+                      Debt:
+                      {member.debt} DA
+                    </span>
 
-Debt:
-{member.debt} DA
-
-</span>
-
-
-
-<span className="
+                    <span
+                      className="
 text-blue-400
-">
+"
+                    >
+                      Hours:
+                      {member.hours}
+                    </span>
+                  </div>
+                </div>
 
-Hours:
-{member.hours}
-
-</span>
-
-
-
-</div>
-
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<div className="
+                <div
+                  className="
 flex
 items-center
 gap-3
-">
+"
+                >
+                  <Wallet className="text-yellow-400" />
 
+                  <button
+                    onClick={() => deleteMember(member.id)}
 
-
-<Wallet
-
-className="text-yellow-400"
-
-/>
-
-
-
-
-<button
-
-onClick={()=>deleteMember(member.id)}
-
-className="
+                    className="
 text-red-400
 "
-
->
-
-<Trash2 size={18}/>
-
-</button>
-
-
-
-
-</div>
-
-
-
-
-
-</div>
-
-
-))
-
-
-}
-
-
-
-</div>
-
-
-
-</div>
-
-
-
-
-</div>
-
-
-
-
-</div>
-
-);
-
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

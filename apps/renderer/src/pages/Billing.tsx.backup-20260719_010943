@@ -753,9 +753,9 @@ export default function Billing() {
           <div className="flex rounded-lg border border-white/[0.08] bg-[#080b16] p-1">
             {(
               [
-                ["today", t("today")],
-                ["week", t("sevenDays")],
-                ["month", t("month")],
+                ["today", "اليوم"],
+                ["week", "7 أيام"],
+                ["month", "الشهر"],
               ] as const
             ).map(([range, label]) => (
               <button
@@ -776,16 +776,12 @@ export default function Billing() {
 
         <div className="grid grid-cols-2 gap-3 p-5 lg:grid-cols-6">
           {[
-            [t("revenue"), transactionTotals.revenue, "text-emerald-300"],
-            [t("cashIn"), transactionTotals.cashIn, "text-cyan-300"],
+            ["الإيرادات", transactionTotals.revenue, "text-emerald-300"],
+            ["الكاش الداخل", transactionTotals.cashIn, "text-cyan-300"],
             ["Wallet", transactionTotals.wallet, "text-violet-300"],
-            [t("debtsAdded"), transactionTotals.debt, "text-amber-300"],
+            ["ديون مضافة", transactionTotals.debt, "text-amber-300"],
             ["المصاريف", transactionTotals.expenses, "text-rose-300"],
-            [
-              t("netCashMovement"),
-              transactionTotals.cashMovement,
-              "text-sky-300",
-            ],
+            ["صافي حركة الكاش", transactionTotals.cashMovement, "text-sky-300"],
           ].map(([label, value, color]) => (
             <div key={String(label)} className="rounded-lg bg-white/[0.03] p-4">
               <p className="text-xs text-white/35">{label}</p>
@@ -815,7 +811,7 @@ export default function Billing() {
             onChange={(event) => setStaffFilter(event.target.value)}
             className={fieldClass}
           >
-            <option value="All">{t("allStaff")}</option>
+            <option value="All">كل الموظفين</option>
             {transactionData.staff.map((staff) => (
               <option key={staff.id} value={staff.id}>
                 {staff.name}
@@ -828,12 +824,12 @@ export default function Billing() {
             onChange={(event) => setTypeFilter(event.target.value)}
             className={fieldClass}
           >
-            <option value="All">{t("allOperations")}</option>
-            <option value="Session">{t("gameSessions")}</option>
-            <option value="Round">{t("gameRounds")}</option>
-            <option value="Store">{t("storeSales")}</option>
-            <option value="WalletTopUp">{t("walletTopups")}</option>
-            <option value="DebtPayment">{t("debtPayments")}</option>
+            <option value="All">كل العمليات</option>
+            <option value="Session">جلسات اللعب</option>
+            <option value="Round">جولات اللعب</option>
+            <option value="Store">مبيعات المتجر</option>
+            <option value="WalletTopUp">شحن المحافظ</option>
+            <option value="DebtPayment">تسديد الديون</option>
             <option value="Expense">المصاريف</option>
           </select>
 
@@ -842,7 +838,7 @@ export default function Billing() {
             onChange={(event) => setPaymentFilter(event.target.value)}
             className={fieldClass}
           >
-            <option value="All">{t("allPaymentMethods")}</option>
+            <option value="All">كل طرق الدفع</option>
             <option value="Cash">Cash</option>
             <option value="Wallet">Wallet</option>
             <option value="Wallet + Debt">Wallet + Debt</option>
@@ -854,17 +850,15 @@ export default function Billing() {
           <table className="w-full min-w-[1120px] text-sm">
             <thead className="text-xs text-white/35">
               <tr className="border-b border-white/[0.06]">
-                <th className="p-4 text-right font-medium">{t("time")}</th>
-                <th className="p-4 text-right font-medium">{t("cashier")}</th>
-                <th className="p-4 text-right font-medium">{t("shift")}</th>
-                <th className="p-4 text-right font-medium">{t("operation")}</th>
-                <th className="p-4 text-right font-medium">{t("customer")}</th>
-                <th className="p-4 text-right font-medium">{t("details")}</th>
-                <th className="p-4 text-right font-medium">{t("payment")}</th>
+                <th className="p-4 text-right font-medium">الوقت</th>
+                <th className="p-4 text-right font-medium">الكاشير</th>
+                <th className="p-4 text-right font-medium">الوردية</th>
+                <th className="p-4 text-right font-medium">العملية</th>
+                <th className="p-4 text-right font-medium">العميل</th>
+                <th className="p-4 text-right font-medium">التفاصيل</th>
+                <th className="p-4 text-right font-medium">الدفع</th>
                 <th className="p-4 text-right font-medium">الإيراد</th>
-                <th className="p-4 text-right font-medium">
-                  {t("cashMovement")}
-                </th>
+                <th className="p-4 text-right font-medium">حركة الكاش</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.05]">
@@ -921,16 +915,16 @@ export default function Billing() {
           <History size={18} className="text-violet-300" />
           <div>
             <h2 className="font-semibold">{t("shiftHistory")}</h2>
-            <p className="mt-1 text-xs text-white/30">{t("last100Shifts")}</p>
+            <p className="mt-1 text-xs text-white/30">آخر 100 وردية مغلقة</p>
           </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-sm">
             <thead className="text-xs text-white/35">
               <tr className="border-b border-white/[0.06]">
-                <th className="p-4 text-right font-medium">{t("cashier")}</th>
-                <th className="p-4 text-right font-medium">{t("start")}</th>
-                <th className="p-4 text-right font-medium">{t("end")}</th>
+                <th className="p-4 text-right font-medium">الكاشير</th>
+                <th className="p-4 text-right font-medium">البداية</th>
+                <th className="p-4 text-right font-medium">النهاية</th>
                 <th className="p-4 text-right font-medium">Opening</th>
                 <th className="p-4 text-right font-medium">Expected</th>
                 <th className="p-4 text-right font-medium">Actual</th>

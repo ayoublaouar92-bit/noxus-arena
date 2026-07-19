@@ -18,7 +18,12 @@ export function registerStartSessionByMacUsername(db: any, payload: StartByMacUs
   if (!username) throw new Error("Username is required");
 
   const device = db
-    .prepare(`SELECT * FROM devices WHERE UPPER(mac) = ? LIMIT 1`)
+    .prepare(
+      `SELECT *
+       FROM devices
+       WHERE REPLACE(UPPER(mac), '-', ':') = ?
+       LIMIT 1`,
+    )
     .get(mac) as { id: number; name: string; status: string } | undefined;
 
   if (!device) throw new Error("Device not found by MAC");

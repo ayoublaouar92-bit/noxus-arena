@@ -1,71 +1,48 @@
 <!doctype html>
-<html>
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Noxus Kiosk</title>
   <style>
-    body { margin:0; font-family: Arial, sans-serif; background:#070a14; color:#fff; }
-    .wrap { height:100vh; display:flex; align-items:center; justify-content:center; }
-    .card { width: 540px; border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:28px; background:#0c101d; }
-    h1 { margin:0 0 8px; font-size:26px; letter-spacing: 0.12em; }
-    p { margin:0 0 18px; color:rgba(255,255,255,.55); font-size:13px; line-height:1.6; }
-    input { width:100%; height:52px; border-radius:12px; border:1px solid rgba(255,255,255,.12); background:#080b16; color:#fff; padding:0 16px; font-size:16px; outline:none; }
-    button { width:100%; height:52px; margin-top:14px; border-radius:12px; border:0; background:#7c3aed; color:#fff; font-size:16px; font-weight:700; cursor:pointer; }
-    button:disabled { opacity:.55; cursor:not-allowed; }
-    .err { margin-top:12px; color:#fca5a5; font-size:13px; min-height:18px;}
-    .meta { margin-top:14px; color: rgba(255,255,255,.25); font-size: 11px; }
+    :root{--bg:#11142a;--card:#202442;--purple:#7c5cff;--cyan:#20d8ff;--green:#20e6ad;--red:#ff6c91}
+    *{box-sizing:border-box} body{margin:0;overflow:hidden;font-family:Segoe UI,Arial,sans-serif;color:#fff;background:radial-gradient(circle at 15% 20%,rgba(124,92,255,.28),transparent 34%),radial-gradient(circle at 84% 15%,rgba(32,216,255,.18),transparent 28%),linear-gradient(145deg,#101328,#181b35)}
+    body:before{content:"";position:fixed;inset:0;opacity:.25;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:38px 38px}
+    .wrap{position:relative;min-height:100vh;display:grid;grid-template-columns:minmax(0,1fr) minmax(420px,560px);gap:56px;align-items:center;padding:6vw}
+    .brand{max-width:640px}.logo{display:inline-flex;align-items:center;gap:13px;font-weight:900;letter-spacing:.22em;font-size:18px}.logo i{width:48px;height:48px;border-radius:15px;background:linear-gradient(135deg,var(--purple),#9b6cff 55%,#2d8cff);box-shadow:0 0 35px rgba(124,92,255,.35);position:relative}.logo i:after{content:"";position:absolute;right:-2px;top:-2px;width:10px;height:10px;border-radius:50%;background:var(--cyan);box-shadow:0 0 14px var(--cyan)}
+    h1{font-size:clamp(42px,5.2vw,78px);line-height:1.05;margin:34px 0 18px;letter-spacing:-.04em}.gradient{background:linear-gradient(90deg,#fff,#b9b0ff 48%,#6ee9ff);-webkit-background-clip:text;color:transparent}.lead{font-size:18px;line-height:1.8;color:rgba(245,247,255,.72);max-width:570px}.chips{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap}.chip{padding:10px 14px;border:1px solid rgba(151,162,255,.16);border-radius:999px;background:rgba(34,39,72,.7);font-size:12px;color:rgba(246,248,255,.82)}
+    .card{position:relative;padding:34px;border:1px solid rgba(162,170,255,.18);border-radius:26px;background:linear-gradient(145deg,rgba(40,44,78,.96),rgba(28,32,61,.96));box-shadow:0 32px 90px rgba(3,5,20,.45),inset 0 1px rgba(255,255,255,.08);animation:enter .55s cubic-bezier(.2,.8,.2,1) both}.status{display:flex;align-items:center;justify-content:space-between;gap:12px}.status-main{display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(248,249,255,.76)}.dot{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 14px var(--green);animation:pulse 1.7s infinite}.dot.offline{background:var(--red);box-shadow:0 0 14px var(--red)}.device{font-size:12px;color:#8defff}
+    h2{margin:31px 0 8px;font-size:28px}.hint{margin:0 0 24px;color:rgba(246,248,255,.68);font-size:14px;line-height:1.65}.field{position:relative}input{width:100%;height:58px;border-radius:15px;border:1px solid rgba(155,166,255,.2);background:rgba(14,17,36,.8);color:#fff;padding:0 18px;font-size:17px;outline:0;transition:.2s}input:focus{border-color:rgba(32,216,255,.58);box-shadow:0 0 0 5px rgba(32,216,255,.09)}input::placeholder{color:rgba(241,244,255,.42)}button{width:100%;height:58px;margin-top:15px;border:0;border-radius:15px;background:linear-gradient(100deg,#6849e7,#875cf5 56%,#4a88ff);color:#fff;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 15px 38px rgba(102,72,226,.3);transition:.2s}button:hover{transform:translateY(-2px);filter:brightness(1.08)}button:active{transform:scale(.985)}button:disabled{opacity:.55;cursor:not-allowed;transform:none}.err{min-height:22px;margin-top:15px;color:#ff9bb5;font-size:13px;line-height:1.5}.meta{margin-top:20px;padding-top:17px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;line-height:1.7;color:rgba(240,243,255,.52);direction:ltr;text-align:left}
+    @keyframes enter{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}@keyframes pulse{50%{opacity:.55;transform:scale(1.2)}}
+    @media(max-width:900px){.wrap{grid-template-columns:1fr;padding:30px}.brand{display:none}.card{max-width:560px;margin:auto;width:100%}}
   </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="card">
-    <h1>NOXUS</h1>
-    <p>Enter your <b>username</b> to start your session.</p>
-
-    <input id="u" placeholder="username" autofocus />
-    <button id="b">Start</button>
-
-    <div class="err" id="e"></div>
-    <div class="meta" id="m"></div>
-  </div>
-</div>
-
+  <main class="wrap">
+    <section class="brand">
+      <div class="logo"><i></i> NOXUS ARENA</div>
+      <h1><span class="gradient">جاهز للعب؟</span><br/>ابدأ جلستك الآن</h1>
+      <p class="lead">أدخل اسم المستخدم المسجل في Noxus. بعد التحقق من الحساب والجهاز، سيتم فتح سطح المكتب تلقائيًا طوال مدة الجلسة.</p>
+      <div class="chips"><span class="chip">تحقق آمن من الجهاز</span><span class="chip">اتصال مباشر بالـ Manager</span><span class="chip">إغلاق تلقائي بعد الجلسة</span></div>
+    </section>
+    <section class="card">
+      <div class="status"><div class="status-main"><span class="dot" id="dot"></span><span id="status">جاري الاتصال...</span></div><span class="device" id="device">Kiosk</span></div>
+      <h2>تسجيل دخول اللاعب</h2>
+      <p class="hint">اكتب اسم المستخدم فقط، دون كلمة مرور.</p>
+      <div class="field"><input id="u" autocomplete="off" placeholder="اسم المستخدم / Username" autofocus /></div>
+      <button id="b">ابدأ الجلسة</button>
+      <div class="err" id="e"></div>
+      <div class="meta" id="m">Loading device information...</div>
+    </section>
+  </main>
 <script>
-  const elU = document.getElementById('u');
-  const elE = document.getElementById('e');
-  const elB = document.getElementById('b');
-  const elM = document.getElementById('m');
-
-  async function init() {
-    try {
-      const info = await window.kioskApi.getInfo();
-      elM.textContent = `MAC: ${info.mac || "?"} · Manager: ${info.managerUrl || "?"}`;
-    } catch {}
-  }
-
-  async function submit() {
-    elE.textContent = "";
-    const username = (elU.value || "").trim();
-    if (!username) { elE.textContent = "Username required"; return; }
-
-    elB.disabled = true;
-    elB.textContent = "Starting...";
-
-    try {
-      await window.kioskApi.start(username);
-      // main process will quit on success
-    } catch (err) {
-      elE.textContent = String(err && err.message || err);
-    } finally {
-      elB.disabled = false;
-      elB.textContent = "Start";
-    }
-  }
-
-  elB.addEventListener('click', submit);
-  elU.addEventListener('keydown', (e) => { if (e.key === "Enter") submit(); });
-
-  init();
+const u=document.getElementById('u'),e=document.getElementById('e'),b=document.getElementById('b'),m=document.getElementById('m'),dot=document.getElementById('dot'),statusEl=document.getElementById('status'),device=document.getElementById('device');
+let sessionStarted=false;
+function resetForm(){b.disabled=false;b.textContent='ابدأ الجلسة';u.value='';e.textContent='';setTimeout(()=>u.focus(),80)}
+function friendly(value){const s=String(value&&value.message||value||'');if(s.includes('Player not found'))return 'اسم المستخدم غير موجود.';if(s.includes('Device not found')||s.includes('registered'))return 'هذا الجهاز غير مسجل في Manager.';if(s.includes('already busy'))return 'هذا الجهاز لديه جلسة نشطة بالفعل.';if(s.includes('UNAUTHORIZED'))return 'مفتاح الاتصال غير صحيح.';if(s.includes('MAC_MISMATCH'))return 'عنوان MAC لهذا الجهاز لا يطابق الإعدادات.';if(s.includes('fetch')||s.includes('abort')||s.includes('ECONN'))return 'لا يمكن الاتصال بجهاز Manager.';return s.replace(/^Error invoking remote method '[^']+': Error:\s*/,'')||'تعذر بدء الجلسة.'}
+async function info(){try{const x=await window.kioskApi.getInfo();device.textContent=x.deviceName||'Kiosk';dot.classList.toggle('offline',!x.online);statusEl.textContent=x.online?(x.registered?'متصل وجاهز':'متصل — الجهاز غير مسجل'):'Manager غير متصل';m.textContent=`MAC: ${x.expectedMac||x.mac||'?'} · Manager: ${x.managerUrl||'?'}`;if(sessionStarted&&x.online&&x.registered&&!x.active){sessionStarted=false;resetForm()}if(x.error)e.textContent=friendly(x.error);else if(e.textContent.includes('Manager'))e.textContent='';}catch(err){dot.classList.add('offline');statusEl.textContent='خطأ في الإعداد';e.textContent=friendly(err)}}
+async function submit(){e.textContent='';const username=(u.value||'').trim().replace(/^@/,'');if(!username){e.textContent='أدخل اسم المستخدم.';return}b.disabled=true;b.textContent='جاري التحقق...';try{await window.kioskApi.start(username);sessionStarted=true;b.textContent='تم فتح الجلسة';}catch(err){e.textContent=friendly(err);b.disabled=false;b.textContent='ابدأ الجلسة';}}
+b.addEventListener('click',submit);u.addEventListener('keydown',x=>{if(x.key==='Enter')submit()});document.addEventListener('visibilitychange',()=>{if(!document.hidden)info()});window.addEventListener('focus',info);info();setInterval(info,5000);
 </script>
 </body>
 </html>

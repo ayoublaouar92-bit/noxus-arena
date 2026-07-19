@@ -15,7 +15,6 @@ import {
   X,
 } from "lucide-react";
 import { handleUnauthorized } from "../lib/auth";
-import { useLanguage } from "../lib/i18n";
 
 type Player = {
   id: number;
@@ -81,9 +80,6 @@ function parseMoneyInput(input: string) {
 }
 
 export default function Players() {
-  const { dir, language } = useLanguage();
-  const tr = (en: string, ar: string, fr: string) =>
-    language === "ar" ? ar : language === "fr" ? fr : en;
   const api = (window as any).api;
   const [players, setPlayers] = useState<Player[]>([]);
   const [vipRows, setVipRows] = useState<VipRow[]>([]);
@@ -370,12 +366,12 @@ export default function Players() {
 
   const summaryTitle =
     summaryView === "vip"
-      ? tr("VIP members", "أعضاء VIP", "Membres VIP")
+      ? "VIP members / أعضاء VIP"
       : summaryView === "wallet"
         ? "Wallet balances / أموال المحافظ"
         : summaryView === "debt"
           ? "Player debts / ديون اللاعبين"
-          : tr("All players", "كل اللاعبين", "Tous les joueurs");
+          : "All players / كل اللاعبين";
 
   function initials(value: string) {
     return value
@@ -388,15 +384,11 @@ export default function Players() {
   }
 
   return (
-    <div dir={dir} className="space-y-6">
+    <div dir="rtl" className="space-y-6">
       <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="mb-2 text-sm text-violet-300">
-            {tr("Players & VIP", "اللاعبون وVIP", "Joueurs et VIP")}
-          </p>
-          <h1 className="text-3xl font-semibold">
-            {tr("Players & VIP", "اللاعبون ونظام VIP", "Joueurs et VIP")}
-          </h1>
+          <p className="mb-2 text-sm text-violet-300">Players & VIP</p>
+          <h1 className="text-3xl font-semibold">اللاعبون ونظام VIP</h1>
           <p className="mt-2 text-sm text-white/45">
             VIP تلقائي حسب المشتريات والجولات، أو يدوي حتى تلغيه
           </p>
@@ -426,7 +418,7 @@ export default function Players() {
           <Users className="text-violet-300" />
           <p className="mt-4 text-2xl font-semibold">{players.length}</p>
           <p className="text-xs text-white/35">
-            {tr("Total players", "إجمالي اللاعبين", "Total des joueurs")}
+            Total players / إجمالي اللاعبين
           </p>
         </button>
         <button
@@ -436,9 +428,7 @@ export default function Players() {
         >
           <Crown className="text-amber-300" />
           <p className="mt-4 text-2xl font-semibold">{vipCount}</p>
-          <p className="text-xs text-white/35">
-            {tr("VIP members", "أعضاء VIP", "Membres VIP")}
-          </p>
+          <p className="text-xs text-white/35">VIP members / أعضاء VIP</p>
         </button>
         <button
           type="button"
@@ -449,9 +439,7 @@ export default function Players() {
           <p className="mt-4 text-2xl font-semibold">
             {totalWallet.toFixed(2)} DA
           </p>
-          <p className="text-xs text-white/35">
-            {tr("Wallet funds", "أموال المحافظ", "Fonds des portefeuilles")}
-          </p>
+          <p className="text-xs text-white/35">Wallet funds / أموال المحافظ</p>
         </button>
         <button
           type="button"
@@ -462,9 +450,7 @@ export default function Players() {
           <p className="mt-4 text-2xl font-semibold">
             {totalDebt.toFixed(2)} DA
           </p>
-          <p className="text-xs text-white/35">
-            {tr("Total debts", "إجمالي الديون", "Total des dettes")}
-          </p>
+          <p className="text-xs text-white/35">Total debts / إجمالي الديون</p>
         </button>
       </section>
 
@@ -472,31 +458,15 @@ export default function Players() {
         <article className="rounded-xl border border-white/[0.08] bg-[#0c101d]">
           <div className="flex flex-col gap-4 border-b border-white/[0.08] p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="font-semibold">
-                {tr(
-                  "Player community",
-                  "مجتمع اللاعبين",
-                  "Communauté des joueurs",
-                )}
-              </h2>
-              <p className="mt-1 text-xs text-white/30">
-                {tr(
-                  "Player community",
-                  "مجتمع اللاعبين",
-                  "Communauté des joueurs",
-                )}
-              </p>
+              <h2 className="font-semibold">مجتمع اللاعبين</h2>
+              <p className="mt-1 text-xs text-white/30">Player Community</p>
             </div>
             <div className="flex h-10 items-center gap-2 rounded-lg border border-white/10 bg-[#080b16] px-3">
               <Search size={16} className="text-white/30" />
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder={tr(
-                  "Search players",
-                  "ابحث عن لاعب",
-                  "Rechercher des joueurs",
-                )}
+                placeholder="بحث"
                 className="bg-transparent text-sm outline-none"
               />
             </div>
@@ -620,25 +590,21 @@ export default function Players() {
                 className={fieldClass}
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder={tr("Full name", "الاسم الكامل", "Nom complet")}
+                placeholder="الاسم الكامل"
               />
               <input
                 dir="ltr"
                 className={fieldClass}
                 value={username}
                 onChange={(event) => setUsername(event.target.value)}
-                placeholder={tr(
-                  "Username",
-                  "اسم المستخدم",
-                  "Nom d’utilisateur",
-                )}
+                placeholder="Username"
               />
               <input
                 dir="ltr"
                 className={fieldClass}
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
-                placeholder={tr("Phone", "الهاتف", "Téléphone")}
+                placeholder="Phone"
               />
               <input
                 dir="ltr"
@@ -648,11 +614,7 @@ export default function Players() {
                 className={fieldClass}
                 value={initialDeposit}
                 onChange={(event) => setInitialDeposit(event.target.value)}
-                placeholder={tr(
-                  "Opening balance",
-                  "الرصيد الأولي",
-                  "Solde initial",
-                )}
+                placeholder="الرصيد الأولي"
               />
               <label className="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-white/15 text-xs text-white/45">
                 <Camera size={16} />{" "}
@@ -759,12 +721,10 @@ export default function Players() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <h2 className="flex items-center gap-2 text-lg font-semibold">
-                    <Pencil size={19} className="text-violet-300" /> تعديل
-                    معلومات اللاعب
+                    <Pencil size={19} className="text-violet-300" /> تعديل معلومات اللاعب
                   </h2>
                   <p className="mt-1 text-xs text-white/40">
-                    يمكنك تعديل البيانات الشخصية فقط. الأرصدة والديون تبقى مسجلة
-                    ماليًا.
+                    يمكنك تعديل البيانات الشخصية فقط. الأرصدة والديون تبقى مسجلة ماليًا.
                   </p>
                 </div>
                 <button
@@ -809,39 +769,18 @@ export default function Players() {
                 <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-3">
                   <div className="flex items-center gap-3">
                     <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg bg-violet-500/20 text-xs font-semibold">
-                      {editImage ? (
-                        <img
-                          src={editImage}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        initials(editName || editTarget.name)
-                      )}
+                      {editImage ? <img src={editImage} alt="" className="h-full w-full object-cover" /> : initials(editName || editTarget.name)}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs text-white/55">صورة اللاعب</p>
-                      <p className="mt-1 text-[11px] text-white/30">
-                        صورة اختيارية، بحد أقصى 2MB
-                      </p>
+                      <p className="mt-1 text-[11px] text-white/30">صورة اختيارية، بحد أقصى 2MB</p>
                     </div>
                     <label className="cursor-pointer rounded-lg bg-white/[0.07] px-3 py-2 text-xs text-white/70 hover:bg-white/[0.12]">
                       تغيير الصورة
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={chooseEditImage}
-                        className="hidden"
-                      />
+                      <input type="file" accept="image/*" onChange={chooseEditImage} className="hidden" />
                     </label>
                     {editImage && (
-                      <button
-                        type="button"
-                        onClick={() => setEditImage("")}
-                        className="text-xs text-rose-300 hover:text-rose-200"
-                      >
-                        حذف
-                      </button>
+                      <button type="button" onClick={() => setEditImage("")} className="text-xs text-rose-300 hover:text-rose-200">حذف</button>
                     )}
                   </div>
                 </div>
@@ -978,18 +917,14 @@ export default function Players() {
                           </div>
                           <div className="grid grid-cols-2 gap-2 text-xs sm:w-56">
                             <div className="rounded-lg bg-emerald-500/[0.07] p-2">
-                              <p className="text-white/35">
-                                {tr("Wallet", "المحفظة", "Portefeuille")}
-                              </p>
+                              <p className="text-white/35">Wallet</p>
                               <p className="text-emerald-300">
                                 {Number(player.walletBalance || 0).toFixed(2)}{" "}
                                 DA
                               </p>
                             </div>
                             <div className="rounded-lg bg-rose-500/[0.07] p-2">
-                              <p className="text-white/35">
-                                {tr("Debt", "الدين", "Dette")}
-                              </p>
+                              <p className="text-white/35">Debt</p>
                               <p className="text-rose-300">
                                 {Number(player.debtBalance || 0).toFixed(2)} DA
                               </p>
@@ -1001,9 +936,7 @@ export default function Players() {
                                 VIP
                               </span>
                             ) : (
-                              <span className="text-white/25">
-                                {tr("Regular", "عادي", "Normal")}
-                              </span>
+                              <span className="text-white/25">Regular</span>
                             )}
                             <p className="mt-2 text-white/35">
                               Points: {vip?.points || 0}

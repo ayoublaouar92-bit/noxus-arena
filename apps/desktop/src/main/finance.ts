@@ -328,6 +328,67 @@ export function registerFinanceHandlers(db: any) {
     },
   );
 
+  registerHandler(
+    "finance:update-player",
+    (
+      _event,
+      player: {
+        playerId: number;
+        name: string;
+        username: string;
+        phone?: string;
+        image?: string | null;
+      },
+    ) => {
+      const staffUserId = requireStaff(db, "PLAYER_UPDATED");
+      const playerId = Number(player?.playerId);
+      const name = String(player?.name || "").trim();
+      const username = String(player?.username || "").trim().replace(/^@/, "");
+      const phone = String(player?.phone || "").trim();
+      const image = String(player?.image || "").trim();
+
+      if (!playerId) throw new Error("Player ID is required");
+      if (!name) throw new Error("Player name is required");
+      if (!username) throw new Error("Username is required");
+
+      const existing = db
+        .prepare(`SELECT id, name, username, phone, image FROM players WHERE id = ?`)
+        .get(playerId) as
+        | { id: number; name: string; username: string; phone: string | null; image: string | null }
+        | undefined;
+      if (!existing) throw new Error("Player not found");
+
+      const duplicate = db
+        .prepare(`SELECT id FROM players WHERE LOWER(username) = LOWER(?) AND id != ?`)
+        .get(username, playerId);
+      if (duplicate) throw new Error("Username already exists");
+
+      db.prepare(
+        `UPDATE players
+         SET name = ?, username = ?, phone = ?, image = ?
+         WHERE id = ?`,
+      ).run(name, username, phone || null, image || null, playerId);
+
+      audit(db, {
+        action: "PLAYER_UPDATED",
+        entity: "players",
+        entityId: playerId,
+        details: JSON.stringify({
+          staffUserId,
+          before: existing,
+          after: { name, username, phone, hasImage: Boolean(image) },
+        }),
+      });
+
+      return db
+        .prepare(
+          `SELECT id, name, username, phone, walletBalance, debtBalance, image, createdAt
+           FROM players WHERE id = ?`,
+        )
+        .get(playerId);
+    },
+  );
+
   registerHandler("finance:delete-player", (_event, playerId: number) => {
     if (!playerId) throw new Error("Player ID is required");
 

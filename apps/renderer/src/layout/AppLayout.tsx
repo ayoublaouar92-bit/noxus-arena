@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
 import type { StaffUser } from "../lib/staff-ui";
+import { useLanguage } from "../lib/i18n";
 
 type AppLayoutProps = {
   currentStaff: StaffUser;
@@ -9,8 +10,9 @@ type AppLayoutProps = {
 };
 
 export default function AppLayout({ currentStaff, onLogout }: AppLayoutProps) {
+  const { dir } = useLanguage();
   return (
-    <div className="noxus-shell relative flex h-screen overflow-hidden bg-[#050711] text-white">
+    <div dir={dir} className="noxus-shell relative flex h-screen overflow-hidden bg-[#050711] text-white">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -right-40 -top-48 h-[420px] w-[420px] rounded-full bg-violet-600/[0.08] blur-[120px]" />
 

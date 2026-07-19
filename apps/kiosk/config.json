@@ -1,5 +1,8 @@
 {
-    "managerUrl":  "http://127.0.0.1:3939",
-    "kioskKey":  "noxus-2026-secret",
-    "fullscreen":  true
+    "managerUrl":  "http://192.168.1.50:3939",
+    "kioskKey":  "Jmd0oMXQ-0BIVKj8_X8q-RN-1I46-6Y3G62-y4ZRZOquEDIT",
+    "expectedMac":  "50:2B:73:AC:05:05",
+    "deviceName":  "TEST",
+    "fullscreen":  false,
+    "pollIntervalMs":  3000
 }

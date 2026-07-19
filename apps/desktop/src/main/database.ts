@@ -12,6 +12,7 @@ import { registerStoreHandlers } from "./store";
 import { registerTournamentHandlers } from "./tournaments";
 import { registerVipHandlers } from "./vip";
 import { startKioskServer } from "./kioskServer";
+import { registerKioskControlHandlers } from "./kioskControl";
 
 type TableColumn = {
   cid: number;
@@ -246,6 +247,7 @@ db.exec(`
 
 registerStaffHandlers(db);
 registerSettingsHandlers(db);
+registerKioskControlHandlers(db);
 registerFinanceHandlers(db);
 registerRoundHandlers(db);
 registerTournamentHandlers(db);
