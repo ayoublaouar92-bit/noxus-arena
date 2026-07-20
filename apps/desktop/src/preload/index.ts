@@ -267,6 +267,7 @@ const api = {
           }>;
         },
   ) => ipcRenderer.invoke("store:create-sale", data),
+  getSales: () => ipcRenderer.invoke("store:get-sales"),
 
   // Billing
   getCurrentShift: () => ipcRenderer.invoke("billing:get-current-shift"),
