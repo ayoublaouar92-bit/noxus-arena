@@ -39,3 +39,8 @@ backup/
 tree.txt
 project-tree.txt
 noxus-files.txt
+
+# Local build outputs - do not upload to GitHub
+_share/manager-build/
+_share/noxus-kiosk-current.zip
+*.exe
