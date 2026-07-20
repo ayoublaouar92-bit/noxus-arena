@@ -861,6 +861,7 @@ export function registerFinanceHandlers(db: any) {
             devices.type AS deviceType,
             devices.price AS hourlyPrice,
             players.username AS playerUsername,
+            players.image AS playerImage,
             players.walletBalance AS playerWallet,
             players.debtBalance AS playerDebt
           FROM sessions

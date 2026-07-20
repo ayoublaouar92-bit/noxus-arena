@@ -1,0 +1,923 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --noxus-bg: #07070b;
+  --noxus-surface: #12121a;
+  --noxus-purple: #8b5cf6;
+  --noxus-neon: #c084fc;
+  --noxus-blue: #38bdf8;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+body {
+  margin: 0;
+  background: var(--noxus-bg);
+  color: white;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: "Geist Variable", sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* Noxus Spectrum Arena UI */
+:root {
+  --noxus-bg: #13152a;
+  --noxus-bg-deep: #0f1122;
+  --noxus-surface: #1c203b;
+  --noxus-surface-2: #242846;
+  --noxus-surface-3: #2b3051;
+  --noxus-purple: #7c5cff;
+  --noxus-violet: #9b6cff;
+  --noxus-blue: #2d8cff;
+  --noxus-cyan: #20d8ff;
+  --noxus-green: #20e6ad;
+  --noxus-yellow: #ffd166;
+  --noxus-red: #ff5c8a;
+  --noxus-line: rgba(159, 168, 255, 0.14);
+  --noxus-text-soft: rgba(231, 235, 255, 0.62);
+  color-scheme: dark;
+}
+
+html {
+  background: var(--noxus-bg-deep);
+}
+
+body {
+  min-width: 1040px;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 18% 8%,
+      rgba(124, 92, 255, 0.22),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 82% 12%,
+      rgba(32, 216, 255, 0.13),
+      transparent 29%
+    ),
+    radial-gradient(
+      circle at 68% 92%,
+      rgba(32, 230, 173, 0.08),
+      transparent 30%
+    ),
+    linear-gradient(145deg, #12142a 0%, #17192f 48%, #101226 100%) !important;
+  color: #f6f7ff;
+  font-family: "Geist Variable", Inter, system-ui, sans-serif;
+}
+
+::selection {
+  background: rgba(124, 92, 255, 0.55);
+  color: white;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.36;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 38px 38px;
+  mask-image: radial-gradient(circle at 55% 20%, black, transparent 82%);
+}
+
+.noxus-shell {
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 88% 4%, rgba(45, 140, 255, 0.1), transparent 26%),
+    linear-gradient(135deg, rgba(19, 21, 42, 0.98), rgba(15, 17, 34, 0.98)) !important;
+}
+
+.noxus-shell::after {
+  content: "";
+  position: absolute;
+  inset: auto 8% -260px auto;
+  width: 560px;
+  height: 560px;
+  border-radius: 999px;
+  pointer-events: none;
+  background: rgba(124, 92, 255, 0.08);
+  filter: blur(110px);
+  animation: noxusOrb 10s ease-in-out infinite alternate;
+}
+
+.noxus-sidebar {
+  width: 252px;
+  border-color: rgba(144, 153, 255, 0.12) !important;
+  background: linear-gradient(
+    180deg,
+    rgba(24, 27, 52, 0.98),
+    rgba(15, 17, 34, 0.98)
+  ) !important;
+  box-shadow:
+    18px 0 48px rgba(3, 5, 18, 0.28),
+    inset -1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.noxus-sidebar nav a {
+  border: 1px solid transparent;
+  transform-origin: left center;
+}
+
+.noxus-sidebar nav a:hover {
+  border-color: rgba(118, 143, 255, 0.12);
+  background: linear-gradient(
+    90deg,
+    rgba(124, 92, 255, 0.12),
+    rgba(45, 140, 255, 0.055)
+  ) !important;
+}
+
+.noxus-sidebar nav a[aria-current="page"] {
+  border-color: rgba(176, 147, 255, 0.22);
+  background: linear-gradient(
+    90deg,
+    #6847e8 0%,
+    rgba(89, 77, 214, 0.72) 58%,
+    rgba(45, 140, 255, 0.28) 100%
+  ) !important;
+  box-shadow:
+    0 10px 30px rgba(82, 54, 205, 0.28),
+    inset 0 1px rgba(255, 255, 255, 0.13);
+}
+
+.noxus-topbar {
+  border-color: rgba(144, 153, 255, 0.12) !important;
+  background: linear-gradient(
+    90deg,
+    rgba(25, 28, 54, 0.92),
+    rgba(19, 22, 44, 0.86)
+  ) !important;
+  box-shadow:
+    0 14px 34px rgba(4, 6, 20, 0.2),
+    inset 0 -1px rgba(255, 255, 255, 0.02);
+}
+
+.noxus-main {
+  position: relative;
+  scroll-behavior: smooth;
+  background: linear-gradient(
+    145deg,
+    rgba(27, 30, 56, 0.4),
+    rgba(14, 16, 33, 0.18)
+  );
+}
+
+.noxus-main > div {
+  animation: noxusPageIn 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.noxus-main > div > section,
+.noxus-main > div > article {
+  animation: noxusSectionIn 540ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.noxus-main > div > :nth-child(2) {
+  animation-delay: 45ms;
+}
+.noxus-main > div > :nth-child(3) {
+  animation-delay: 90ms;
+}
+.noxus-main > div > :nth-child(4) {
+  animation-delay: 135ms;
+}
+.noxus-main > div > :nth-child(5) {
+  animation-delay: 180ms;
+}
+.noxus-main > div > :nth-child(6) {
+  animation-delay: 225ms;
+}
+
+[class*="bg-[#050711]"],
+[class*="bg-[#070a14]"] {
+  background-color: var(--noxus-bg-deep) !important;
+}
+
+[class*="bg-[#0c101d]"],
+[class*="bg-[#0b0f1c]"] {
+  background: linear-gradient(
+    145deg,
+    rgba(36, 40, 70, 0.96),
+    rgba(25, 29, 54, 0.96)
+  ) !important;
+}
+
+[class*="bg-[#090d18]"] {
+  background: linear-gradient(
+    145deg,
+    rgba(31, 35, 63, 0.97),
+    rgba(23, 26, 49, 0.97)
+  ) !important;
+}
+
+[class*="bg-[#080b16]"] {
+  background: rgba(17, 20, 40, 0.86) !important;
+}
+
+[class*="border-white/[0.08]"],
+[class*="border-white/[0.07]"],
+[class*="border-white/[0.06]"] {
+  border-color: var(--noxus-line) !important;
+}
+
+article[class*="rounded-xl"],
+section[class*="rounded-xl"],
+aside[class*="rounded-xl"],
+div[class*="rounded-xl"][class*="border"] {
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.055),
+    0 18px 45px rgba(3, 5, 18, 0.2);
+}
+
+article[class*="rounded-xl"],
+section[class*="rounded-xl"],
+div[class*="rounded-xl"][class*="border"] {
+  transition:
+    transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 240ms ease,
+    box-shadow 240ms ease,
+    filter 240ms ease;
+}
+
+article[class*="rounded-xl"]:hover,
+div[class*="rounded-xl"][class*="border"]:hover {
+  border-color: rgba(125, 113, 255, 0.28) !important;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.075),
+    0 22px 52px rgba(4, 6, 22, 0.3),
+    0 0 0 1px rgba(124, 92, 255, 0.035);
+}
+
+.noxus-stat-card {
+  overflow: hidden;
+  position: relative;
+  min-height: 138px;
+}
+.noxus-stat-card::after {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  left: -70px;
+  bottom: -95px;
+  border-radius: 999px;
+  filter: blur(18px);
+  opacity: 0.24;
+  background: var(--stat-glow, #7c5cff);
+  transition:
+    transform 350ms ease,
+    opacity 350ms ease;
+}
+.noxus-stat-card:nth-child(1) {
+  --stat-glow: #7c5cff;
+}
+.noxus-stat-card:nth-child(2) {
+  --stat-glow: #20e6ad;
+}
+.noxus-stat-card:nth-child(3) {
+  --stat-glow: #20d8ff;
+}
+.noxus-stat-card:nth-child(4) {
+  --stat-glow: #ffd166;
+}
+.noxus-stat-card:hover {
+  transform: translateY(-5px);
+}
+.noxus-stat-card:hover::after {
+  transform: scale(1.25);
+  opacity: 0.38;
+}
+
+.noxus-hero {
+  border-color: rgba(124, 92, 255, 0.25) !important;
+  background:
+    radial-gradient(
+      circle at 78% 32%,
+      rgba(32, 216, 255, 0.14),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 14% 76%,
+      rgba(124, 92, 255, 0.26),
+      transparent 35%
+    ),
+    linear-gradient(135deg, #25284a 0%, #1e2140 55%, #182039 100%) !important;
+  box-shadow:
+    0 28px 70px rgba(5, 7, 24, 0.34),
+    inset 0 1px rgba(255, 255, 255, 0.08) !important;
+}
+
+input,
+select,
+textarea {
+  border-color: rgba(144, 153, 255, 0.14) !important;
+  background: rgba(15, 18, 38, 0.84) !important;
+  color: #f5f6ff !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.16);
+}
+input::placeholder,
+textarea::placeholder {
+  color: rgba(218, 223, 255, 0.28) !important;
+}
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: rgba(32, 216, 255, 0.5) !important;
+  box-shadow:
+    0 0 0 4px rgba(32, 216, 255, 0.085),
+    inset 0 1px 2px rgba(0, 0, 0, 0.12) !important;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    opacity 180ms ease,
+    filter 180ms ease;
+}
+button:not(:disabled):hover,
+a[href]:hover {
+  transform: translateY(-2px);
+}
+button:not(:disabled):active,
+a[href]:active {
+  transform: translateY(0) scale(0.975);
+}
+button:disabled {
+  cursor: not-allowed;
+}
+
+button[class*="bg-violet-600"],
+button[class*="bg-violet-500"] {
+  background: linear-gradient(100deg, #6b4deb, #875cf5 55%, #597bff) !important;
+  box-shadow:
+    0 10px 30px rgba(105, 76, 232, 0.26),
+    inset 0 1px rgba(255, 255, 255, 0.18);
+}
+button[class*="bg-emerald"] {
+  background: linear-gradient(
+    100deg,
+    rgba(20, 178, 142, 0.9),
+    rgba(32, 230, 173, 0.78)
+  ) !important;
+  box-shadow:
+    0 10px 28px rgba(32, 230, 173, 0.16),
+    inset 0 1px rgba(255, 255, 255, 0.14);
+}
+button[class*="bg-rose"] {
+  box-shadow: 0 10px 25px rgba(255, 92, 138, 0.12);
+}
+
+button[class*="bg-violet"],
+button[class*="bg-emerald"],
+button[class*="bg-rose"],
+button[class*="bg-amber"] {
+  position: relative;
+  overflow: hidden;
+}
+button[class*="bg-violet"]::after,
+button[class*="bg-emerald"]::after,
+button[class*="bg-rose"]::after,
+button[class*="bg-amber"]::after {
+  content: "";
+  position: absolute;
+  top: -80%;
+  bottom: -80%;
+  left: -60%;
+  width: 38%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.24),
+    transparent
+  );
+  transform: skewX(-18deg);
+}
+button[class*="bg-violet"]:hover::after,
+button[class*="bg-emerald"]:hover::after,
+button[class*="bg-rose"]:hover::after,
+button[class*="bg-amber"]:hover::after {
+  animation: noxusShine 760ms ease;
+}
+
+.text-violet-300,
+.text-cyan-300,
+.text-sky-300,
+.text-emerald-300,
+.text-amber-300,
+.text-rose-300 {
+  text-shadow: 0 0 18px color-mix(in srgb, currentColor 42%, transparent);
+}
+
+svg {
+  transition:
+    transform 200ms ease,
+    filter 200ms ease,
+    color 200ms ease;
+}
+a:hover svg,
+button:hover svg {
+  transform: translateY(-1px) scale(1.08);
+  filter: drop-shadow(0 0 7px currentColor);
+}
+
+tr {
+  transition:
+    background-color 170ms ease,
+    transform 170ms ease;
+}
+tbody tr:hover {
+  background: rgba(124, 92, 255, 0.055);
+}
+
+.fixed.inset-0[class*="bg-black"] {
+  animation: noxusBackdropIn 180ms ease both;
+}
+.fixed.inset-0[class*="bg-black"] > * {
+  animation: noxusModalIn 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.absolute.h-1\\.5.w-1\\.5,
+.absolute.h-2\\.5.w-2\\.5 {
+  animation: noxusPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes noxusPageIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.995);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+@keyframes noxusSectionIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes noxusModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes noxusBackdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes noxusPulse {
+  0%,
+  100% {
+    opacity: 0.68;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.18);
+  }
+}
+@keyframes noxusShine {
+  from {
+    left: -60%;
+  }
+  to {
+    left: 135%;
+  }
+}
+@keyframes noxusOrb {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(-70px, -30px, 0) scale(1.14);
+  }
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(10, 12, 28, 0.55);
+}
+::-webkit-scrollbar-thumb {
+  border: 2px solid rgba(12, 14, 31, 0.92);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #7658ee, #2d8cff 55%, #20d8ff);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #9b6cff, #20d8ff);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Text clarity hotfix ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â preserve layout, colors and motion */
+:root {
+  --noxus-text-soft: rgba(247, 248, 255, 0.84);
+}
+
+[class*="text-white/20"] {
+  color: rgba(247, 248, 255, 0.64) !important;
+}
+[class*="text-white/25"] {
+  color: rgba(247, 248, 255, 0.68) !important;
+}
+[class*="text-white/30"] {
+  color: rgba(247, 248, 255, 0.72) !important;
+}
+[class*="text-white/35"] {
+  color: rgba(247, 248, 255, 0.76) !important;
+}
+[class*="text-white/40"] {
+  color: rgba(247, 248, 255, 0.79) !important;
+}
+[class*="text-white/45"] {
+  color: rgba(247, 248, 255, 0.82) !important;
+}
+[class*="text-white/50"] {
+  color: rgba(247, 248, 255, 0.85) !important;
+}
+[class*="text-white/55"] {
+  color: rgba(247, 248, 255, 0.88) !important;
+}
+[class*="text-white/60"] {
+  color: rgba(247, 248, 255, 0.9) !important;
+}
+[class*="text-white/70"] {
+  color: rgba(250, 250, 255, 0.94) !important;
+}
+[class*="text-white/80"] {
+  color: rgba(252, 252, 255, 0.97) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(238, 241, 255, 0.58) !important;
+  opacity: 1 !important;
+}
+
+select,
+option,
+input,
+textarea {
+  font-weight: 450;
+}
+
+.noxus-sidebar nav a:not([aria-current="page"]),
+.noxus-topbar p {
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.22);
+}
+
+
+/* NOXUS RED / BLACK / WHITE ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â FINAL INTERACTIVE THEME */
+:root {
+  --noxus-bg: #050505;
+  --noxus-bg-deep: #020202;
+  --noxus-surface: #020202;
+  --noxus-surface-2: #171717;
+  --noxus-surface-3: #202020;
+  --noxus-purple: #ff003c;
+  --noxus-violet: #ff174d;
+  --noxus-blue: #ff4d6d;
+  --noxus-cyan: #ff6b35;
+  --noxus-green: #ff4d6d;
+  --noxus-red: #ff003c;
+  --noxus-line: rgba(255,255,255,.10);
+  --noxus-text-soft: rgba(255,255,255,.78);
+  color-scheme: dark;
+}
+html, body { background: #050505 !important; }
+html[dir="rtl"], html[dir="rtl"] body {
+  font-family: "Cairo", "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif !important;
+}
+body {
+  color: #fff !important;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(255,0,60,.20), transparent 31%),
+    radial-gradient(circle at 82% 14%, rgba(144,0,32,.15), transparent 29%),
+    linear-gradient(145deg,#030303 0%,#0b0305 48%,#050505 100%) !important;
+}
+::selection { background:#ff003c; color:#fff; }
+.noxus-shell { background: linear-gradient(135deg,rgba(10,10,10,.98),rgba(3,3,3,.98)) !important; }
+.noxus-shell::after { background:rgba(255,0,60,.10) !important; }
+.noxus-sidebar { background:linear-gradient(180deg,rgba(17,17,17,.99),rgba(5,5,5,.99)) !important; border-color:rgba(255,255,255,.09) !important; }
+.noxus-topbar { background:linear-gradient(90deg,rgba(20,20,20,.96),rgba(8,8,8,.92)) !important; border-color:rgba(255,255,255,.09) !important; }
+.noxus-main { background:linear-gradient(145deg,rgba(24,8,11,.20),rgba(5,5,5,.10)) !important; }
+.noxus-sidebar nav a:hover { background:linear-gradient(90deg,rgba(255,0,60,.20),rgba(255,0,60,.04)) !important; border-color:rgba(255,0,60,.36) !important; }
+.noxus-sidebar nav a[aria-current="page"] { background:linear-gradient(90deg,#cb0030 0%,rgba(177,0,38,.78) 60%,rgba(96,0,20,.42) 100%) !important; border-color:rgba(255,64,96,.65) !important; box-shadow:0 10px 30px rgba(255,0,60,.32),inset 0 1px rgba(255,255,255,.18) !important; }
+[class*="bg-[#0c101d]"],[class*="bg-[#0b0f1c]"],[class*="bg-[#090d18]"] { background:linear-gradient(145deg,#191919,#0d0d0d) !important; }
+[class*="bg-[#050711]"],[class*="bg-[#070a14]"],[class*="bg-[#080b16]"] { background-color:#080808 !important; }
+article[class*="rounded-xl"],section[class*="rounded-xl"],div[class*="rounded-xl"][class*="border"] { box-shadow:inset 0 1px rgba(255,255,255,.05),0 18px 45px rgba(0,0,0,.34) !important; }
+article[class*="rounded-xl"]:hover,div[class*="rounded-xl"][class*="border"]:hover { border-color:rgba(255,0,60,.34) !important; box-shadow:inset 0 1px rgba(255,255,255,.07),0 22px 52px rgba(0,0,0,.42),0 0 22px rgba(255,0,60,.07) !important; }
+input,select,textarea { background:#0c0c0c !important; color:#fff !important; border-color:rgba(255,255,255,.14) !important; }
+input:focus,select:focus,textarea:focus { border-color:rgba(255,0,60,.72) !important; box-shadow:0 0 0 4px rgba(255,0,60,.12) !important; }
+button[class*="bg-violet"],button[class*="bg-emerald"],button[class*="bg-rose"] { background:linear-gradient(100deg,#b9002d,#ff003c 55%,#8d001f) !important; color:#fff !important; box-shadow:0 10px 28px rgba(255,0,60,.30),inset 0 1px rgba(255,255,255,.18) !important; }
+.text-violet-300,.text-cyan-300,.text-sky-300,.text-emerald-300,.text-amber-300,.text-rose-300 { color:#ff7890 !important; text-shadow:0 0 16px rgba(255,0,60,.58) !important; }
+/* Fire embers appear only while hovering an icon/button */
+.noxus-sidebar nav a,.noxus-topbar button,button { position:relative; isolation:isolate; }
+.noxus-sidebar nav a:hover svg,.noxus-topbar button:hover svg,button:hover svg { transform:translateY(-1px) scale(1.13) rotate(-4deg); color:#fff !important; filter:drop-shadow(0 0 5px #ff6a00) drop-shadow(0 0 13px #ff003c) !important; }
+.noxus-sidebar nav a:hover::after,.noxus-topbar button:hover::after,button:hover::after { content:""; position:absolute; pointer-events:none; z-index:4; width:8px; height:15px; left:32%; top:-5px; border-radius:70% 30% 65% 35%; background:radial-gradient(circle at 48% 72%,#fff6a6 0 11%,#ffc229 15% 29%,#ff7200 34% 59%,#e60035 66% 100%); filter:drop-shadow(0 0 5px #ff7a00) drop-shadow(0 0 11px #ff003c); box-shadow:18px 11px 0 -2px #ff6b00,-13px 17px 0 -3px #ffcb39,30px 24px 0 -4px #e60035,-23px 28px 0 -4px #ff7800; animation:noxusFireEmbers .68s ease-out both; }
+@keyframes noxusFireEmbers { 0% { opacity:0; transform:translate(0,10px) scale(.42) rotate(-20deg); } 35% { opacity:1; } 100% { opacity:0; transform:translate(17px,-30px) scale(1.1) rotate(26deg); } }
+::-webkit-scrollbar-track { background:#090909; }
+::-webkit-scrollbar-thumb { background:linear-gradient(180deg,#ff174d,#8f001f 60%,#ff6b00); border-color:#060606; }
+
+
+/* Green text for normal positive/status text. Debt/negative values remain red. */
+:root { --noxus-green-text: #55f28a; --noxus-green-glow: rgba(40,230,104,.42); }
+/* Change ordinary red accent labels, status text, and icons to green */
+.text-rose-300:not(.debt):not(.debt *),
+.text-rose-400:not(.debt):not(.debt *),
+.text-red-300:not(.debt):not(.debt *),
+.text-red-400:not(.debt):not(.debt *),
+.text-red-500:not(.debt):not(.debt *),
+.text-violet-300,
+.text-cyan-300,
+.text-sky-300,
+.text-emerald-300 {
+  color: var(--noxus-green-text) !important;
+  text-shadow: 0 0 14px var(--noxus-green-glow) !important;
+}
+/* Preserve warning/debt/error contexts in red */
+.debt, .debt *,
+[data-debt], [data-debt] *,
+[data-negative], [data-negative] *,
+.text-destructive,
+.text-destructive *,
+.text-rose-500[class*="debt"],
+.text-red-500[class*="debt"] {
+  color: #ff4d6d !important;
+  text-shadow: 0 0 14px rgba(255,0,60,.56) !important;
+}
+/* Positive badges and regular status indicators */
+[class*="text-rose"]:not([class*="debt"]):not(.text-destructive) {
+  color: var(--noxus-green-text) !important;
+  text-shadow: 0 0 14px var(--noxus-green-glow) !important;
+}
+
+
+/* NOXUS TEXT RULES: white by default; red for debts/errors; green for wallet/profit */
+:root { --noxus-positive: #55f28a; --noxus-negative: #ff4d6d; }
+/* Neutralize decorative color text: normal UI copy stays white */
+.text-violet-300,.text-violet-400,.text-violet-500,
+.text-cyan-300,.text-cyan-400,.text-cyan-500,
+.text-sky-300,.text-sky-400,.text-sky-500,
+.text-amber-300,.text-amber-400,.text-amber-500,
+.text-blue-300,.text-blue-400,.text-blue-500,
+.text-purple-300,.text-purple-400,.text-purple-500 {
+  color: #fff !important;
+  text-shadow: none !important;
+}
+/* Debt, errors, destructive values, and negative balances remain red */
+.text-rose-300,.text-rose-400,.text-rose-500,
+.text-red-300,.text-red-400,.text-red-500,
+.text-destructive,.text-destructive *,
+.debt,.debt *,[data-debt],[data-debt] *,[data-negative],[data-negative] * {
+  color: var(--noxus-negative) !important;
+  text-shadow: 0 0 13px rgba(255,0,60,.45) !important;
+}
+/* Wallet balance, profits, earnings and positive values remain green */
+.text-emerald-300,.text-emerald-400,.text-emerald-500,
+.text-green-300,.text-green-400,.text-green-500,
+.text-lime-300,.text-lime-400,.text-lime-500,
+.profit,.profit *,.earnings,.earnings *,.wallet-balance,.wallet-balance *,
+[data-profit],[data-profit] *,[data-wallet-balance],[data-wallet-balance] * {
+  color: var(--noxus-positive) !important;
+  text-shadow: 0 0 13px rgba(40,230,104,.42) !important;
+}
+
+
+/* NOXUS BALANCED ACCENT PALETTE Ã¢â‚¬â€ red is an accent, not the whole UI */
+:root {
+  --noxus-bg: #0D0D0F;
+  --noxus-bg-deep: #0D0D0F;
+  --noxus-surface: #17171C;
+  --noxus-surface-2: #202028;
+  --noxus-surface-3: #202028;
+  --noxus-purple: #6D28D9;
+  --noxus-violet: #6D28D9;
+  --noxus-blue: #6D28D9;
+  --noxus-cyan: #6D28D9;
+  --noxus-green: #10B981;
+  --noxus-yellow: #F59E0B;
+  --noxus-red: #DC2626;
+  --noxus-line: rgba(255,255,255,.09);
+  --noxus-text-soft: rgba(248,248,248,.68);
+}
+html,body { background:#0D0D0F !important; color:#F8F8F8 !important; }
+body { background:linear-gradient(145deg,#0D0D0F 0%,#111116 50%,#0D0D0F 100%) !important; }
+.noxus-shell { background:linear-gradient(135deg,#0D0D0F,#111116) !important; }
+.noxus-sidebar { background:linear-gradient(180deg,#121217,#0D0D0F) !important; }
+.noxus-topbar { background:rgba(23,23,28,.94) !important; }
+.noxus-main { background:#0D0D0F !important; }
+/* Red is reserved for main action and selected navigation only */
+.noxus-sidebar nav a[aria-current="page"] {
+  background:linear-gradient(90deg,#D90429 0%,rgba(217,4,41,.70) 63%,rgba(217,4,41,.22) 100%) !important;
+  border-color:rgba(239,35,60,.50) !important;
+  box-shadow:0 7px 17px rgba(217,4,41,.20),inset 0 1px rgba(255,255,255,.12) !important;
+}
+.noxus-sidebar nav a:hover { background:rgba(255,255,255,.045) !important; border-color:rgba(255,255,255,.10) !important; }
+/* Neutral cards; color is reserved for their small accents/icons */
+article[class*="rounded"],section[class*="rounded"],div[class*="rounded-xl"][class*="border"] {
+  background-color:#17171C !important;
+  border-color:rgba(255,255,255,.09) !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.035),0 13px 30px rgba(0,0,0,.20) !important;
+}
+article[class*="rounded"]:hover,div[class*="rounded-xl"][class*="border"]:hover {
+  background-color:#202028 !important;
+  border-color:rgba(255,255,255,.14) !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.05),0 16px 34px rgba(0,0,0,.26) !important;
+}
+/* Four dashboard stat cards: gold / purple / emerald / red */
+.noxus-stat-card { background:#17171C !important; border-color:rgba(255,255,255,.09) !important; }
+.noxus-stat-card::after { opacity:.12 !important; filter:blur(22px) !important; }
+.noxus-stat-card:nth-child(1) { --stat-glow:#F59E0B; }
+.noxus-stat-card:nth-child(2) { --stat-glow:#6D28D9; }
+.noxus-stat-card:nth-child(3) { --stat-glow:#10B981; }
+.noxus-stat-card:nth-child(4) { --stat-glow:#DC2626; }
+.noxus-stat-card:hover::after { opacity:.20 !important; }
+/* Primary actions: a clearer restrained red gradient */
+button[class*="bg-violet"],button[class*="bg-rose"] {
+  background:linear-gradient(105deg,#D90429,#EF233C) !important;
+  box-shadow:0 7px 17px rgba(217,4,41,.22),inset 0 1px rgba(255,255,255,.16) !important;
+}
+button[class*="bg-violet"]:hover,button[class*="bg-rose"]:hover {
+  background:linear-gradient(105deg,#EF233C,#D90429) !important;
+  box-shadow:0 9px 21px rgba(217,4,41,.28),inset 0 1px rgba(255,255,255,.18) !important;
+}
+/* Success/wallet uses one consistent Emerald */
+.text-emerald-300,.text-emerald-400,.text-emerald-500,.text-green-300,.text-green-400,.text-green-500 {
+  color:#10B981 !important;
+  text-shadow:0 0 10px rgba(16,185,129,.25) !important;
+}
+/* Decorative color labels become white; debts/errors stay red through existing rules */
+.text-violet-300,.text-violet-400,.text-violet-500,.text-cyan-300,.text-cyan-400,.text-sky-300,.text-sky-400 { color:#F8F8F8 !important; text-shadow:none !important; }
+/* Reduce red glow/embers by about 40%, without removing the hover effect */
+.noxus-sidebar nav a:hover svg,.noxus-topbar button:hover svg,button:hover svg { filter:drop-shadow(0 0 4px #ff6a00) drop-shadow(0 0 8px rgba(217,4,41,.62)) !important; }
+.noxus-sidebar nav a:hover::after,.noxus-topbar button:hover::after,button:hover::after { opacity:.60 !important; filter:drop-shadow(0 0 3px #ff7a00) drop-shadow(0 0 6px rgba(217,4,41,.65)) !important; }
+
+
+/* NOXUS GLOBAL TEXT CLARITY â€” every page */
+:root { --noxus-text-soft: #FFFFFF; }
+[class*="text-white/20"],[class*="text-white/25"],[class*="text-white/30"],[class*="text-white/35"],[class*="text-white/40"],[class*="text-white/45"],[class*="text-white/50"],[class*="text-white/55"],[class*="text-white/60"],[class*="text-white/70"],[class*="text-white/80"],[class*="text-white/90"] { color:#FFFFFF !important; opacity:1 !important; }
+.text-slate-200,.text-slate-300,.text-slate-400,.text-slate-500,.text-zinc-200,.text-zinc-300,.text-zinc-400,.text-zinc-500,.text-neutral-200,.text-neutral-300,.text-neutral-400,.text-neutral-500,.text-gray-200,.text-gray-300,.text-gray-400,.text-gray-500 { color:#FFFFFF !important; opacity:1 !important; }
+/* Profit, debt, error and warning classes are intentionally not selected. */

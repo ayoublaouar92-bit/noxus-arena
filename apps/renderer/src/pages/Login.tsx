@@ -43,7 +43,7 @@ export default function Login({ onAuthenticated }: LoginProps) {
       );
     } catch (error) {
       console.error(error);
-      setError("تعذر تحميل قائمة الموظفين");
+      setError("Ã˜ÂªÃ˜Â¹Ã˜Â°Ã˜Â± Ã˜ÂªÃ˜Â­Ã™â€¦Ã™Å Ã™â€ž Ã™â€šÃ˜Â§Ã˜Â¦Ã™â€¦Ã˜Â© Ã˜Â§Ã™â€žÃ™â€¦Ã™Ë†Ã˜Â¸Ã™ÂÃ™Å Ã™â€ ");
     } finally {
       setLoading(false);
     }
@@ -57,11 +57,11 @@ export default function Login({ onAuthenticated }: LoginProps) {
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (!selectedUserId) {
-      setError("اختر الموظف أولًا");
+      setError("Ã˜Â§Ã˜Â®Ã˜ÂªÃ˜Â± Ã˜Â§Ã™â€žÃ™â€¦Ã™Ë†Ã˜Â¸Ã™Â Ã˜Â£Ã™Ë†Ã™â€žÃ™â€¹Ã˜Â§");
       return;
     }
     if (!pin.trim()) {
-      setError("أدخل رمز PIN");
+      setError("Ã˜Â£Ã˜Â¯Ã˜Â®Ã™â€ž Ã˜Â±Ã™â€¦Ã˜Â² PIN");
       return;
     }
 
@@ -77,7 +77,7 @@ export default function Login({ onAuthenticated }: LoginProps) {
     } catch (error) {
       console.error(error);
       setPin("");
-      setError("رمز PIN غير صحيح لهذا الموظف");
+      setError("Ã˜Â±Ã™â€¦Ã˜Â² PIN Ã˜ÂºÃ™Å Ã˜Â± Ã˜ÂµÃ˜Â­Ã™Å Ã˜Â­ Ã™â€žÃ™â€¡Ã˜Â°Ã˜Â§ Ã˜Â§Ã™â€žÃ™â€¦Ã™Ë†Ã˜Â¸Ã™Â");
     } finally {
       setSubmitting(false);
     }
@@ -96,10 +96,7 @@ export default function Login({ onAuthenticated }: LoginProps) {
 
       <div className="relative z-10 w-full max-w-[460px]">
         <div className="mb-7 flex items-center justify-center gap-3">
-          <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 shadow-[0_0_45px_rgba(139,92,246,0.3)]">
-            <Gamepad2 size={27} />
-            <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-[#050711] bg-cyan-300" />
-          </div>
+          <img src="/branding/noxus-logo.png" alt="Noxus Arena" className="h-14 w-14 object-contain drop-shadow-[0_0_16px_rgba(255,0,60,0.55)]" />
           <div className="text-left" dir="ltr">
             <h1 className="text-xl font-bold tracking-[0.18em]">NOXUS</h1>
             <p className="mt-1 text-[10px] tracking-[0.22em] text-white/35">
@@ -115,9 +112,9 @@ export default function Login({ onAuthenticated }: LoginProps) {
                 <ShieldCheck size={20} />
               </div>
               <div>
-                <h2 className="font-semibold">تسجيل دخول الموظف</h2>
+                <h2 className="font-semibold">Ã˜ÂªÃ˜Â³Ã˜Â¬Ã™Å Ã™â€ž Ã˜Â¯Ã˜Â®Ã™Ë†Ã™â€ž Ã˜Â§Ã™â€žÃ™â€¦Ã™Ë†Ã˜Â¸Ã™Â</h2>
                 <p className="mt-1 text-xs text-white/35">
-                  اختر حسابك ثم أدخل رمز PIN
+                  Ã˜Â§Ã˜Â®Ã˜ÂªÃ˜Â± Ã˜Â­Ã˜Â³Ã˜Â§Ã˜Â¨Ã™Æ’ Ã˜Â«Ã™â€¦ Ã˜Â£Ã˜Â¯Ã˜Â®Ã™â€ž Ã˜Â±Ã™â€¦Ã˜Â² PIN
                 </p>
               </div>
             </div>
@@ -133,7 +130,7 @@ export default function Login({ onAuthenticated }: LoginProps) {
             <div>
               <div className="mb-2 flex items-center justify-between">
                 <label className="text-xs font-medium text-white/55">
-                  الموظف / Staff
+                  Ã˜Â§Ã™â€žÃ™â€¦Ã™Ë†Ã˜Â¸Ã™Â / Staff
                 </label>
                 <button
                   type="button"
@@ -145,7 +142,7 @@ export default function Login({ onAuthenticated }: LoginProps) {
                     size={13}
                     className={loading ? "animate-spin" : ""}
                   />
-                  تحديث
+                  Ã˜ÂªÃ˜Â­Ã˜Â¯Ã™Å Ã˜Â«
                 </button>
               </div>
 
@@ -165,11 +162,11 @@ export default function Login({ onAuthenticated }: LoginProps) {
                   className={`${fieldClass} appearance-none pr-11 disabled:opacity-50`}
                 >
                   {users.length === 0 && (
-                    <option value="">لا يوجد موظفون نشطون</option>
+                    <option value="">Ã™â€žÃ˜Â§ Ã™Å Ã™Ë†Ã˜Â¬Ã˜Â¯ Ã™â€¦Ã™Ë†Ã˜Â¸Ã™ÂÃ™Ë†Ã™â€  Ã™â€ Ã˜Â´Ã˜Â·Ã™Ë†Ã™â€ </option>
                   )}
                   {users.map((user) => (
                     <option key={user.id} value={user.id}>
-                      {user.name} — {user.role}
+                      {user.name} Ã¢â‚¬â€ {user.role}
                     </option>
                   ))}
                 </select>
@@ -178,7 +175,7 @@ export default function Login({ onAuthenticated }: LoginProps) {
 
             <div>
               <label className="mb-2 block text-xs font-medium text-white/55">
-                رمز الدخول / PIN
+                Ã˜Â±Ã™â€¦Ã˜Â² Ã˜Â§Ã™â€žÃ˜Â¯Ã˜Â®Ã™Ë†Ã™â€ž / PIN
               </label>
               <div className="relative">
                 <KeyRound
@@ -195,7 +192,7 @@ export default function Login({ onAuthenticated }: LoginProps) {
                   onChange={(event) =>
                     setPin(event.target.value.replace(/\D/g, "").slice(0, 12))
                   }
-                  placeholder="••••"
+                  placeholder="Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢"
                   disabled={!selectedUser || submitting}
                   className={`${fieldClass} pr-11 text-center text-lg tracking-[0.4em] placeholder:tracking-normal disabled:opacity-50`}
                 />
@@ -212,13 +209,13 @@ export default function Login({ onAuthenticated }: LoginProps) {
               ) : (
                 <KeyRound size={18} />
               )}
-              {submitting ? "جاري التحقق..." : "دخول إلى النظام"}
+              {submitting ? "Ã˜Â¬Ã˜Â§Ã˜Â±Ã™Å  Ã˜Â§Ã™â€žÃ˜ÂªÃ˜Â­Ã™â€šÃ™â€š..." : "Ã˜Â¯Ã˜Â®Ã™Ë†Ã™â€ž Ã˜Â¥Ã™â€žÃ™â€° Ã˜Â§Ã™â€žÃ™â€ Ã˜Â¸Ã˜Â§Ã™â€¦"}
             </button>
           </form>
         </section>
 
         <p className="mt-5 text-center text-[11px] text-white/25">
-          لا يمكن الوصول إلى بيانات النظام قبل تسجيل الدخول
+          Ã™â€žÃ˜Â§ Ã™Å Ã™â€¦Ã™Æ’Ã™â€  Ã˜Â§Ã™â€žÃ™Ë†Ã˜ÂµÃ™Ë†Ã™â€ž Ã˜Â¥Ã™â€žÃ™â€° Ã˜Â¨Ã™Å Ã˜Â§Ã™â€ Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€žÃ™â€ Ã˜Â¸Ã˜Â§Ã™â€¦ Ã™â€šÃ˜Â¨Ã™â€ž Ã˜ÂªÃ˜Â³Ã˜Â¬Ã™Å Ã™â€ž Ã˜Â§Ã™â€žÃ˜Â¯Ã˜Â®Ã™Ë†Ã™â€ž
         </p>
       </div>
     </div>

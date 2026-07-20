@@ -58,15 +58,15 @@ const fieldClass =
 function normalizeNumber(value: string) {
   const digitMap: Record<string, string> = {
     "&": "1",
-    "é": "2",
+    "ÃƒÂ©": "2",
     '"': "3",
     "'": "4",
     "(": "5",
     "-": "6",
-    "è": "7",
+    "ÃƒÂ¨": "7",
     "_": "8",
-    "ç": "9",
-    "à": "0",
+    "ÃƒÂ§": "9",
+    "ÃƒÂ ": "0",
     "\u0660": "0",
     "\u0661": "1",
     "\u0662": "2",
@@ -140,7 +140,7 @@ export default function Store() {
       setPlayers(pl);
     } catch (e) {
       console.error(e);
-      setError("تعذر تحميل بيانات المتجر");
+      setError("Ã˜ÂªÃ˜Â¹Ã˜Â°Ã˜Â± Ã˜ÂªÃ˜Â­Ã™â€¦Ã™Å Ã™â€ž Ã˜Â¨Ã™Å Ã˜Â§Ã™â€ Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€žÃ™â€¦Ã˜ÂªÃ˜Â¬Ã˜Â±");
     } finally {
       setLoading(false);
     }
@@ -236,17 +236,17 @@ export default function Store() {
     event.preventDefault();
 
     if (cart.length === 0) {
-      setError("السلة فارغة");
+      setError("Ã˜Â§Ã™â€žÃ˜Â³Ã™â€žÃ˜Â© Ã™ÂÃ˜Â§Ã˜Â±Ã˜ÂºÃ˜Â©");
       return;
     }
 
     if (payment === "player" && !playerId) {
-      setError("اختر لاعبًا");
+      setError("Ã˜Â§Ã˜Â®Ã˜ÂªÃ˜Â± Ã™â€žÃ˜Â§Ã˜Â¹Ã˜Â¨Ã™â€¹Ã˜Â§");
       return;
     }
 
     const confirmed = window.confirm(
-      `تأكيد الدفع؟\nالإجمالي: ${money(total)}\nعدد العناصر: ${cartCount}`
+      `Ã˜ÂªÃ˜Â£Ã™Æ’Ã™Å Ã˜Â¯ Ã˜Â§Ã™â€žÃ˜Â¯Ã™ÂÃ˜Â¹Ã˜Å¸\nÃ˜Â§Ã™â€žÃ˜Â¥Ã˜Â¬Ã™â€¦Ã˜Â§Ã™â€žÃ™Å : ${money(total)}\nÃ˜Â¹Ã˜Â¯Ã˜Â¯ Ã˜Â§Ã™â€žÃ˜Â¹Ã™â€ Ã˜Â§Ã˜ÂµÃ˜Â±: ${cartCount}`
     );
     if (!confirmed) return;
 
@@ -281,11 +281,11 @@ export default function Store() {
       const result = await api.createSale(payload);
 
       window.alert(
-        `تمت العملية\n` +
-          `الإجمالي: ${money(result.total)}\n` +
-          `نقدًا: ${money(result.cashPaid)}\n` +
-          `من المحفظة: ${money(result.walletPaid)}\n` +
-          `أضيف للدين: ${money(result.debtAdded)}`
+        `Ã˜ÂªÃ™â€¦Ã˜Âª Ã˜Â§Ã™â€žÃ˜Â¹Ã™â€¦Ã™â€žÃ™Å Ã˜Â©\n` +
+          `Ã˜Â§Ã™â€žÃ˜Â¥Ã˜Â¬Ã™â€¦Ã˜Â§Ã™â€žÃ™Å : ${money(result.total)}\n` +
+          `Ã™â€ Ã™â€šÃ˜Â¯Ã™â€¹Ã˜Â§: ${money(result.cashPaid)}\n` +
+          `Ã™â€¦Ã™â€  Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â­Ã™ÂÃ˜Â¸Ã˜Â©: ${money(result.walletPaid)}\n` +
+          `Ã˜Â£Ã˜Â¶Ã™Å Ã™Â Ã™â€žÃ™â€žÃ˜Â¯Ã™Å Ã™â€ : ${money(result.debtAdded)}`
       );
 
       setCart([]);
@@ -296,20 +296,20 @@ export default function Store() {
     } catch (e: any) {
       console.error(e);
       if (handleUnauthorized(e)) return;
-      setError("تعذر إتمام العملية (تحقق من المخزون)");
+      setError("Ã˜ÂªÃ˜Â¹Ã˜Â°Ã˜Â± Ã˜Â¥Ã˜ÂªÃ™â€¦Ã˜Â§Ã™â€¦ Ã˜Â§Ã™â€žÃ˜Â¹Ã™â€¦Ã™â€žÃ™Å Ã˜Â© (Ã˜ÂªÃ˜Â­Ã™â€šÃ™â€š Ã™â€¦Ã™â€  Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â®Ã˜Â²Ã™Ë†Ã™â€ )");
     } finally {
       setCheckingOut(false);
     }
   }
 
   return (
-    <div dir="ltr" className="space-y-5">
+    <div dir="ltr" className="store-reference space-y-5">
       <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div dir="rtl">
           <p className="mb-2 text-sm text-violet-300">Point of Sale</p>
-          <h1 className="text-3xl font-semibold">POS / المتجر</h1>
+          <h1 className="text-3xl font-semibold">POS / Ã˜Â§Ã™â€žÃ™â€¦Ã˜ÂªÃ˜Â¬Ã˜Â±</h1>
           <p className="mt-2 text-sm text-white/45">
-            نقرة على المنتج تضيفه للسلة مباشرة
+            Ã™â€ Ã™â€šÃ˜Â±Ã˜Â© Ã˜Â¹Ã™â€žÃ™â€° Ã˜Â§Ã™â€žÃ™â€¦Ã™â€ Ã˜ÂªÃ˜Â¬ Ã˜ÂªÃ˜Â¶Ã™Å Ã™ÂÃ™â€¡ Ã™â€žÃ™â€žÃ˜Â³Ã™â€žÃ˜Â© Ã™â€¦Ã˜Â¨Ã˜Â§Ã˜Â´Ã˜Â±Ã˜Â©
           </p>
         </div>
 
@@ -389,80 +389,36 @@ export default function Store() {
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+          <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
             {filteredProducts.map((p) => {
               const stock = Number(p.stock || 0);
               const inCart = cart.find((i) => i.productId === p.id)?.quantity || 0;
 
               return (
-                <button
+                <div
                   key={p.id}
-                  type="button"
-                  onClick={() => upsertCart(p, +1)}
-                  disabled={stock <= 0}
-                  className="text-left rounded-xl border border-white/[0.08] bg-[#0c101d] overflow-hidden transition hover:border-violet-400/30 disabled:opacity-40"
+                  role="button"
+                  tabIndex={stock > 0 ? 0 : -1}
+                  onClick={() => stock > 0 && upsertCart(p, +1)}
+                  onKeyDown={(event) => {
+                    if (stock > 0 && (event.key === "Enter" || event.key === " ")) {
+                      event.preventDefault();
+                      upsertCart(p, +1);
+                    }
+                  }}
+                  className={`store-product-reference ${stock <= 0 ? "opacity-40" : "cursor-pointer"}`}
                 >
-                  <div className="h-32 bg-[#090d18]">
-                    {p.image ? (
-                      <img
-                        src={p.image}
-                        alt={p.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-white/15">
-                        <ImageIcon />
-                      </div>
-                    )}
+                  <div className="store-product-photo">
+                    {p.image ? <img src={p.image} alt={p.name} /> : <ImageIcon size={25} />}
                   </div>
-
-                  <div dir="rtl" className="p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="truncate font-semibold">{p.name}</p>
-                        <p className="mt-1 text-xs text-white/30">
-                          {p.categoryName || "Other"} · Stock {stock} {p.unit}
-                        </p>
-                      </div>
-
-                      <p dir="ltr" className="text-sm font-semibold text-emerald-300">
-                        {money(p.salePrice)}
-                      </p>
-                    </div>
-
-                    <div className="mt-3 grid grid-cols-[36px_1fr_36px] gap-2 items-center">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          upsertCart(p, -1);
-                        }}
-                        disabled={inCart <= 0}
-                        className="flex h-9 items-center justify-center rounded-lg bg-white/[0.05] text-white/70 disabled:opacity-30"
-                      >
-                        <Minus size={16} />
-                      </button>
-
-                      <div className="h-9 rounded-lg border border-white/10 bg-[#080b16] text-center flex items-center justify-center text-sm">
-                        {inCart}
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          upsertCart(p, +1);
-                        }}
-                        disabled={stock <= 0 || inCart >= stock}
-                        className="flex h-9 items-center justify-center rounded-lg bg-violet-600 text-white disabled:opacity-30"
-                      >
-                        <Plus size={16} />
-                      </button>
-                    </div>
+                  <div className="store-product-details">
+                    <span className="store-product-menu">Ã¢â€¹Â®</span>
+                    <p className="store-product-name">{p.name}</p>
+                    <p className="store-product-category">{p.categoryName || "Other"}</p>
+                    <p className="store-product-price">{money(p.salePrice)}</p>
+                    <p className="store-product-stock"><span>{stock > 0 ? "In Stock" : "Out of Stock"}</span> Stock: {stock}</p>
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>
@@ -475,7 +431,7 @@ export default function Store() {
               <div>
                 <h2 className="font-semibold">Current Order</h2>
                 <p className="mt-1 text-xs text-white/30">
-                  {cartCount} items · {money(total)}
+                  {cartCount} items Ã‚Â- {money(total)}
                 </p>
               </div>
 
@@ -495,7 +451,7 @@ export default function Store() {
                 <div className="p-6 text-center text-sm text-white/35">
                   Cart is empty
                   <br />
-                  أضف منتجًا للبدء
+                  Ã˜Â£Ã˜Â¶Ã™Â Ã™â€¦Ã™â€ Ã˜ÂªÃ˜Â¬Ã™â€¹Ã˜Â§ Ã™â€žÃ™â€žÃ˜Â¨Ã˜Â¯Ã˜Â¡
                 </div>
               ) : (
                 <div className="divide-y divide-white/[0.06]">
@@ -505,7 +461,7 @@ export default function Store() {
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium">{i.name}</p>
                           <p className="mt-1 text-xs text-white/30">
-                            {i.categoryName} · {i.unit}
+                            {i.categoryName} Ã‚Â- {i.unit}
                           </p>
                         </div>
 
@@ -643,10 +599,10 @@ export default function Store() {
                     onChange={(e) => setPlayerId(e.target.value)}
                     className={fieldClass}
                   >
-                    <option value="">اختر اللاعب</option>
+                    <option value="">Ã˜Â§Ã˜Â®Ã˜ÂªÃ˜Â± Ã˜Â§Ã™â€žÃ™â€žÃ˜Â§Ã˜Â¹Ã˜Â¨</option>
                     {players.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.name} — Wallet {Number(p.walletBalance || 0).toFixed(2)} / Debt{" "}
+                        {p.name} Ã¢â‚¬â€ Wallet {Number(p.walletBalance || 0).toFixed(2)} / Debt{" "}
                         {Number(p.debtBalance || 0).toFixed(2)}
                       </option>
                     ))}
@@ -658,14 +614,14 @@ export default function Store() {
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
                 className={fieldClass}
-                placeholder="اسم الزبون (اختياري)"
+                placeholder="Ã˜Â§Ã˜Â³Ã™â€¦ Ã˜Â§Ã™â€žÃ˜Â²Ã˜Â¨Ã™Ë†Ã™â€  (Ã˜Â§Ã˜Â®Ã˜ÂªÃ™Å Ã˜Â§Ã˜Â±Ã™Å )"
               />
 
               <input
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 className={fieldClass}
-                placeholder="ملاحظة (اختياري)"
+                placeholder="Ã™â€¦Ã™â€žÃ˜Â§Ã˜Â­Ã˜Â¸Ã˜Â© (Ã˜Â§Ã˜Â®Ã˜ÂªÃ™Å Ã˜Â§Ã˜Â±Ã™Å )"
               />
 
               <button
@@ -682,12 +638,20 @@ export default function Store() {
               </button>
 
               <p className="text-[10px] leading-5 text-white/30">
-                WALLET/DEBT: يخصم من المحفظة ثم يحوّل الباقي إلى دين تلقائيًا.
+                WALLET/DEBT: Ã™Å Ã˜Â®Ã˜ÂµÃ™â€¦ Ã™â€¦Ã™â€  Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â­Ã™ÂÃ˜Â¸Ã˜Â© Ã˜Â«Ã™â€¦ Ã™Å Ã˜Â­Ã™Ë†Ã™â€˜Ã™â€ž Ã˜Â§Ã™â€žÃ˜Â¨Ã˜Â§Ã™â€šÃ™Å  Ã˜Â¥Ã™â€žÃ™â€° Ã˜Â¯Ã™Å Ã™â€  Ã˜ÂªÃ™â€žÃ™â€šÃ˜Â§Ã˜Â¦Ã™Å Ã™â€¹Ã˜Â§.
               </p>
             </form>
           </div>
         </aside>
       </section>
+      <style>{`
+        .store-reference{background:#061019;min-height:calc(100vh - 36px);padding:4px;color:#f4f7fa}.store-reference h1{font-size:25px!important;letter-spacing:-.02em}.store-reference>section:first-child{border-bottom:1px solid #172633;padding:8px 0 14px}.store-reference>section:first-child p:first-child{color:#dbe2e8!important;font-size:12px!important;margin:0!important}.store-reference>section:first-child h1{font-size:0!important}.store-reference>section:first-child h1:after{content:'Store';font-size:25px}.store-reference>section:first-child p:last-child{font-size:0!important}.store-reference>section:first-child p:last-child:after{content:'Manage products and in-arena sales';font-size:12px;color:#9ba7b3}.store-reference button{transition:.16s}.store-reference .bg-\[\#0c101d\]{background:#0a131c!important;border-color:#1c2a35!important}.store-reference .bg-\[\#090d18\],.store-reference .bg-\[\#080b16\]{background:#081119!important}.store-reference .border-white\/\[0\.08\],.store-reference .border-white\/10{border-color:#1c2a35!important}.store-reference .text-violet-300{color:#20b8ff!important}.store-reference .bg-violet-600{background:#d80627!important}.store-reference .hover\:border-violet-400\/30:hover{border-color:#d80627!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))!important;gap:11px!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button{border-radius:7px!important;background:#0a131c!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button>div:first-child{height:104px!important;background:#081119!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button>div:last-child{padding:10px!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3 .text-emerald-300{color:#16d878!important;font-size:12px}.store-reference aside{position:sticky;top:12px;border-radius:8px!important;background:#0a131c!important}.store-reference aside h2{font-size:15px}.store-reference aside .bg-violet-600{background:#d80627!important}.store-reference aside form>button[type=submit]{background:#e2072c!important;color:#fff!important;border-radius:6px}.store-reference input,.store-reference select{border-color:#24333e!important}.store-reference .rounded-xl{border-radius:8px!important}.store-reference .rounded-lg{border-radius:6px!important}@media(min-width:1280px){.store-reference>section.grid{grid-template-columns:minmax(0,1fr) 300px!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3{grid-template-columns:repeat(4,minmax(0,1fr))!important}} 
+
+        .store-product-reference{min-height:144px;display:grid;grid-template-columns:76px minmax(0,1fr);gap:11px;padding:10px;border:1px solid #26333e;border-radius:8px;background:linear-gradient(145deg,#0d171f,#091119);color:#edf2f6;text-align:left}.store-product-reference:hover{border-color:#3a647c;background:#101b24}.store-product-photo{height:122px;display:flex;align-items:center;justify-content:center;overflow:visible;border-radius:0;background:transparent;color:#668}.store-product-photo img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 6px 8px rgba(0,0,0,.30))}.store-product-details{position:relative;min-width:0}.store-product-menu{position:absolute;right:0;top:-5px;color:#d4d9dd;font-size:22px;line-height:18px}.store-product-name{margin:1px 18px 0 0;font-size:14px;font-weight:700;line-height:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.store-product-category{margin:3px 0 0;color:#b2bac1;font-size:11px}.store-product-price{margin:16px 0 0;color:#15df7c;font-weight:700;font-size:14px}.store-product-stock{margin:13px 0 0;color:#aab2ba;font-size:10px}.store-product-stock span{display:inline-block;background:#062b1d;color:#1ddd83;border-radius:4px;padding:3px 5px;margin-right:5px;font-weight:700}
+
+        /* Four products per row and a larger image area matching the product detail height. */
+        @media(min-width:1024px){.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3{grid-template-columns:repeat(4,minmax(0,1fr))!important}}.store-product-reference{grid-template-columns:96px minmax(0,1fr)!important;min-height:154px!important}.store-product-photo{width:96px!important;height:134px!important}.store-product-details{min-height:134px}.store-product-price{margin-top:19px!important}.store-product-stock{position:absolute;bottom:1px;left:0;margin:0!important}
+      `}</style>
     </div>
   );
 }

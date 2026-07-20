@@ -30,12 +30,12 @@ const navigationGroups = [
     items: [
       {
         title: "Dashboard",
-        arabic: "الرئيسية",
+        arabic: "Ã˜Â§Ã™â€žÃ˜Â±Ã˜Â¦Ã™Å Ã˜Â³Ã™Å Ã˜Â©",
         path: "/",
         icon: LayoutDashboard,
       },
-      { title: "Devices", arabic: "الأجهزة", path: "/devices", icon: Monitor },
-      { title: "Sessions", arabic: "الجلسات", path: "/sessions", icon: Clock3 },
+      { title: "Devices", arabic: "Ã˜Â§Ã™â€žÃ˜Â£Ã˜Â¬Ã™â€¡Ã˜Â²Ã˜Â©", path: "/devices", icon: Monitor },
+      { title: "Sessions", arabic: "Ã˜Â§Ã™â€žÃ˜Â¬Ã™â€žÃ˜Â³Ã˜Â§Ã˜Âª", path: "/sessions", icon: Clock3 },
     ],
   },
   {
@@ -43,13 +43,13 @@ const navigationGroups = [
     items: [
       {
         title: "Players & Members",
-        arabic: "اللاعبون والأعضاء",
+        arabic: "Ã˜Â§Ã™â€žÃ™â€žÃ˜Â§Ã˜Â¹Ã˜Â¨Ã™Ë†Ã™â€  Ã™Ë†Ã˜Â§Ã™â€žÃ˜Â£Ã˜Â¹Ã˜Â¶Ã˜Â§Ã˜Â¡",
         path: "/players",
         icon: UserRound,
       },
       {
         title: "Tournaments",
-        arabic: "البطولات",
+        arabic: "Ã˜Â§Ã™â€žÃ˜Â¨Ã˜Â·Ã™Ë†Ã™â€žÃ˜Â§Ã˜Âª",
         path: "/tournaments",
         icon: Trophy,
       },
@@ -58,27 +58,27 @@ const navigationGroups = [
   {
     title: "BUSINESS",
     items: [
-      { title: "Billing", arabic: "الفوترة", path: "/billing", icon: Receipt },
-      { title: "Store", arabic: "المتجر", path: "/store", icon: ShoppingBag },
+      { title: "Billing", arabic: "Ã˜Â§Ã™â€žÃ™ÂÃ™Ë†Ã˜ÂªÃ˜Â±Ã˜Â©", path: "/billing", icon: Receipt },
+      { title: "Store", arabic: "Ã˜Â§Ã™â€žÃ™â€¦Ã˜ÂªÃ˜Â¬Ã˜Â±", path: "/store", icon: ShoppingBag },
       {
         title: "Inventory",
-        arabic: "المخزون",
+        arabic: "Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â®Ã˜Â²Ã™Ë†Ã™â€ ",
         path: "/inventory",
         icon: Boxes,
       },
       {
         title: "Guest Debts",
-        arabic: "ديون الضيوف",
+        arabic: "Ã˜Â¯Ã™Å Ã™Ë†Ã™â€  Ã˜Â§Ã™â€žÃ˜Â¶Ã™Å Ã™Ë†Ã™Â",
         path: "/guest-debts",
         icon: BadgeDollarSign,
       },
       {
         title: "Reports",
-        arabic: "التقارير",
+        arabic: "Ã˜Â§Ã™â€žÃ˜ÂªÃ™â€šÃ˜Â§Ã˜Â±Ã™Å Ã˜Â±",
         path: "/reports",
         icon: BarChart3,
       },
-      { title: "Staff", arabic: "الموظفون", path: "/staff", icon: Shield },
+      { title: "Staff", arabic: "Ã˜Â§Ã™â€žÃ™â€¦Ã™Ë†Ã˜Â¸Ã™ÂÃ™Ë†Ã™â€ ", path: "/staff", icon: Shield },
     ],
   },
 ];
@@ -102,10 +102,7 @@ export default function Sidebar({ currentStaff, onLogout }: SidebarProps) {
     <aside className="noxus-sidebar relative z-20 flex h-screen w-[244px] shrink-0 flex-col border-r border-white/[0.07] bg-[#070a14]/95 backdrop-blur-xl">
       <div className="flex h-[86px] shrink-0 items-center border-b border-white/[0.07] px-5">
         <div className="flex items-center gap-3">
-          <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white shadow-[0_0_30px_rgba(139,92,246,0.28)]">
-            <Gamepad2 size={22} />
-            <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#070a14] bg-cyan-300" />
-          </div>
+          <img src="/branding/noxus-logo.png" alt="Noxus Arena" className="h-11 w-11 object-contain drop-shadow-[0_0_12px_rgba(255,0,60,0.50)]" />
 
           <div>
             <h1 className="text-base font-bold tracking-[0.16em]">NOXUS</h1>

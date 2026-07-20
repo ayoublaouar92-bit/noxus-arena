@@ -425,6 +425,50 @@ export function registerRoundHandlers(db: any) {
     },
   );
 
+  registerHandler("rounds:seat-waiting-players", () => {
+    const staffUserId = requireStaff(db, "ROUNDS_SEAT_WAITING_PLAYERS");
+    return db.transaction(() => {
+      const waiting = db
+        .prepare(`
+          SELECT w.id, w.playerId, p.name AS playerName
+          FROM player_waiting_list w
+          INNER JOIN players p ON p.id = w.playerId
+          WHERE w.status = 'Waiting'
+          ORDER BY w.queueOrder ASC, w.id ASC
+        `)
+        .all() as Array<{ id: number; playerId: number; playerName: string }>;
+      const devices = db
+        .prepare("SELECT id FROM devices WHERE status = 'Available' ORDER BY id ASC")
+        .all() as Array<{ id: number }>;
+      const count = Math.min(waiting.length, devices.length);
+      const started: Array<{ playerId: number; deviceId: number; sessionId: number }> = [];
+      const insert = db.prepare(`
+        INSERT INTO sessions
+        (deviceId, playerId, customerName, guestPhone, guestNotes, startTime,
+         status, pausedAt, pausedMinutes, sessionType, fixedPrice, roundGroupId)
+        VALUES (?, ?, ?, '', 'Waiting list', ?, 'Running', NULL, 0, 'timed', 0, NULL)
+      `);
+      const markBusy = db.prepare("UPDATE devices SET status = 'Busy' WHERE id = ?");
+      const markStarted = db.prepare(
+        "UPDATE player_waiting_list SET status = 'Started', removedAt = ? WHERE id = ? AND status = 'Waiting'",
+      );
+      for (let index = 0; index < count; index += 1) {
+        const player = waiting[index];
+        const device = devices[index];
+        const result = insert.run(device.id, player.playerId, player.playerName, nowIso());
+        markBusy.run(device.id);
+        markStarted.run(nowIso(), player.id);
+        started.push({ playerId: player.playerId, deviceId: device.id, sessionId: Number(result.lastInsertRowid) });
+      }
+      audit(db, {
+        action: "ROUNDS_SEAT_WAITING_PLAYERS",
+        entity: "player_waiting_list",
+        details: JSON.stringify({ staffUserId, started }),
+      });
+      return { started: started.length, remaining: waiting.length - started.length, assignments: started };
+    })();
+  });
+
   registerHandler("rounds:end-group", (_event, groupIdInput: number) => {
     requireStaff(db, "ROUNDS_END_GROUP");
     const groupId = Number(groupIdInput);

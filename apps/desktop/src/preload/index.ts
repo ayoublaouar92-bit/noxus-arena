@@ -124,6 +124,8 @@ const api = {
     ipcRenderer.invoke("rounds:add-waiting-player", playerId),
   removeWaitingPlayer: (waitingId: number) =>
     ipcRenderer.invoke("rounds:remove-waiting-player", waitingId),
+  seatWaitingPlayers: () =>
+    ipcRenderer.invoke("rounds:seat-waiting-players"),
   finishAndStartNextRound: (data: {
     groupId: number;
     winnerPlayerIds: number[];

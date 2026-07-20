@@ -16,6 +16,7 @@
   "build": {
     "appId": "com.noxus.arena",
     "productName": "Noxus Arena",
+    "icon": "build/icon.ico",
     "directories": {
       "output": "release"
     },

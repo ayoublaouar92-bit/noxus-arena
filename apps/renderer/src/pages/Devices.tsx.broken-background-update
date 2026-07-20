@@ -1,0 +1,586 @@
+import gamingPcImage from "../assets/gaming-pc-central.png";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import {
+  Bell,
+  ChevronDown,
+  CirclePlus,
+  Filter,
+  Gamepad2,
+  Laptop,
+  LayoutGrid,
+  List,
+  MapPin,
+  Monitor,
+  MoreVertical,
+  Pencil,
+  Plus,
+  Power,
+  Search,
+  Server,
+  Trash2,
+  Wifi,
+  WifiOff,
+  Wrench,
+  X,
+} from "lucide-react";
+
+type Device = {
+  id: number;
+  name: string;
+  type: string;
+  ip: string | null;
+  mac: string | null;
+  price: string;
+  status: "Available" | "Busy";
+};
+type Tab = "All" | "PC" | "PS5" | "Other";
+
+const statusText = (device: Device) =>
+  device.status === "Busy" ? "In Use" : "Online";
+const isPC = (device: Device) =>
+  device.type.toLowerCase().includes("pc") ||
+  device.type.toLowerCase().includes("gaming");
+const initials = (name: string) => name.slice(-2).toUpperCase();
+
+export default function Devices() {
+  const api = (window as any).api;
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
+  const [tab, setTab] = useState<Tab>("All");
+  const [showAdd, setShowAdd] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [kioskEnabled, setKioskEnabled] = useState(true);
+  const [form, setForm] = useState({
+    name: "",
+    type: "PC",
+    ip: "",
+    mac: "",
+    price: "",
+  });
+
+  const load = async () => {
+    try {
+      const [list, kiosk] = await Promise.all([
+        api.getDevices(),
+        api.getKioskMode?.(),
+      ]);
+      setDevices(list || []);
+      setSelectedId((current) =>
+        current && (list || []).some((d: Device) => d.id === current)
+          ? current
+          : (list?.[0]?.id ?? null),
+      );
+      if (kiosk) setKioskEnabled(Boolean(kiosk.enabled));
+    } catch {
+      setError("Unable to load devices.");
+    }
+  };
+  useEffect(() => {
+    void load();
+  }, []);
+
+  const selected = devices.find((d) => d.id === selectedId) || devices[0];
+  const online = devices.filter((d) => d.status === "Available").length;
+  const inUse = devices.filter((d) => d.status === "Busy").length;
+  const pcCount = devices.filter(isPC).length;
+  const psCount = devices.filter((d) =>
+    d.type.toLowerCase().includes("ps"),
+  ).length;
+  const offline = Math.max(0, devices.length - online - inUse);
+  const filtered = useMemo(
+    () =>
+      devices.filter((d) => {
+        const q = search.toLowerCase();
+        const typeMatch =
+          tab === "All" ||
+          (tab === "PC" && isPC(d)) ||
+          (tab === "PS5" && d.type.toLowerCase().includes("ps")) ||
+          (tab === "Other" && !isPC(d) && !d.type.toLowerCase().includes("ps"));
+        return (
+          typeMatch &&
+          (!q || `${d.name} ${d.type} ${d.ip || ""}`.toLowerCase().includes(q))
+        );
+      }),
+    [devices, search, tab],
+  );
+
+  const openAdd = () => {
+    setForm({ name: "", type: "PC", ip: "", mac: "", price: "" });
+    setShowAdd(true);
+  };
+  const openEdit = () => {
+    if (!selected) return;
+    setForm({
+      name: selected.name,
+      type: selected.type,
+      ip: selected.ip || "",
+      mac: selected.mac || "",
+      price: String(selected.price || ""),
+    });
+    setShowEdit(true);
+  };
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!form.name.trim()) return;
+    try {
+      setSaving(true);
+      setError("");
+      if (showEdit && selected)
+        await api.updateDevice({
+          deviceId: selected.id,
+          ...form,
+          price: String(Number(form.price || 0)),
+          status: selected.status,
+        });
+      else
+        await api.addDevice({
+          ...form,
+          price: String(Number(form.price || 0)),
+        });
+      setShowAdd(false);
+      setShowEdit(false);
+      await load();
+    } catch {
+      setError("Unable to save device.");
+    } finally {
+      setSaving(false);
+    }
+  };
+  const remove = async () => {
+    if (!selected || !confirm(`Delete ${selected.name}?`)) return;
+    try {
+      await api.deleteDevice(selected.id);
+      await load();
+    } catch {
+      setError("Unable to delete this device.");
+    }
+  };
+  const toggleKiosk = async () => {
+    try {
+      const result = await api.setKioskMode({ enabled: !kioskEnabled });
+      setKioskEnabled(Boolean(result.enabled));
+    } catch {
+      setError("Unable to change kiosk mode.");
+    }
+  };
+
+  const stats = [
+    ["Total Devices", devices.length, "All devices", Server, "#1597e5"],
+    [
+      "Online",
+      online,
+      `${devices.length ? Math.round((online / devices.length) * 100) : 0}% of total`,
+      Wifi,
+      "#00d084",
+    ],
+    [
+      "In Use",
+      inUse,
+      `${devices.length ? Math.round((inUse / devices.length) * 100) : 0}% of total`,
+      Gamepad2,
+      "#ff9d00",
+    ],
+    [
+      "Offline",
+      offline,
+      `${devices.length ? Math.round((offline / devices.length) * 100) : 0}% of total`,
+      WifiOff,
+      "#a855f7",
+    ],
+    ["Maintenance", 0, "0% of total", Wrench, "#f12e4d"],
+  ] as const;
+
+  return (
+    <div className="noxus-devices-page mx-auto max-w-[1460px] pb-5 text-white">
+      <style>{`.noxus-devices-page{font-family:Inter,ui-sans-serif,system-ui,sans-serif}.device-panel{background:linear-gradient(145deg,#0b1620 0%,#07111a 100%);border:1px solid rgba(88,125,150,.16);box-shadow:0 12px 28px rgba(0,0,0,.16)}.device-card{background:rgba(8,19,29,.82);border:1px solid rgba(83,118,142,.17)}.device-card:hover{border-color:rgba(10,207,135,.45);background:rgba(11,27,37,.96)}.device-scroll::-webkit-scrollbar{width:5px}.device-scroll::-webkit-scrollbar-thumb{background:#1a4052;border-radius:99px}`}.noxus-devices-page{background:radial-gradient(circle at 30% -20%,rgba(178,10,38,.14),transparent 35%),#070708;border-radius:12px;padding:14px}.noxus-devices-page .device-panel{background:linear-gradient(145deg,#11090d 0%,#080708 100%)!important;border-color:rgba(255,54,78,.16)!important}.noxus-devices-page .device-card{background:#0d090b!important;border-color:rgba(255,255,255,.08)!important}.noxus-devices-page .device-card:hover{background:#160a0e!important;border-color:rgba(239,35,60,.50)!important}.noxus-devices-page input,.noxus-devices-page select{background:#080708!important}</style>
+      <header className="flex flex-col gap-4 border-b border-white/[.07] pb-3 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h1 className="text-[18px] font-semibold">Devices</h1>
+          <p className="mt-0.5 text-[10px] text-white/55">
+            Monitor and manage all arena devices in real-time
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex h-9 w-48 items-center gap-2 rounded-md border border-white/10 bg-[#071019] px-3">
+            <Search size={13} className="text-white/45" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search devices..."
+              className="min-w-0 flex-1 bg-transparent text-[10px] outline-none placeholder:text-white/35"
+            />
+          </div>
+          <button
+            onClick={toggleKiosk}
+            className={`hidden h-9 rounded-md border px-3 text-[10px] md:block ${kioskEnabled ? "border-emerald-500/25 text-emerald-300" : "border-amber-500/25 text-amber-300"}`}
+          >
+            Kiosk {kioskEnabled ? "On" : "Off"}
+          </button>
+          <button
+            onClick={openAdd}
+            className="flex h-9 items-center gap-2 rounded-md bg-[#e4082f] px-3 text-[10px] font-medium shadow-lg shadow-red-950/40"
+          >
+            <Plus size={13} /> Add Device <ChevronDown size={12} />
+          </button>
+        </div>
+      </header>
+      {error && (
+        <p className="mt-3 rounded-md border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+          {error}
+        </p>
+      )}
+      <section className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+        {stats.map(([label, value, note, Icon, color]) => (
+          <article
+            key={label}
+            className="device-panel relative min-h-[57px] overflow-hidden rounded-md px-4 py-2.5"
+          >
+            <Icon
+              size={22}
+              className="absolute right-4 top-3 opacity-90"
+              style={{ color }}
+            />
+            <p className="text-[9px] text-white/60">{label}</p>
+            <p className="mt-0.5 text-[18px] font-semibold">{value}</p>
+            <p className="text-[8px]" style={{ color }}>
+              {note}
+            </p>
+          </article>
+        ))}
+      </section>
+      <section className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,1.8fr)_minmax(300px,1.15fr)]">
+        <div className="device-panel min-w-0 rounded-md p-3">
+          <div className="flex flex-col gap-2 border-b border-white/[.07] pb-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex gap-4">
+              {(
+                [
+                  ["All", devices.length],
+                  ["PC", pcCount],
+                  ["PS5", psCount],
+                  ["Other", devices.length - pcCount - psCount],
+                ] as [Tab, number][]
+              ).map(([key, count]) => (
+                <button
+                  key={key}
+                  onClick={() => setTab(key)}
+                  className={`border-b pb-2 text-[9px] ${tab === key ? "border-[#e4082f] text-white" : "border-transparent text-white/55"}`}
+                >
+                  {key === "All"
+                    ? `All Devices (${count})`
+                    : `${key}s (${count})`}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button className="rounded bg-[#e4082f] p-1.5">
+                <LayoutGrid size={12} />
+              </button>
+              <button className="rounded bg-white/[.04] p-1.5 text-white/65">
+                <List size={12} />
+              </button>
+              <button className="flex items-center gap-1 rounded bg-white/[.04] px-2 text-[9px] text-white/70">
+                <Filter size={11} /> All Locations <ChevronDown size={10} />
+              </button>
+            </div>
+          </div>
+          <div className="device-scroll mt-3 grid max-h-[560px] grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((device) => {
+              const active = device.id === selected?.id,
+                available = device.status === "Available";
+              return (
+                <button
+                  key={device.id}
+                  onClick={() => setSelectedId(device.id)}
+                  className={`device-card relative min-h-[114px] rounded-md p-2.5 text-left transition ${active ? "border-emerald-500/70 ring-1 ring-emerald-500/20" : ""}`}
+                >
+                  <span
+                    className={`absolute right-2.5 top-2.5 h-2 w-2 rounded-full ${available ? "bg-emerald-400" : "bg-amber-400"}`}
+                  />
+                  <div className="flex gap-2">
+                    <div className="h-9 w-9 overflow-hidden rounded bg-[#061019]">
+                      {isPC(device) ? (
+                        <img
+                          src={gamingPcImage}
+                          className="h-full w-full scale-110 object-contain"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-sky-300">
+                          <Gamepad2 size={20} />
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-[11px] font-semibold">
+                        {device.name}
+                      </p>
+                      <p className="text-[8px] text-white/55">
+                        {isPC(device) ? "Gaming PC" : device.type}
+                      </p>
+                      <p className="mt-1 text-[8px] text-white/50">
+                        <MapPin className="mr-1 inline" size={8} />
+                        Main Hall - Row {((device.id - 1) % 2) + 1}
+                      </p>
+                      <p className="mt-1 text-[8px] text-white/55">
+                        User:{" "}
+                        <span
+                          className={
+                            available ? "text-emerald-300" : "text-amber-300"
+                          }
+                        >
+                          {available ? "Available" : "In Session"}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-2 border-t border-white/[.07] pt-1.5 text-[8px] text-white/50">
+                    <span>{device.ip || "No IP"}</span>
+                    <span className="float-right rounded bg-blue-500/15 px-1 text-blue-300">
+                      {isPC(device) ? "CS2" : "Console"}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+            <button
+              onClick={openAdd}
+              className="flex min-h-[114px] flex-col items-center justify-center rounded-md border border-dashed border-white/15 text-white/65 hover:border-emerald-400/40"
+            >
+              <CirclePlus size={22} />
+              <span className="mt-2 text-[10px]">Add Device</span>
+              <span className="mt-1 text-[8px] text-white/45">
+                Register a new device
+              </span>
+            </button>
+          </div>
+        </div>
+        <aside className="space-y-3">
+          {selected ? (
+            <>
+              <section className="device-panel rounded-md p-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-[13px] font-semibold">
+                      {selected.name}{" "}
+                      <span className="ml-1 rounded bg-emerald-500/15 px-1.5 py-0.5 text-[8px] text-emerald-300">
+                        {statusText(selected)}
+                      </span>
+                    </p>
+                    <div className="mt-3 flex items-center gap-3">
+                      <div className="h-16 w-16 overflow-hidden rounded-md bg-[#061019]">
+                        {isPC(selected) ? (
+                          <img
+                            src={gamingPcImage}
+                            className="h-full w-full scale-110 object-contain"
+                          />
+                        ) : (
+                          <Gamepad2 className="m-5 text-sky-300" size={28} />
+                        )}
+                      </div>
+                      <div className="space-y-1 text-[9px] text-white/60">
+                        <p>
+                          Location{" "}
+                          <span className="ml-8 text-white/80">
+                            Main Hall - Row 1
+                          </span>
+                        </p>
+                        <p>
+                          IP Address{" "}
+                          <span className="ml-5 text-white/80">
+                            {selected.ip || "Not set"}
+                          </span>
+                        </p>
+                        <p>
+                          MAC Address{" "}
+                          <span className="ml-3 text-white/80">
+                            {selected.mac || "Not set"}
+                          </span>
+                        </p>
+                        <p>
+                          Last Seen{" "}
+                          <span className="ml-7 text-emerald-300">
+                            Just now
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <MoreVertical size={15} className="text-white/65" />
+                </div>
+              </section>
+              <section className="device-panel rounded-md p-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-medium">
+                    Current Session{" "}
+                    <span
+                      className={`ml-1 rounded px-1.5 py-0.5 text-[8px] ${selected.status === "Busy" ? "bg-emerald-500/15 text-emerald-300" : "bg-white/[.07] text-white/55"}`}
+                    >
+                      {selected.status === "Busy" ? "Active" : "Idle"}
+                    </span>
+                  </p>
+                  <p className="text-[10px]">Session Control</p>
+                </div>
+                <div className="mt-3 grid grid-cols-[1fr_112px] gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full border border-red-500/50 bg-red-950/40 text-[10px] text-red-200">
+                      {initials(selected.name)}
+                    </div>
+                    <div className="text-[9px]">
+                      <p className="font-medium">
+                        {selected.status === "Busy"
+                          ? "Current Player"
+                          : "No active user"}
+                      </p>
+                      <p className="mt-1 text-white/55">
+                        {selected.status === "Busy"
+                          ? "Session running"
+                          : "Ready for a session"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <button className="flex h-6 w-full items-center justify-center gap-1 rounded bg-red-700/60 text-[8px]">
+                      <Power size={9} /> Stop Session
+                    </button>
+                    <button
+                      onClick={openEdit}
+                      className="flex h-6 w-full items-center justify-center gap-1 rounded bg-amber-600/30 text-[8px] text-amber-200"
+                    >
+                      <Pencil size={9} /> Edit Device
+                    </button>
+                    <button
+                      onClick={remove}
+                      className="flex h-6 w-full items-center justify-center gap-1 rounded bg-white/[.06] text-[8px] text-white/70"
+                    >
+                      <Trash2 size={9} /> Delete
+                    </button>
+                  </div>
+                </div>
+              </section>
+              <section className="device-panel rounded-md p-3">
+                <div className="flex gap-4 border-b border-white/[.07] pb-2 text-[9px]">
+                  <span className="border-b border-[#e4082f] pb-2">
+                    Usage History
+                  </span>
+                  <span className="text-white/55">Hardware Info</span>
+                  <span className="text-white/55">Installed Games</span>
+                  <span className="text-white/55">Notes</span>
+                </div>
+                <div className="mt-3">
+                  <p className="text-[9px] text-white/70">Usage (Today)</p>
+                  <div className="mt-2 flex h-20 items-end gap-1 border-b border-l border-white/[.12] px-2">
+                    {[
+                      10, 30, 22, 48, 37, 65, 45, 80, 56, 44, 72, 30, 63, 38,
+                      88, 55, 42, 76, 35, 69,
+                    ].map((h, i) => (
+                      <i
+                        key={i}
+                        className="w-1.5 bg-emerald-500/75"
+                        style={{ height: `${h}%` }}
+                      />
+                    ))}
+                  </div>
+                  <div className="mt-4 border-t border-white/[.07] pt-3">
+                    <p className="text-[9px] font-medium">Recent Sessions</p>
+                    {["Phoenix", "Shadow", "Hunter"].map((name, i) => (
+                      <div
+                        key={name}
+                        className="mt-2 flex items-center justify-between text-[8px]"
+                      >
+                        <span>
+                          <span className="mr-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-red-950/50 text-[7px] text-red-200">
+                            {name[0]}
+                          </span>
+                          {name}
+                        </span>
+                        <span className="text-white/55">
+                          {i === 0 ? "01:25:30" : "02:20:15"}
+                        </span>
+                        <span
+                          className={
+                            i === 0 ? "text-emerald-300" : "text-emerald-300"
+                          }
+                        >
+                          {i === 0 ? "Active" : "Completed"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            </>
+          ) : (
+            <section className="device-panel rounded-md p-8 text-center text-sm text-white/55">
+              Select a device
+            </section>
+          )}
+        </aside>
+      </section>
+      {(showAdd || showEdit) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          <form
+            onSubmit={submit}
+            className="w-full max-w-md rounded-xl border border-white/10 bg-[#0b1620] p-5 shadow-2xl"
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold">
+                {showEdit ? "Edit Device" : "Add Device"}
+              </h2>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAdd(false);
+                  setShowEdit(false);
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="mt-5 grid gap-3">
+              {(
+                [
+                  ["name", "Device Name"],
+                  ["ip", "IP Address"],
+                  ["mac", "MAC Address"],
+                  ["price", "Hourly price (DA)"],
+                ] as [keyof typeof form, string][]
+              ).map(([key, label]) => (
+                <label key={key} className="text-xs text-white/60">
+                  {label}
+                  <input
+                    value={form[key]}
+                    onChange={(e) =>
+                      setForm({ ...form, [key]: e.target.value })
+                    }
+                    className="mt-1 h-10 w-full rounded-md border border-white/10 bg-black/20 px-3 text-sm outline-none focus:border-emerald-400/50"
+                  />
+                </label>
+              ))}
+              <label className="text-xs text-white/60">
+                Device Type
+                <select
+                  value={form.type}
+                  onChange={(e) => setForm({ ...form, type: e.target.value })}
+                  className="mt-1 h-10 w-full rounded-md border border-white/10 bg-black/20 px-3 text-sm"
+                >
+                  <option>PC</option>
+                  <option>PS5</option>
+                  <option>Xbox</option>
+                </select>
+              </label>
+            </div>
+            <button
+              disabled={saving}
+              className="mt-5 flex h-10 w-full items-center justify-center gap-2 rounded-md bg-[#e4082f] text-sm font-medium"
+            >
+              <Plus size={15} />
+              {saving ? "Saving..." : showEdit ? "Save Changes" : "Add Device"}
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,150 @@
+import {
+  Activity,
+  ArrowUpRight,
+  Banknote,
+  Clock3,
+  Gamepad2,
+  Monitor,
+  RefreshCw,
+  Timer,
+  Trophy,
+  Users,
+  Wrench,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { useLanguage } from "../lib/i18n";
+
+type Device = { id: number; name: string; type: string; price: string; status: "Available" | "Busy" };
+type Session = { id: number; deviceId: number; deviceName: string; customerName: string; customerImage?: string; playerImage?: string; startTime: string; hourlyPrice: string; status: string };
+
+export default function Dashboard() {
+  const { dir, language, locale } = useLanguage();
+  const tr = (en: string, ar: string, fr: string) => language === "ar" ? ar : language === "fr" ? fr : en;
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAllSessions, setShowAllSessions] = useState(false);
+  const [error, setError] = useState("");
+  const [, setNow] = useState(Date.now());
+  const api = (window as any).api;
+
+  async function loadDashboard(showLoading = false) {
+    try {
+      if (showLoading) setLoading(true);
+      setError("");
+      const [devicesResult, sessionsResult] = await Promise.all([api.getDevices(), api.getActiveSessions()]);
+      setDevices(devicesResult);
+      setSessions(sessionsResult);
+    } catch (loadError) {
+      console.error(loadError);
+      setError(tr("Dashboard failed to load", "ÃƒËœÃ‚ÂªÃƒËœÃ‚Â¹ÃƒËœÃ‚Â°ÃƒËœÃ‚Â± ÃƒËœÃ‚ÂªÃƒËœÃ‚Â­Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã…Â Ãƒâ„¢Ã¢â‚¬Å¾ Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â­ÃƒËœÃ‚Â© ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚ÂªÃƒËœÃ‚Â­Ãƒâ„¢Ã†â€™Ãƒâ„¢Ã¢â‚¬Â¦", "Impossible de charger le tableau de bord"));
+    } finally { setLoading(false); }
+  }
+
+  useEffect(() => {
+    void loadDashboard(true);
+    const clock = window.setInterval(() => setNow(Date.now()), 1000);
+    const refresh = window.setInterval(() => void loadDashboard(), 5000);
+    return () => { window.clearInterval(clock); window.clearInterval(refresh); };
+  }, []);
+
+  const initials = (name: string) => name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "N";
+  const minutes = (startTime: string) => Math.max(1, Math.ceil((Date.now() - new Date(startTime).getTime()) / 60000));
+  const amount = (session: Session) => ((minutes(session.startTime) / 60) * Number(session.hourlyPrice || 0)).toFixed(2);
+  const time = (value: string) => new Date(value).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+  const available = useMemo(() => devices.filter((device) => device.status === "Available"), [devices]);
+  const busy = useMemo(() => devices.filter((device) => device.status === "Busy"), [devices]);
+  const revenue = sessions.reduce((total, session) => total + Number(amount(session)), 0);
+  const average = sessions.length ? Math.round(sessions.reduce((total, session) => total + minutes(session.startTime), 0) / sessions.length) : 0;
+  const occupancy = devices.length ? Math.round((busy.length / devices.length) * 100) : 0;
+  const topMembers = Array.from(
+    sessions.reduce((map, session) => {
+      const current = map.get(session.customerName) || { name: session.customerName, image: session.customerImage || session.playerImage, total: 0 };
+      current.total += Number(amount(session));
+      map.set(session.customerName, current);
+      return map;
+    }, new Map<string, { name: string; image?: string; total: number }>() ).values(),
+  ).sort((a, b) => b.total - a.total);
+
+  const stats = [
+    { label: tr("Active Sessions", "ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â³ÃƒËœÃ‚Â§ÃƒËœÃ‚Âª ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â´ÃƒËœÃ‚Â·ÃƒËœÃ‚Â©", "Sessions actives"), value: sessions.length, icon: Gamepad2, tone: "red", note: tr("Live right now", "Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â§ÃƒËœÃ‚Â´ÃƒËœÃ‚Â±ÃƒËœÃ‚Â© ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¢Ãƒâ„¢Ã¢â‚¬Â ", "En direct") },
+    { label: tr("Available Devices", "ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â£ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¡ÃƒËœÃ‚Â²ÃƒËœÃ‚Â© ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚ÂªÃƒËœÃ‚Â§ÃƒËœÃ‚Â­ÃƒËœÃ‚Â©", "Appareils disponibles"), value: available.length, icon: Monitor, tone: "purple", note: `${busy.length} ${tr("in use", "Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â´ÃƒËœÃ‚ÂºÃƒâ„¢Ã‹â€ Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â©", "occupÃƒÆ’Ã‚Â©s")}` },
+    { label: tr("Busy Devices", "ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â£ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¡ÃƒËœÃ‚Â²ÃƒËœÃ‚Â© ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â´ÃƒËœÃ‚ÂºÃƒâ„¢Ã‹â€ Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â©", "Appareils occupÃƒÆ’Ã‚Â©s"), value: busy.length, icon: Users, tone: "blue", note: `${occupancy}% ${tr("occupancy", "ÃƒËœÃ‚Â¥ÃƒËœÃ‚Â´ÃƒËœÃ‚ÂºÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾", "occupation")}` },
+    { label: tr("Today's Revenue", "ÃƒËœÃ‚Â¥Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â±ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¯ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã…Â Ãƒâ„¢Ã‹â€ Ãƒâ„¢Ã¢â‚¬Â¦", "Revenus du jour"), value: `${revenue.toFixed(2)} DA`, icon: Banknote, tone: "red", note: tr("From active sessions", "Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã¢â‚¬Â  ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â³ÃƒËœÃ‚Â§ÃƒËœÃ‚Âª ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â´ÃƒËœÃ‚Â·ÃƒËœÃ‚Â©", "Sessions actives") },
+  ];
+
+  const quick = [
+    { title: tr("Add Session", "ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â¯ÃƒËœÃ‚Â¡ ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â³ÃƒËœÃ‚Â©", "Ajouter une session"), description: tr("Start a new session", "ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â¯ÃƒËœÃ‚Â¡ ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â³ÃƒËœÃ‚Â© ÃƒËœÃ‚Â¬ÃƒËœÃ‚Â¯Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â¯ÃƒËœÃ‚Â©", "DÃƒÆ’Ã‚Â©marrer une session"), icon: Gamepad2, path: "/sessions", tone: "red" },
+    { title: tr("Add Member", "ÃƒËœÃ‚Â¥ÃƒËœÃ‚Â¶ÃƒËœÃ‚Â§Ãƒâ„¢Ã‚ÂÃƒËœÃ‚Â© ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â¶Ãƒâ„¢Ã‹â€ ", "Ajouter un membre"), description: tr("Register a new member", "ÃƒËœÃ‚ÂªÃƒËœÃ‚Â³ÃƒËœÃ‚Â¬Ãƒâ„¢Ã…Â Ãƒâ„¢Ã¢â‚¬Å¾ ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â¶Ãƒâ„¢Ã‹â€  ÃƒËœÃ‚Â¬ÃƒËœÃ‚Â¯Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â¯", "Enregistrer un membre"), icon: Users, path: "/members", tone: "purple" },
+    { title: tr("Open Cashier", "Ãƒâ„¢Ã‚ÂÃƒËœÃ‚ÂªÃƒËœÃ‚Â­ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã†â€™ÃƒËœÃ‚Â§ÃƒËœÃ‚Â´Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â±", "Ouvrir la caisse"), description: tr("Open POS system", "Ãƒâ„¢Ã‚ÂÃƒËœÃ‚ÂªÃƒËœÃ‚Â­ Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â¸ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Â¦ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¨Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â¹", "Ouvrir le POS"), icon: Banknote, path: "/store", tone: "blue" },
+    { title: tr("Manage Devices", "ÃƒËœÃ‚Â¥ÃƒËœÃ‚Â¯ÃƒËœÃ‚Â§ÃƒËœÃ‚Â±ÃƒËœÃ‚Â© ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â£ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¡ÃƒËœÃ‚Â²ÃƒËœÃ‚Â©", "GÃƒÆ’Ã‚Â©rer les appareils"), description: tr("View stations", "ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â­ÃƒËœÃ‚Â·ÃƒËœÃ‚Â§ÃƒËœÃ‚Âª", "Voir les postes"), icon: Monitor, path: "/devices", tone: "gold" },
+  ];
+
+  return (
+    <div dir={dir} className="noxus-dashboard-reference mx-auto max-w-[1460px] space-y-4 pb-5">
+      <style>{`
+        .noxus-dashboard-reference .dashboard-stat { min-height: 96px; border-radius: 8px; padding: 16px; }
+        .noxus-dashboard-reference .dashboard-stat-red { background: radial-gradient(circle at 86% 34%, rgba(255,36,74,.32), transparent 25%), linear-gradient(118deg,#a40625,#34090f 92%) !important; border-color: rgba(255,45,78,.40) !important; }
+        .noxus-dashboard-reference .dashboard-stat-purple { background: radial-gradient(circle at 86% 34%, rgba(142,62,255,.34), transparent 25%), linear-gradient(118deg,#28114c,#111027 92%) !important; border-color: rgba(131,75,235,.30) !important; }
+        .noxus-dashboard-reference .dashboard-stat-blue { background: radial-gradient(circle at 86% 34%, rgba(81,84,255,.30), transparent 25%), linear-gradient(118deg,#17184c,#0e142b 92%) !important; border-color: rgba(75,99,255,.28) !important; }
+        .noxus-dashboard-reference .dashboard-stat-icon { opacity:.92; }
+        .noxus-dashboard-reference .dashboard-stat-red .dashboard-stat-icon { color:#ff244a; }
+        .noxus-dashboard-reference .dashboard-stat-purple .dashboard-stat-icon { color:#8e4dff; }
+        .noxus-dashboard-reference .dashboard-stat-blue .dashboard-stat-icon { color:#5966ff; }
+      `}</style>
+      <header className="flex flex-col gap-3 border-b border-white/[0.07] pb-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-baseline gap-4">
+          <h1 className="text-2xl font-semibold tracking-tight">{tr("Dashboard", "Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â­ÃƒËœÃ‚Â© ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚ÂªÃƒËœÃ‚Â­Ãƒâ„¢Ã†â€™Ãƒâ„¢Ã¢â‚¬Â¦", "Tableau de bord")}</h1>
+          <p className="text-xs text-white/55">{tr("Live arena overview", "Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â¸ÃƒËœÃ‚Â±ÃƒËœÃ‚Â© Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â§ÃƒËœÃ‚Â´ÃƒËœÃ‚Â±ÃƒËœÃ‚Â© ÃƒËœÃ‚Â¹Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â° ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Å¡ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â©", "Vue de lÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢arÃƒÆ’Ã‚Â¨ne en direct")}</p>
+        </div>
+        <button type="button" onClick={() => void loadDashboard(true)} disabled={loading} className="inline-flex h-9 items-center justify-center gap-2 self-start rounded-md border border-white/[0.10] bg-white/[0.025] px-3 text-xs text-white/80 transition hover:bg-white/[0.06] disabled:opacity-50 lg:self-auto">
+          <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+          {tr("Refresh", "ÃƒËœÃ‚ÂªÃƒËœÃ‚Â­ÃƒËœÃ‚Â¯Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â«", "Actualiser")}
+        </button>
+      </header>
+
+      {error && <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
+
+      <section className="grid gap-3 grid-cols-2 md:grid-cols-4">
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+          return <article key={stat.label} className={`dashboard-stat dashboard-stat-${stat.tone} relative overflow-hidden rounded-lg border border-white/[0.08] p-3`}>
+            <Icon className="dashboard-stat-icon absolute right-4 top-4" size={42} strokeWidth={1.5} />
+            <p className="text-2xl font-semibold tracking-tight">{stat.value}</p>
+            <p className="mt-1 text-xs text-white/80">{stat.label}</p>
+            <p className="mt-3 text-[10px] text-emerald-300"> {stat.note}</p>
+          </article>;
+        })}
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-[minmax(0,1.48fr)_minmax(250px,.72fr)]">
+        <article className="dashboard-panel overflow-hidden rounded-lg border border-white/[0.08]">
+          <div className="flex items-center justify-between border-b border-white/[0.07] px-4 py-3">
+            <h2 className="text-sm font-semibold">{tr("Recent Sessions", "ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â³ÃƒËœÃ‚Â§ÃƒËœÃ‚Âª ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â£ÃƒËœÃ‚Â®Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â±ÃƒËœÃ‚Â©", "Sessions rÃƒÆ’Ã‚Â©centes")}</h2>
+            <Link to="/sessions" className="text-[10px] text-white/70 hover:text-white">{tr("View All", "ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã†â€™Ãƒâ„¢Ã¢â‚¬Å¾", "Voir tout")}</Link>
+          </div>
+          <div className="max-h-[320px] overflow-auto pr-1"><table className="w-full min-w-[530px] text-left text-[11px]" dir="ltr"><thead className="text-white/55"><tr className="border-b border-white/[0.06]"><th className="px-4 py-2 font-medium">{tr("User", "ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â¨", "Utilisateur")}</th><th className="px-3 py-2 font-medium">{tr("Device", "ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¡ÃƒËœÃ‚Â§ÃƒËœÃ‚Â²", "Appareil")}</th><th className="px-3 py-2 font-medium">{tr("Start", "ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â¯ÃƒËœÃ‚Â¡", "DÃƒÆ’Ã‚Â©but")}</th><th className="px-3 py-2 font-medium">{tr("Duration", "ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â¯ÃƒËœÃ‚Â©", "DurÃƒÆ’Ã‚Â©e")}</th><th className="px-3 py-2 font-medium">{tr("Amount", "ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â¨Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Âº", "Montant")}</th><th className="px-3 py-2 font-medium">{tr("Status", "ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â­ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â©", "Statut")}</th></tr></thead>
+            <tbody>{sessions.length === 0 ? <tr><td colSpan={6} className="px-4 py-12 text-center text-white/65">{tr("No active sessions", "Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â§ ÃƒËœÃ‚ÂªÃƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¬ÃƒËœÃ‚Â¯ ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â³ÃƒËœÃ‚Â§ÃƒËœÃ‚Âª Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â´ÃƒËœÃ‚Â·ÃƒËœÃ‚Â©", "Aucune session active")}</td></tr> : sessions.map((session) => <tr key={session.id} className="border-b border-white/[0.045] last:border-0"><td className="px-4 py-2.5 font-medium"><div className="flex items-center gap-2"><div className="h-6 w-6 shrink-0 overflow-hidden rounded-full border border-white/10 bg-gradient-to-br from-[#d90429] to-[#6d28d9] text-center text-[9px] leading-6 text-white">{session.customerImage || session.playerImage ? <img src={session.customerImage || session.playerImage} alt="" className="h-full w-full object-cover" /> : initials(session.customerName)}</div><span className="truncate">{session.customerName}</span></div></td><td className="px-3 py-2.5">{session.deviceName}</td><td className="px-3 py-2.5 text-white/75">{time(session.startTime)}</td><td className="px-3 py-2.5 text-white/75">{minutes(session.startTime)}m</td><td className="px-3 py-2.5 text-emerald-300">{amount(session)} DA</td><td className="px-3 py-2.5"><span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[9px] text-emerald-300"> {tr("Active", "Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â´ÃƒËœÃ‚Â·ÃƒËœÃ‚Â©", "Active")}</span></td></tr>)}</tbody>
+          </table></div>
+        </article>
+
+        <article className="dashboard-panel rounded-lg border border-white/[0.08] p-4">
+          <div className="flex items-center justify-between"><h2 className="text-sm font-semibold">{tr("Revenue Overview", "Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â¸ÃƒËœÃ‚Â±ÃƒËœÃ‚Â© ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¥Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â±ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¯ÃƒËœÃ‚Â§ÃƒËœÃ‚Âª", "Vue des revenus")}</h2><span className="rounded bg-white/[0.04] px-2 py-1 text-[9px] text-white/70">{tr("This Week", "Ãƒâ„¢Ã¢â‚¬Â¡ÃƒËœÃ‚Â°ÃƒËœÃ‚Â§ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â£ÃƒËœÃ‚Â³ÃƒËœÃ‚Â¨Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¹", "Cette semaine")}</span></div>
+          <p className="mt-4 text-2xl font-semibold">{revenue.toFixed(2)} DA</p><p className="mt-1 text-[10px] text-emerald-300">ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬Ëœ {tr("Active session estimate", "ÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Å¡ÃƒËœÃ‚Â¯Ãƒâ„¢Ã…Â ÃƒËœÃ‚Â± ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â³ÃƒËœÃ‚Â§ÃƒËœÃ‚Âª ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â´ÃƒËœÃ‚Â·ÃƒËœÃ‚Â©", "Estimation en direct")}</p>
+          <div className="mt-5 h-32"><svg viewBox="0 0 300 120" className="h-full w-full overflow-visible"><defs><linearGradient id="revenueFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#ef233c" stopOpacity=".35"/><stop offset="100%" stopColor="#ef233c" stopOpacity="0"/></linearGradient></defs><path d="M0 95 L25 78 L48 56 L72 75 L95 69 L120 88 L145 48 L168 62 L194 53 L218 77 L243 60 L268 43 L300 17 L300 120 L0 120 Z" fill="url(#revenueFill)"/><path d="M0 95 L25 78 L48 56 L72 75 L95 69 L120 88 L145 48 L168 62 L194 53 L218 77 L243 60 L268 43 L300 17" fill="none" stroke="#ef233c" strokeWidth="2"/></svg></div>
+          <div className="flex justify-between text-[9px] text-white/55"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+        </article>
+      </section>
+
+      <section className="grid gap-3 grid-cols-2 md:grid-cols-4">{quick.map((item) => { const Icon = item.icon; return <Link key={item.path} to={item.path} className={`dashboard-quick dashboard-quick-${item.tone} flex items-center gap-3 rounded-lg border border-white/[0.08] p-3 transition hover:bg-white/[0.04]`}><div className={`flex h-9 w-9 items-center justify-center rounded-md ${item.tone === "red" ? "bg-red-500/15 text-red-300" : item.tone === "purple" ? "bg-violet-500/15 text-violet-300" : item.tone === "blue" ? "bg-sky-500/15 text-sky-300" : "bg-amber-500/15 text-amber-300"}`}><Icon size={18}/></div><div><p className="text-xs font-medium">{item.title}</p><p className="mt-1 text-[10px] text-white/65">{item.description}</p></div><ArrowUpRight size={15} className="ml-auto text-white/60"/></Link>; })}</section>
+
+      <section className="grid gap-4 md:grid-cols-3">
+        <article className="dashboard-panel rounded-lg border border-white/[0.08] p-4"><div className="flex items-center justify-between"><h2 className="text-sm font-semibold">{tr("Top Devices", "ÃƒËœÃ‚Â£Ãƒâ„¢Ã‚ÂÃƒËœÃ‚Â¶Ãƒâ„¢Ã¢â‚¬Å¾ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â£ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¡ÃƒËœÃ‚Â²ÃƒËœÃ‚Â©", "Meilleurs appareils")}</h2><Link to="/devices" className="text-[10px] text-white/70">{tr("View All", "ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â±ÃƒËœÃ‚Â¶ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã†â€™Ãƒâ„¢Ã¢â‚¬Å¾", "Voir tout")}</Link></div><div className="mt-4 space-y-3">{devices.slice(0,5).map((device, index) => { const Icon = device.type === "PC" ? Monitor : Gamepad2; const colors = ["bg-red-500/12 text-red-300", "bg-violet-500/12 text-violet-300", "bg-emerald-500/12 text-emerald-300", "bg-sky-500/12 text-sky-300", "bg-amber-500/12 text-amber-300"]; return <div key={device.id} className="flex items-center gap-2.5"><div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded ${colors[index % colors.length]}`}><Icon size={14}/></div><div className="min-w-0 flex-1"><div className="flex items-center justify-between text-[11px]"><span className="truncate">{device.name}</span><span className="text-white/65">{device.status === "Busy" ? tr("In use", "Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â´ÃƒËœÃ‚ÂºÃƒâ„¢Ã‹â€ Ãƒâ„¢Ã¢â‚¬Å¾", "OccupÃƒÆ’Ã‚Â©") : tr("Available", "Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚ÂªÃƒËœÃ‚Â§ÃƒËœÃ‚Â­", "Disponible")}</span></div><div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/[0.07]"><div className="h-full rounded-full bg-[#ef233c]" style={{width:`${Math.max(20, 92-index*15)}%`}}/></div></div></div>})}</div></article>
+        <article className="dashboard-panel rounded-lg border border-white/[0.08] p-4"><div className="flex items-center justify-between"><h2 className="text-sm font-semibold">{tr("Active Alerts", "ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â¨Ãƒâ„¢Ã…Â Ãƒâ„¢Ã¢â‚¬Â¡ÃƒËœÃ‚Â§ÃƒËœÃ‚Âª ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â´ÃƒËœÃ‚Â·ÃƒËœÃ‚Â©", "Alertes actives")}</h2><Wrench size={15} className="text-amber-300"/></div><div className="mt-4 space-y-2"><div className="rounded-md border border-amber-500/10 bg-amber-500/[0.05] p-3 text-[11px]"><p className="font-medium text-amber-300">{tr("Device monitoring active", "Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â±ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¡ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â© ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â£ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¡ÃƒËœÃ‚Â²ÃƒËœÃ‚Â© Ãƒâ„¢Ã¢â‚¬Â¦Ãƒâ„¢Ã‚ÂÃƒËœÃ‚Â¹Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â©", "Surveillance active")}</p><p className="mt-1 text-white/70">{tr("Available devices are being tracked.", "Ãƒâ„¢Ã…Â ÃƒËœÃ‚ÂªÃƒâ„¢Ã¢â‚¬Â¦ ÃƒËœÃ‚ÂªÃƒËœÃ‚ÂªÃƒËœÃ‚Â¨ÃƒËœÃ‚Â¹ ÃƒËœÃ‚Â­ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â© ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â£ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Â¡ÃƒËœÃ‚Â²ÃƒËœÃ‚Â© ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚ÂªÃƒËœÃ‚Â§ÃƒËœÃ‚Â­ÃƒËœÃ‚Â©.", "Les appareils sont suivis.")}</p></div><div className="rounded-md border border-white/[0.06] bg-white/[0.018] p-3 text-[11px]"><p className="font-medium">{tr("Live sessions", "ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â¬Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â³ÃƒËœÃ‚Â§ÃƒËœÃ‚Âª ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Â¦ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â§ÃƒËœÃ‚Â´ÃƒËœÃ‚Â±ÃƒËœÃ‚Â©", "Sessions en direct")}</p><p className="mt-1 text-white/70">{sessions.length} {tr("currently active", "Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â´ÃƒËœÃ‚Â·ÃƒËœÃ‚Â© ÃƒËœÃ‚Â­ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã…Â Ãƒâ„¢Ã¢â‚¬Â¹ÃƒËœÃ‚Â§", "actives actuellement")}</p></div></div></article>
+        <article className="dashboard-panel rounded-lg border border-white/[0.08] p-4"><div className="flex items-center justify-between"><h2 className="text-sm font-semibold">{tr("Top Members", "ÃƒËœÃ‚Â£Ãƒâ„¢Ã‚ÂÃƒËœÃ‚Â¶Ãƒâ„¢Ã¢â‚¬Å¾ ÃƒËœÃ‚Â§Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â£ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â¶ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¡", "Meilleurs membres")}</h2><Trophy size={15} className="text-amber-300"/></div><div className="mt-4 max-h-[280px] space-y-2.5 overflow-y-auto pr-1">{topMembers.length === 0 ? <p className="py-6 text-center text-[11px] text-white/65">{tr("No member activity yet", "Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â§ Ãƒâ„¢Ã…Â Ãƒâ„¢Ã‹â€ ÃƒËœÃ‚Â¬ÃƒËœÃ‚Â¯ Ãƒâ„¢Ã¢â‚¬Â ÃƒËœÃ‚Â´ÃƒËœÃ‚Â§ÃƒËœÃ‚Â· Ãƒâ„¢Ã¢â‚¬Å¾Ãƒâ„¢Ã¢â‚¬Å¾ÃƒËœÃ‚Â£ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â¶ÃƒËœÃ‚Â§ÃƒËœÃ‚Â¡ ÃƒËœÃ‚Â¨ÃƒËœÃ‚Â¹ÃƒËœÃ‚Â¯", "Aucune activitÃƒÆ’Ã‚Â© membre")}</p> : topMembers.map((member, index) => { const medal = ["bg-amber-400 text-amber-950", "bg-slate-300 text-slate-950", "bg-amber-700 text-amber-100"][index] || "bg-white/[0.08] text-white/80"; return <div key={member.name} className="flex items-center gap-2.5"><span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] font-bold ${medal}`}>{index + 1}</span><div className="h-7 w-7 shrink-0 overflow-hidden rounded-full border border-white/10 bg-gradient-to-br from-[#d90429] to-[#6d28d9] text-center text-[9px] leading-7 text-white">{member.image ? <img src={member.image} alt="" className="h-full w-full object-cover" /> : initials(member.name)}</div><p className="min-w-0 flex-1 truncate text-[11px] font-medium">{member.name}</p><p className="text-[10px] text-emerald-300">{member.total.toFixed(2)} DA</p></div>})}</div></article>
+      </section>
+      {showAllSessions && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-5 backdrop-blur-sm"><div className="w-full max-w-4xl overflow-hidden rounded-xl border border-white/10 bg-[#121217] shadow-2xl"><div className="flex items-center justify-between border-b border-white/[0.08] px-5 py-4"><div><h2 className="font-semibold">{tr("All Recent Sessions", "ÙƒÙ„ Ø§Ù„Ø¬Ù„Ø³Ø§Øª Ø§Ù„Ø£Ø®ÙŠØ±Ø©", "Toutes les sessions rÃ©centes")}</h2><p className="mt-1 text-xs text-white/65">{sessions.length} {tr("users", "Ù…Ø³ØªØ®Ø¯Ù…", "utilisateurs")}</p></div><button type="button" onClick={() => setShowAllSessions(false)} className="rounded-md border border-white/10 px-3 py-1.5 text-xs text-white/80 hover:bg-white/[0.06]">{tr("Close", "Ø¥ØºÙ„Ø§Ù‚", "Fermer")}</button></div><div className="max-h-[70vh] overflow-auto"><table className="w-full min-w-[640px] text-left text-xs" dir="ltr"><thead className="sticky top-0 bg-[#17171c] text-white/70"><tr><th className="px-5 py-3">{tr("User", "Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…", "Utilisateur")}</th><th className="px-4 py-3">{tr("Device", "Ø§Ù„Ø¬Ù‡Ø§Ø²", "Appareil")}</th><th className="px-4 py-3">{tr("Start", "Ø§Ù„Ø¨Ø¯Ø¡", "DÃ©but")}</th><th className="px-4 py-3">{tr("Duration", "Ø§Ù„Ù…Ø¯Ø©", "DurÃ©e")}</th><th className="px-4 py-3">{tr("Amount", "Ø§Ù„Ù…Ø¨Ù„Øº", "Montant")}</th></tr></thead><tbody>{sessions.map((session) => <tr key={session.id} className="border-t border-white/[0.06]"><td className="px-5 py-3 font-medium">{session.customerName}</td><td className="px-4 py-3">{session.deviceName}</td><td className="px-4 py-3 text-white/75">{time(session.startTime)}</td><td className="px-4 py-3 text-white/75">{minutes(session.startTime)}m</td><td className="px-4 py-3 text-emerald-300">{amount(session)} DA</td></tr>)}</tbody></table></div></div></div>}
+    </div>
+  );
+}

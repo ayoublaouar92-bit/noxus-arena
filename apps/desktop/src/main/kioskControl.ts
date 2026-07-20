@@ -1,5 +1,5 @@
 import { ipcMain } from "electron";
-import { audit, requireAdmin } from "./staff";
+import { audit, requireStaff } from "./staff";
 import { getSetting, setSetting } from "./settings";
 
 const KIOSK_MODE_KEY = "kioskModeEnabled";
@@ -19,7 +19,7 @@ export function registerKioskControlHandlers(db: any) {
   registerHandler(
     "kiosk:set-mode",
     (_event, data: { enabled?: boolean; force?: boolean } = {}) => {
-      const staffUserId = requireAdmin(db, "KIOSK_MODE_CHANGE");
+      const staffUserId = requireStaff(db, "KIOSK_MODE_CHANGE");
       const enabled = Boolean(data.enabled);
       const force = Boolean(data.force);
 

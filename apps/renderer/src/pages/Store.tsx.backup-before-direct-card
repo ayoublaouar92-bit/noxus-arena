@@ -1,0 +1,699 @@
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import {
+  Minus,
+  Plus,
+  RefreshCw,
+  Search,
+  ShoppingCart,
+  Tags,
+  UserRound,
+  Image as ImageIcon,
+} from "lucide-react";
+import { handleUnauthorized } from "../lib/auth";
+
+type Category = {
+  id: number;
+  name: string;
+  color: string | null;
+  sortOrder: number;
+  active: number;
+};
+
+type Product = {
+  id: number;
+  name: string;
+  sku: string | null;
+  unit: string;
+  salePrice: number;
+  stock: number;
+  active: number;
+  categoryId: number | null;
+  categoryName?: string | null;
+  categoryColor?: string | null;
+  image?: string | null;
+};
+
+type Player = {
+  id: number;
+  name: string;
+  username: string;
+  walletBalance: number;
+  debtBalance: number;
+};
+
+type CartItem = {
+  productId: number;
+  name: string;
+  unit: string;
+  unitPrice: number;
+  quantity: number;
+  stock: number;
+  categoryName: string;
+  image?: string | null;
+};
+
+const fieldClass =
+  "h-10 w-full rounded-lg border border-white/10 bg-[#080b16] px-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-violet-400/60";
+
+function normalizeNumber(value: string) {
+  const digitMap: Record<string, string> = {
+    "&": "1",
+    "é": "2",
+    '"': "3",
+    "'": "4",
+    "(": "5",
+    "-": "6",
+    "è": "7",
+    "_": "8",
+    "ç": "9",
+    "à": "0",
+    "\u0660": "0",
+    "\u0661": "1",
+    "\u0662": "2",
+    "\u0663": "3",
+    "\u0664": "4",
+    "\u0665": "5",
+    "\u0666": "6",
+    "\u0667": "7",
+    "\u0668": "8",
+    "\u0669": "9",
+    "\u06F0": "0",
+    "\u06F1": "1",
+    "\u06F2": "2",
+    "\u06F3": "3",
+    "\u06F4": "4",
+    "\u06F5": "5",
+    "\u06F6": "6",
+    "\u06F7": "7",
+    "\u06F8": "8",
+    "\u06F9": "9",
+  };
+
+  let normalized = value
+    .split("")
+    .map((c) => digitMap[c] ?? c)
+    .join("")
+    .replace(",", ".")
+    .replace(/[^\d.]/g, "");
+
+  const parts = normalized.split(".");
+  if (parts.length > 1) normalized = `${parts[0]}.` + parts.slice(1).join("");
+  return normalized;
+}
+
+function money(value: number) {
+  return `${Number(value || 0).toFixed(2)} DA`;
+}
+
+export default function Store() {
+  const api = (window as any).api;
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [checkingOut, setCheckingOut] = useState(false);
+  const [error, setError] = useState("");
+
+  const [search, setSearch] = useState("");
+  const [categoryId, setCategoryId] = useState<string>("ALL");
+  const [cart, setCart] = useState<CartItem[]>([]);
+
+  const [payment, setPayment] = useState<"cash" | "player">("cash");
+  const [playerId, setPlayerId] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [note, setNote] = useState("");
+
+  async function loadData(showLoading = false) {
+    try {
+      if (showLoading) setLoading(true);
+      setError("");
+
+      const [p, c, pl] = await Promise.all([
+        api.getProducts(),
+        api.getCategories(),
+        api.getPlayers(),
+      ]);
+
+      setProducts(p);
+      setCategories(c);
+      setPlayers(pl);
+    } catch (e) {
+      console.error(e);
+      setError("تعذر تحميل بيانات المتجر");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadData(true);
+  }, []);
+
+  const activeCategories = useMemo(
+    () =>
+      categories
+        .filter((c) => Number(c.active) === 1)
+        .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0)),
+    [categories]
+  );
+
+  const activeProducts = useMemo(
+    () => products.filter((p) => Number(p.active) === 1),
+    [products]
+  );
+
+  const filteredProducts = useMemo(() => {
+    const q = search.trim().toLowerCase();
+
+    return activeProducts.filter((p) => {
+      const matchCategory =
+        categoryId === "ALL"
+          ? true
+          : String(p.categoryId || "") === String(categoryId);
+
+      const matchQuery =
+        !q ||
+        p.name?.toLowerCase().includes(q) ||
+        p.sku?.toLowerCase().includes(q);
+
+      return matchCategory && matchQuery;
+    });
+  }, [activeProducts, categoryId, search]);
+
+  const cartCount = cart.reduce((t, i) => t + i.quantity, 0);
+  const subtotal = cart.reduce((t, i) => t + i.quantity * i.unitPrice, 0);
+  const total = Number(subtotal.toFixed(2));
+
+  function upsertCart(product: Product, delta: number) {
+    setCart((prev) => {
+      const existing = prev.find((i) => i.productId === product.id);
+
+      const stock = Number(product.stock || 0);
+      const categoryName = product.categoryName || "Other";
+
+      if (!existing) {
+        const nextQty = Math.max(0, Math.min(stock, delta));
+        if (nextQty === 0) return prev;
+
+        return [
+          ...prev,
+          {
+            productId: product.id,
+            name: product.name,
+            unit: product.unit || "pcs",
+            unitPrice: Number(product.salePrice || 0),
+            quantity: nextQty,
+            stock,
+            categoryName,
+            image: product.image || null,
+          },
+        ];
+      }
+
+      const nextQty = Math.max(0, Math.min(stock, existing.quantity + delta));
+
+      if (nextQty === 0) {
+        return prev.filter((i) => i.productId !== product.id);
+      }
+
+      return prev.map((i) =>
+        i.productId === product.id
+          ? {
+              ...i,
+              quantity: nextQty,
+              stock,
+              unitPrice: Number(product.salePrice || 0),
+              categoryName,
+              image: product.image || null,
+            }
+          : i
+      );
+    });
+  }
+
+  async function checkout(event: FormEvent) {
+    event.preventDefault();
+
+    if (cart.length === 0) {
+      setError("السلة فارغة");
+      return;
+    }
+
+    if (payment === "player" && !playerId) {
+      setError("اختر لاعبًا");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `تأكيد الدفع؟\nالإجمالي: ${money(total)}\nعدد العناصر: ${cartCount}`
+    );
+    if (!confirmed) return;
+
+    try {
+      setCheckingOut(true);
+      setError("");
+
+      const payload =
+        payment === "cash"
+          ? {
+              paymentType: "cash" as const,
+              customerName: customerName.trim(),
+              note: note.trim() || "Store sale",
+              items: cart.map((i) => ({
+                productId: i.productId,
+                quantity: i.quantity,
+                unitPrice: i.unitPrice,
+              })),
+            }
+          : {
+              paymentType: "player" as const,
+              playerId: Number(playerId),
+              customerName: customerName.trim(),
+              note: note.trim() || "Store sale (player)",
+              items: cart.map((i) => ({
+                productId: i.productId,
+                quantity: i.quantity,
+                unitPrice: i.unitPrice,
+              })),
+            };
+
+      const result = await api.createSale(payload);
+
+      window.alert(
+        `تمت العملية\n` +
+          `الإجمالي: ${money(result.total)}\n` +
+          `نقدًا: ${money(result.cashPaid)}\n` +
+          `من المحفظة: ${money(result.walletPaid)}\n` +
+          `أضيف للدين: ${money(result.debtAdded)}`
+      );
+
+      setCart([]);
+      setCustomerName("");
+      setNote("");
+
+      await loadData(true);
+    } catch (e: any) {
+      console.error(e);
+      if (handleUnauthorized(e)) return;
+      setError("تعذر إتمام العملية (تحقق من المخزون)");
+    } finally {
+      setCheckingOut(false);
+    }
+  }
+
+  return (
+    <div dir="ltr" className="store-reference space-y-5">
+      <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div dir="rtl">
+          <p className="mb-2 text-sm text-violet-300">Point of Sale</p>
+          <h1 className="text-3xl font-semibold">POS / المتجر</h1>
+          <p className="mt-2 text-sm text-white/45">
+            نقرة على المنتج تضيفه للسلة مباشرة
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => void loadData(true)}
+          className="flex h-11 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-4 text-sm"
+        >
+          <RefreshCw size={17} className={loading ? "animate-spin" : ""} />
+          Refresh
+        </button>
+      </section>
+
+      {error && (
+        <div
+          dir="rtl"
+          className="rounded-lg border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"
+        >
+          {error}
+        </div>
+      )}
+
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+        {/* PRODUCTS */}
+        <div className="space-y-4">
+          <div className="rounded-xl border border-white/[0.08] bg-[#0c101d] p-4">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex h-10 items-center gap-2 rounded-lg border border-white/10 bg-[#080b16] px-3">
+                <Search size={16} className="text-white/25" />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search..."
+                  className="min-w-0 flex-1 bg-transparent text-sm outline-none"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 text-xs text-white/35">
+                <ShoppingCart size={14} />
+                {cartCount} in cart
+              </div>
+            </div>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setCategoryId("ALL")}
+                className={`h-9 rounded-lg border px-3 text-xs transition ${
+                  categoryId === "ALL"
+                    ? "border-violet-400/30 bg-violet-600 text-white"
+                    : "border-white/10 bg-white/[0.05] text-white/50"
+                }`}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <Tags size={14} />
+                  ALL
+                </span>
+              </button>
+
+              {activeCategories.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setCategoryId(String(c.id))}
+                  className={`h-9 rounded-lg border px-3 text-xs transition ${
+                    String(categoryId) === String(c.id)
+                      ? "border-violet-400/30 bg-violet-600 text-white"
+                      : "border-white/10 bg-white/[0.05] text-white/50"
+                  }`}
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Tags size={14} />
+                    {c.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+            {filteredProducts.map((p) => {
+              const stock = Number(p.stock || 0);
+              const inCart = cart.find((i) => i.productId === p.id)?.quantity || 0;
+
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => upsertCart(p, +1)}
+                  disabled={stock <= 0}
+                  className="text-left rounded-xl border border-white/[0.08] bg-[#0c101d] overflow-hidden transition hover:border-violet-400/30 disabled:opacity-40"
+                >
+                  <div className="h-32 bg-[#090d18]">
+                    {p.image ? (
+                      <img
+                        src={p.image}
+                        alt={p.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-white/15">
+                        <ImageIcon />
+                      </div>
+                    )}
+                  </div>
+
+                  <div dir="rtl" className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate font-semibold">{p.name}</p>
+                        <p className="mt-1 text-xs text-white/30">
+                          {p.categoryName || "Other"} · Stock {stock} {p.unit}
+                        </p>
+                      </div>
+
+                      <p dir="ltr" className="text-sm font-semibold text-emerald-300">
+                        {money(p.salePrice)}
+                      </p>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-[36px_1fr_36px] gap-2 items-center">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          upsertCart(p, -1);
+                        }}
+                        disabled={inCart <= 0}
+                        className="flex h-9 items-center justify-center rounded-lg bg-white/[0.05] text-white/70 disabled:opacity-30"
+                      >
+                        <Minus size={16} />
+                      </button>
+
+                      <div className="h-9 rounded-lg border border-white/10 bg-[#080b16] text-center flex items-center justify-center text-sm">
+                        {inCart}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          upsertCart(p, +1);
+                        }}
+                        disabled={stock <= 0 || inCart >= stock}
+                        className="flex h-9 items-center justify-center rounded-lg bg-violet-600 text-white disabled:opacity-30"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* CHECKOUT */}
+        <aside className="h-fit rounded-xl border border-white/[0.08] bg-[#0c101d]">
+          <div className="border-b border-white/[0.08] p-5" dir="rtl">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-semibold">Current Order</h2>
+                <p className="mt-1 text-xs text-white/30">
+                  {cartCount} items · {money(total)}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setCart([])}
+                className="h-9 rounded-lg bg-white/[0.05] px-3 text-xs text-white/60"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+
+          <div className="p-5" dir="rtl">
+            <div className="rounded-xl border border-white/[0.08] bg-[#090d18]">
+              {cart.length === 0 ? (
+                <div className="p-6 text-center text-sm text-white/35">
+                  Cart is empty
+                  <br />
+                  أضف منتجًا للبدء
+                </div>
+              ) : (
+                <div className="divide-y divide-white/[0.06]">
+                  {cart.map((i) => (
+                    <div key={i.productId} className="p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium">{i.name}</p>
+                          <p className="mt-1 text-xs text-white/30">
+                            {i.categoryName} · {i.unit}
+                          </p>
+                        </div>
+
+                        <p dir="ltr" className="text-xs text-white/60">
+                          {money(i.quantity * i.unitPrice)}
+                        </p>
+                      </div>
+
+                      <div className="mt-3 flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCart((prev) =>
+                              prev
+                                .map((x) =>
+                                  x.productId === i.productId
+                                    ? { ...x, quantity: Math.max(0, x.quantity - 1) }
+                                    : x
+                                )
+                                .filter((x) => x.quantity > 0)
+                            )
+                          }
+                          className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.05] text-white/70"
+                        >
+                          <Minus size={16} />
+                        </button>
+
+                        <input
+                          dir="ltr"
+                          type="text"
+                          inputMode="numeric"
+                          value={String(i.quantity)}
+                          onChange={(e) => {
+                            const q = Number(normalizeNumber(e.target.value));
+                            setCart((prev) =>
+                              prev.map((x) =>
+                                x.productId === i.productId
+                                  ? {
+                                      ...x,
+                                      quantity: Math.max(
+                                        1,
+                                        Math.min(i.stock, Number.isFinite(q) ? q : 1)
+                                      ),
+                                    }
+                                  : x
+                              )
+                            );
+                          }}
+                          className="h-9 flex-1 rounded-lg border border-white/10 bg-[#080b16] px-3 text-sm outline-none text-center"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCart((prev) =>
+                              prev.map((x) =>
+                                x.productId === i.productId
+                                  ? { ...x, quantity: Math.min(i.stock, x.quantity + 1) }
+                                  : x
+                              )
+                            )
+                          }
+                          disabled={i.quantity >= i.stock}
+                          className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-600 text-white disabled:opacity-30"
+                        >
+                          <Plus size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-4 rounded-xl border border-white/[0.08] bg-[#090d18] p-4 text-sm">
+              <div className="flex items-center justify-between text-white/60">
+                <span>Subtotal</span>
+                <span dir="ltr">{money(total)}</span>
+              </div>
+
+              <div className="mt-3 h-px bg-white/[0.08]" />
+
+              <div className="mt-3 flex items-center justify-between font-semibold">
+                <span>TOTAL</span>
+                <span dir="ltr" className="text-emerald-300">
+                  {money(total)}
+                </span>
+              </div>
+            </div>
+
+            <form onSubmit={checkout} className="mt-4 space-y-3">
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPayment("cash")}
+                  className={`h-11 rounded-lg text-xs ${
+                    payment === "cash"
+                      ? "bg-emerald-600 text-white"
+                      : "bg-white/[0.05] text-white/50"
+                  }`}
+                >
+                  CASH
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPayment("player")}
+                  className={`h-11 rounded-lg text-xs ${
+                    payment === "player"
+                      ? "bg-violet-600 text-white"
+                      : "bg-white/[0.05] text-white/50"
+                  }`}
+                >
+                  WALLET
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPayment("player")}
+                  className={`h-11 rounded-lg text-xs ${
+                    payment === "player"
+                      ? "bg-violet-600 text-white"
+                      : "bg-white/[0.05] text-white/50"
+                  }`}
+                >
+                  DEBT
+                </button>
+              </div>
+
+              {payment === "player" && (
+                <div className="flex items-center gap-2">
+                  <UserRound size={16} className="text-white/25" />
+                  <select
+                    value={playerId}
+                    onChange={(e) => setPlayerId(e.target.value)}
+                    className={fieldClass}
+                  >
+                    <option value="">اختر اللاعب</option>
+                    {players.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} — Wallet {Number(p.walletBalance || 0).toFixed(2)} / Debt{" "}
+                        {Number(p.debtBalance || 0).toFixed(2)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <input
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                className={fieldClass}
+                placeholder="اسم الزبون (اختياري)"
+              />
+
+              <input
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                className={fieldClass}
+                placeholder="ملاحظة (اختياري)"
+              />
+
+              <button
+                type="submit"
+                disabled={checkingOut || cart.length === 0}
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-white text-black font-medium disabled:opacity-40"
+              >
+                {checkingOut ? (
+                  <RefreshCw size={16} className="animate-spin" />
+                ) : (
+                  <ShoppingCart size={16} />
+                )}
+                Checkout
+              </button>
+
+              <p className="text-[10px] leading-5 text-white/30">
+                WALLET/DEBT: يخصم من المحفظة ثم يحوّل الباقي إلى دين تلقائيًا.
+              </p>
+            </form>
+          </div>
+        </aside>
+      </section>
+      <style>{`
+        .store-reference{background:#061019;min-height:calc(100vh - 36px);padding:4px;color:#f4f7fa}.store-reference h1{font-size:25px!important;letter-spacing:-.02em}.store-reference>section:first-child{border-bottom:1px solid #172633;padding:8px 0 14px}.store-reference>section:first-child p:first-child{color:#dbe2e8!important;font-size:12px!important;margin:0!important}.store-reference>section:first-child h1{font-size:0!important}.store-reference>section:first-child h1:after{content:'Store';font-size:25px}.store-reference>section:first-child p:last-child{font-size:0!important}.store-reference>section:first-child p:last-child:after{content:'Manage products and in-arena sales';font-size:12px;color:#9ba7b3}.store-reference button{transition:.16s}.store-reference .bg-\[\#0c101d\]{background:#0a131c!important;border-color:#1c2a35!important}.store-reference .bg-\[\#090d18\],.store-reference .bg-\[\#080b16\]{background:#081119!important}.store-reference .border-white\/\[0\.08\],.store-reference .border-white\/10{border-color:#1c2a35!important}.store-reference .text-violet-300{color:#20b8ff!important}.store-reference .bg-violet-600{background:#d80627!important}.store-reference .hover\:border-violet-400\/30:hover{border-color:#d80627!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))!important;gap:11px!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button{border-radius:7px!important;background:#0a131c!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button>div:first-child{height:104px!important;background:#081119!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button>div:last-child{padding:10px!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3 .text-emerald-300{color:#16d878!important;font-size:12px}.store-reference aside{position:sticky;top:12px;border-radius:8px!important;background:#0a131c!important}.store-reference aside h2{font-size:15px}.store-reference aside .bg-violet-600{background:#d80627!important}.store-reference aside form>button[type=submit]{background:#e2072c!important;color:#fff!important;border-radius:6px}.store-reference input,.store-reference select{border-color:#24333e!important}.store-reference .rounded-xl{border-radius:8px!important}.store-reference .rounded-lg{border-radius:6px!important}@media(min-width:1280px){.store-reference>section.grid{grid-template-columns:minmax(0,1fr) 300px!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3{grid-template-columns:repeat(4,minmax(0,1fr))!important}} 
+
+        /* Product card reference: product image on the left, information on the right. */
+        .store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button{display:grid!important;grid-template-columns:74px minmax(0,1fr)!important;min-height:144px!important;padding:10px!important;gap:10px!important;text-align:left!important;position:relative}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button>div:first-child{height:122px!important;width:74px!important;border-radius:5px!important;overflow:hidden!important;background:transparent!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button>div:first-child img{object-fit:contain!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button>div:last-child{padding:0!important;min-width:0!important;direction:ltr!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button>div:last-child>div:first-child{display:block!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button>div:last-child p:first-child{font-size:14px!important;line-height:18px!important;padding-right:16px!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button>div:last-child p:nth-child(2){font-size:11px!important;margin-top:3px!important;color:#b0b6bd!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button>div:last-child .text-emerald-300{display:block!important;margin-top:14px!important;font-size:14px!important;font-weight:700!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button>div:last-child>div:last-child{display:none!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button:after{content:'⋮';position:absolute;right:10px;top:8px;color:#d3d7da;font-size:20px;line-height:16px}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button:before{content:'In Stock  ·  Stock';position:absolute;left:94px;bottom:12px;border-radius:4px;color:#2fe687;font-size:9px;font-weight:600;background:#062619;padding:3px 5px}
+      `}</style>
+    </div>
+  );
+}

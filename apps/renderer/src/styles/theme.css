@@ -671,7 +671,7 @@ tbody tr:hover {
   }
 }
 
-/* Text clarity hotfix — preserve layout, colors and motion */
+/* Text clarity hotfix ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â preserve layout, colors and motion */
 :root {
   --noxus-text-soft: rgba(247, 248, 255, 0.84);
 }
@@ -727,3 +727,260 @@ textarea {
 .noxus-topbar p {
   text-shadow: 0 1px 12px rgba(0, 0, 0, 0.22);
 }
+
+
+/* NOXUS RED / BLACK / WHITE ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â FINAL INTERACTIVE THEME */
+:root {
+  --noxus-bg: #050505;
+  --noxus-bg-deep: #020202;
+  --noxus-surface: #020202;
+  --noxus-surface-2: #171717;
+  --noxus-surface-3: #202020;
+  --noxus-purple: #ff003c;
+  --noxus-violet: #ff174d;
+  --noxus-blue: #ff4d6d;
+  --noxus-cyan: #ff6b35;
+  --noxus-green: #ff4d6d;
+  --noxus-red: #ff003c;
+  --noxus-line: rgba(255,255,255,.10);
+  --noxus-text-soft: rgba(255,255,255,.78);
+  color-scheme: dark;
+}
+html, body { background: #050505 !important; }
+html[dir="rtl"], html[dir="rtl"] body {
+  font-family: "Cairo", "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif !important;
+}
+body {
+  color: #fff !important;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(255,0,60,.20), transparent 31%),
+    radial-gradient(circle at 82% 14%, rgba(144,0,32,.15), transparent 29%),
+    linear-gradient(145deg,#030303 0%,#0b0305 48%,#050505 100%) !important;
+}
+::selection { background:#ff003c; color:#fff; }
+.noxus-shell { background: linear-gradient(135deg,rgba(10,10,10,.98),rgba(3,3,3,.98)) !important; }
+.noxus-shell::after { background:rgba(255,0,60,.10) !important; }
+.noxus-sidebar { background:linear-gradient(180deg,rgba(17,17,17,.99),rgba(5,5,5,.99)) !important; border-color:rgba(255,255,255,.09) !important; }
+.noxus-topbar { background:linear-gradient(90deg,rgba(20,20,20,.96),rgba(8,8,8,.92)) !important; border-color:rgba(255,255,255,.09) !important; }
+.noxus-main { background:linear-gradient(145deg,rgba(24,8,11,.20),rgba(5,5,5,.10)) !important; }
+.noxus-sidebar nav a:hover { background:linear-gradient(90deg,rgba(255,0,60,.20),rgba(255,0,60,.04)) !important; border-color:rgba(255,0,60,.36) !important; }
+.noxus-sidebar nav a[aria-current="page"] { background:linear-gradient(90deg,#cb0030 0%,rgba(177,0,38,.78) 60%,rgba(96,0,20,.42) 100%) !important; border-color:rgba(255,64,96,.65) !important; box-shadow:0 10px 30px rgba(255,0,60,.32),inset 0 1px rgba(255,255,255,.18) !important; }
+[class*="bg-[#0c101d]"],[class*="bg-[#0b0f1c]"],[class*="bg-[#090d18]"] { background:linear-gradient(145deg,#191919,#0d0d0d) !important; }
+[class*="bg-[#050711]"],[class*="bg-[#070a14]"],[class*="bg-[#080b16]"] { background-color:#080808 !important; }
+article[class*="rounded-xl"],section[class*="rounded-xl"],div[class*="rounded-xl"][class*="border"] { box-shadow:inset 0 1px rgba(255,255,255,.05),0 18px 45px rgba(0,0,0,.34) !important; }
+article[class*="rounded-xl"]:hover,div[class*="rounded-xl"][class*="border"]:hover { border-color:rgba(255,0,60,.34) !important; box-shadow:inset 0 1px rgba(255,255,255,.07),0 22px 52px rgba(0,0,0,.42),0 0 22px rgba(255,0,60,.07) !important; }
+input,select,textarea { background:#0c0c0c !important; color:#fff !important; border-color:rgba(255,255,255,.14) !important; }
+input:focus,select:focus,textarea:focus { border-color:rgba(255,0,60,.72) !important; box-shadow:0 0 0 4px rgba(255,0,60,.12) !important; }
+button[class*="bg-violet"],button[class*="bg-emerald"],button[class*="bg-rose"] { background:linear-gradient(100deg,#b9002d,#ff003c 55%,#8d001f) !important; color:#fff !important; box-shadow:0 10px 28px rgba(255,0,60,.30),inset 0 1px rgba(255,255,255,.18) !important; }
+.text-violet-300,.text-cyan-300,.text-sky-300,.text-emerald-300,.text-amber-300,.text-rose-300 { color:#ff7890 !important; text-shadow:0 0 16px rgba(255,0,60,.58) !important; }
+/* Fire embers appear only while hovering an icon/button */
+.noxus-sidebar nav a,.noxus-topbar button,button { position:relative; isolation:isolate; }
+.noxus-sidebar nav a:hover svg,.noxus-topbar button:hover svg,button:hover svg { transform:translateY(-1px) scale(1.13) rotate(-4deg); color:#fff !important; filter:drop-shadow(0 0 5px #ff6a00) drop-shadow(0 0 13px #ff003c) !important; }
+.noxus-sidebar nav a:hover::after,.noxus-topbar button:hover::after,button:hover::after { content:""; position:absolute; pointer-events:none; z-index:4; width:8px; height:15px; left:32%; top:-5px; border-radius:70% 30% 65% 35%; background:radial-gradient(circle at 48% 72%,#fff6a6 0 11%,#ffc229 15% 29%,#ff7200 34% 59%,#e60035 66% 100%); filter:drop-shadow(0 0 5px #ff7a00) drop-shadow(0 0 11px #ff003c); box-shadow:18px 11px 0 -2px #ff6b00,-13px 17px 0 -3px #ffcb39,30px 24px 0 -4px #e60035,-23px 28px 0 -4px #ff7800; animation:noxusFireEmbers .68s ease-out both; }
+@keyframes noxusFireEmbers { 0% { opacity:0; transform:translate(0,10px) scale(.42) rotate(-20deg); } 35% { opacity:1; } 100% { opacity:0; transform:translate(17px,-30px) scale(1.1) rotate(26deg); } }
+::-webkit-scrollbar-track { background:#090909; }
+::-webkit-scrollbar-thumb { background:linear-gradient(180deg,#ff174d,#8f001f 60%,#ff6b00); border-color:#060606; }
+
+
+/* Green text for normal positive/status text. Debt/negative values remain red. */
+:root { --noxus-green-text: #55f28a; --noxus-green-glow: rgba(40,230,104,.42); }
+/* Change ordinary red accent labels, status text, and icons to green */
+.text-rose-300:not(.debt):not(.debt *),
+.text-rose-400:not(.debt):not(.debt *),
+.text-red-300:not(.debt):not(.debt *),
+.text-red-400:not(.debt):not(.debt *),
+.text-red-500:not(.debt):not(.debt *),
+.text-violet-300,
+.text-cyan-300,
+.text-sky-300,
+.text-emerald-300 {
+  color: var(--noxus-green-text) !important;
+  text-shadow: 0 0 14px var(--noxus-green-glow) !important;
+}
+/* Preserve warning/debt/error contexts in red */
+.debt, .debt *,
+[data-debt], [data-debt] *,
+[data-negative], [data-negative] *,
+.text-destructive,
+.text-destructive *,
+.text-rose-500[class*="debt"],
+.text-red-500[class*="debt"] {
+  color: #ff4d6d !important;
+  text-shadow: 0 0 14px rgba(255,0,60,.56) !important;
+}
+/* Positive badges and regular status indicators */
+[class*="text-rose"]:not([class*="debt"]):not(.text-destructive) {
+  color: var(--noxus-green-text) !important;
+  text-shadow: 0 0 14px var(--noxus-green-glow) !important;
+}
+
+
+/* NOXUS TEXT RULES: white by default; red for debts/errors; green for wallet/profit */
+:root { --noxus-positive: #55f28a; --noxus-negative: #ff4d6d; }
+/* Neutralize decorative color text: normal UI copy stays white */
+.text-violet-300,.text-violet-400,.text-violet-500,
+.text-cyan-300,.text-cyan-400,.text-cyan-500,
+.text-sky-300,.text-sky-400,.text-sky-500,
+.text-amber-300,.text-amber-400,.text-amber-500,
+.text-blue-300,.text-blue-400,.text-blue-500,
+.text-purple-300,.text-purple-400,.text-purple-500 {
+  color: #fff !important;
+  text-shadow: none !important;
+}
+/* Debt, errors, destructive values, and negative balances remain red */
+.text-rose-300,.text-rose-400,.text-rose-500,
+.text-red-300,.text-red-400,.text-red-500,
+.text-destructive,.text-destructive *,
+.debt,.debt *,[data-debt],[data-debt] *,[data-negative],[data-negative] * {
+  color: var(--noxus-negative) !important;
+  text-shadow: 0 0 13px rgba(255,0,60,.45) !important;
+}
+/* Wallet balance, profits, earnings and positive values remain green */
+.text-emerald-300,.text-emerald-400,.text-emerald-500,
+.text-green-300,.text-green-400,.text-green-500,
+.text-lime-300,.text-lime-400,.text-lime-500,
+.profit,.profit *,.earnings,.earnings *,.wallet-balance,.wallet-balance *,
+[data-profit],[data-profit] *,[data-wallet-balance],[data-wallet-balance] * {
+  color: var(--noxus-positive) !important;
+  text-shadow: 0 0 13px rgba(40,230,104,.42) !important;
+}
+
+
+/* NOXUS BALANCED ACCENT PALETTE ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â red is an accent, not the whole UI */
+:root {
+  --noxus-bg: #0D0D0F;
+  --noxus-bg-deep: #0D0D0F;
+  --noxus-surface: #17171C;
+  --noxus-surface-2: #202028;
+  --noxus-surface-3: #202028;
+  --noxus-purple: #6D28D9;
+  --noxus-violet: #6D28D9;
+  --noxus-blue: #6D28D9;
+  --noxus-cyan: #6D28D9;
+  --noxus-green: #10B981;
+  --noxus-yellow: #F59E0B;
+  --noxus-red: #DC2626;
+  --noxus-line: rgba(255,255,255,.09);
+  --noxus-text-soft: rgba(248,248,248,.68);
+}
+html,body { background:#0D0D0F !important; color:#F8F8F8 !important; }
+body { background:linear-gradient(145deg,#0D0D0F 0%,#111116 50%,#0D0D0F 100%) !important; }
+.noxus-shell { background:linear-gradient(135deg,#0D0D0F,#111116) !important; }
+.noxus-sidebar { background:linear-gradient(180deg,#121217,#0D0D0F) !important; }
+.noxus-topbar { background:rgba(23,23,28,.94) !important; }
+.noxus-main { background:#0D0D0F !important; }
+/* Red is reserved for main action and selected navigation only */
+.noxus-sidebar nav a[aria-current="page"] {
+  background:linear-gradient(90deg,#D90429 0%,rgba(217,4,41,.70) 63%,rgba(217,4,41,.22) 100%) !important;
+  border-color:rgba(239,35,60,.50) !important;
+  box-shadow:0 7px 17px rgba(217,4,41,.20),inset 0 1px rgba(255,255,255,.12) !important;
+}
+.noxus-sidebar nav a:hover { background:rgba(255,255,255,.045) !important; border-color:rgba(255,255,255,.10) !important; }
+/* Neutral cards; color is reserved for their small accents/icons */
+article[class*="rounded"],section[class*="rounded"],div[class*="rounded-xl"][class*="border"] {
+  background-color:#17171C !important;
+  border-color:rgba(255,255,255,.09) !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.035),0 13px 30px rgba(0,0,0,.20) !important;
+}
+article[class*="rounded"]:hover,div[class*="rounded-xl"][class*="border"]:hover {
+  background-color:#202028 !important;
+  border-color:rgba(255,255,255,.14) !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.05),0 16px 34px rgba(0,0,0,.26) !important;
+}
+/* Four dashboard stat cards: gold / purple / emerald / red */
+.noxus-stat-card { background:#17171C !important; border-color:rgba(255,255,255,.09) !important; }
+.noxus-stat-card::after { opacity:.12 !important; filter:blur(22px) !important; }
+.noxus-stat-card:nth-child(1) { --stat-glow:#F59E0B; }
+.noxus-stat-card:nth-child(2) { --stat-glow:#6D28D9; }
+.noxus-stat-card:nth-child(3) { --stat-glow:#10B981; }
+.noxus-stat-card:nth-child(4) { --stat-glow:#DC2626; }
+.noxus-stat-card:hover::after { opacity:.20 !important; }
+/* Primary actions: a clearer restrained red gradient */
+button[class*="bg-violet"],button[class*="bg-rose"] {
+  background:linear-gradient(105deg,#D90429,#EF233C) !important;
+  box-shadow:0 7px 17px rgba(217,4,41,.22),inset 0 1px rgba(255,255,255,.16) !important;
+}
+button[class*="bg-violet"]:hover,button[class*="bg-rose"]:hover {
+  background:linear-gradient(105deg,#EF233C,#D90429) !important;
+  box-shadow:0 9px 21px rgba(217,4,41,.28),inset 0 1px rgba(255,255,255,.18) !important;
+}
+/* Success/wallet uses one consistent Emerald */
+.text-emerald-300,.text-emerald-400,.text-emerald-500,.text-green-300,.text-green-400,.text-green-500 {
+  color:#10B981 !important;
+  text-shadow:0 0 10px rgba(16,185,129,.25) !important;
+}
+/* Decorative color labels become white; debts/errors stay red through existing rules */
+.text-violet-300,.text-violet-400,.text-violet-500,.text-cyan-300,.text-cyan-400,.text-sky-300,.text-sky-400 { color:#F8F8F8 !important; text-shadow:none !important; }
+/* Reduce red glow/embers by about 40%, without removing the hover effect */
+.noxus-sidebar nav a:hover svg,.noxus-topbar button:hover svg,button:hover svg { filter:drop-shadow(0 0 4px #ff6a00) drop-shadow(0 0 8px rgba(217,4,41,.62)) !important; }
+.noxus-sidebar nav a:hover::after,.noxus-topbar button:hover::after,button:hover::after { opacity:.60 !important; filter:drop-shadow(0 0 3px #ff7a00) drop-shadow(0 0 6px rgba(217,4,41,.65)) !important; }
+
+
+/* NOXUS GLOBAL TEXT CLARITY Ã¢â‚¬â€ every page */
+:root { --noxus-text-soft: #FFFFFF; }
+[class*="text-white/20"],[class*="text-white/25"],[class*="text-white/30"],[class*="text-white/35"],[class*="text-white/40"],[class*="text-white/45"],[class*="text-white/50"],[class*="text-white/55"],[class*="text-white/60"],[class*="text-white/70"],[class*="text-white/80"],[class*="text-white/90"] { color:#FFFFFF !important; opacity:1 !important; }
+.text-slate-200,.text-slate-300,.text-slate-400,.text-slate-500,.text-zinc-200,.text-zinc-300,.text-zinc-400,.text-zinc-500,.text-neutral-200,.text-neutral-300,.text-neutral-400,.text-neutral-500,.text-gray-200,.text-gray-300,.text-gray-400,.text-gray-500 { color:#FFFFFF !important; opacity:1 !important; }
+/* Profit, debt, error and warning classes are intentionally not selected. */
+
+
+/* NOXUS REFERENCE DESIGN â€” dark professional dashboard */
+:root {
+  --noxus-bg: #0D0D0F;
+  --noxus-bg-deep: #0D0D0F;
+  --noxus-surface: #17171C;
+  --noxus-surface-2: #202028;
+  --noxus-surface-3: #202028;
+  --noxus-purple: #6D28D9;
+  --noxus-violet: #6D28D9;
+  --noxus-blue: #6D28D9;
+  --noxus-cyan: #6D28D9;
+  --noxus-green: #10B981;
+  --noxus-yellow: #F59E0B;
+  --noxus-red: #DC2626;
+  --noxus-line: rgba(255,255,255,.09);
+  --noxus-text-soft: #FFFFFF;
+}
+html,body { background:#0D0D0F !important; color:#F8F8F8 !important; }
+body { background:linear-gradient(145deg,#0D0D0F,#111116 50%,#0D0D0F) !important; }
+.noxus-shell { background:linear-gradient(135deg,#0D0D0F,#111116) !important; }
+.noxus-sidebar { background:linear-gradient(180deg,#121217,#0D0D0F) !important; }
+.noxus-topbar { background:rgba(23,23,28,.94) !important; }
+.noxus-main { background:#0D0D0F !important; }
+/* Neutral cards, subtle borders, no broad red fill */
+article[class*="rounded"],section[class*="rounded"],div[class*="rounded-xl"][class*="border"] {
+  background-color:#17171C !important;
+  border-color:rgba(255,255,255,.09) !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.035),0 13px 30px rgba(0,0,0,.20) !important;
+}
+article[class*="rounded"]:hover,section[class*="rounded"]:hover,div[class*="rounded-xl"][class*="border"]:hover {
+  background-color:#202028 !important;
+  border-color:rgba(255,255,255,.14) !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.05),0 16px 34px rgba(0,0,0,.26) !important;
+}
+/* Red only for active navigation and primary actions */
+.noxus-sidebar nav a[aria-current="page"] {
+  background:linear-gradient(90deg,#D90429,rgba(217,4,41,.65) 60%,rgba(217,4,41,.16)) !important;
+  border-color:rgba(239,35,60,.50) !important;
+  box-shadow:0 7px 17px rgba(217,4,41,.20) !important;
+}
+.noxus-sidebar nav a:hover { background:rgba(255,255,255,.045) !important; border-color:rgba(255,255,255,.10) !important; }
+button[class*="bg-violet"],button[class*="bg-rose"] {
+  background:linear-gradient(105deg,#D90429,#EF233C) !important;
+  box-shadow:0 7px 17px rgba(217,4,41,.22),inset 0 1px rgba(255,255,255,.16) !important;
+}
+/* Stat cards are readable by their one restrained accent */
+.noxus-stat-card { background:#17171C !important; border-color:rgba(255,255,255,.09) !important; }
+.noxus-stat-card::after { opacity:.12 !important; filter:blur(22px) !important; }
+.noxus-stat-card:nth-child(1) { --stat-glow:#F59E0B; }
+.noxus-stat-card:nth-child(2) { --stat-glow:#6D28D9; }
+.noxus-stat-card:nth-child(3) { --stat-glow:#10B981; }
+.noxus-stat-card:nth-child(4) { --stat-glow:#DC2626; }
+.noxus-stat-card:hover::after { opacity:.20 !important; }
+/* Consistent semantic colors */
+.text-emerald-300,.text-emerald-400,.text-emerald-500,.text-green-300,.text-green-400,.text-green-500 { color:#10B981 !important; text-shadow:0 0 10px rgba(16,185,129,.25) !important; }
+.text-rose-300,.text-rose-400,.text-rose-500,.text-red-300,.text-red-400,.text-red-500 { color:#DC2626 !important; text-shadow:none !important; }
+/* Pure white for existing near-white text throughout all pages */
+[class*="text-white/20"],[class*="text-white/25"],[class*="text-white/30"],[class*="text-white/35"],[class*="text-white/40"],[class*="text-white/45"],[class*="text-white/50"],[class*="text-white/55"],[class*="text-white/60"],[class*="text-white/70"],[class*="text-white/80"],[class*="text-white/90"] { color:#FFFFFF !important; opacity:1 !important; }
+/* Glow and fire effects remain, but are deliberately restrained */
+.noxus-sidebar nav a:hover svg,.noxus-topbar button:hover svg,button:hover svg { filter:drop-shadow(0 0 4px #ff6a00) drop-shadow(0 0 8px rgba(217,4,41,.62)) !important; }
+.noxus-sidebar nav a:hover::after,.noxus-topbar button:hover::after,button:hover::after { opacity:.55 !important; filter:drop-shadow(0 0 3px #ff7a00) drop-shadow(0 0 6px rgba(217,4,41,.65)) !important; }

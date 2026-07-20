@@ -1,0 +1,138 @@
+import {
+  Activity,
+  ArrowUpRight,
+  Banknote,
+  Clock3,
+  Gamepad2,
+  Monitor,
+  RefreshCw,
+  Timer,
+  Trophy,
+  Users,
+  Wrench,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { useLanguage } from "../lib/i18n";
+
+type Device = { id: number; name: string; type: string; price: string; status: "Available" | "Busy" };
+type Session = { id: number; deviceId: number; deviceName: string; customerName: string; customerImage?: string; playerImage?: string; startTime: string; hourlyPrice: string; status: string };
+
+export default function Dashboard() {
+  const { dir, language, locale } = useLanguage();
+  const tr = (en: string, ar: string, fr: string) => language === "ar" ? ar : language === "fr" ? fr : en;
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [, setNow] = useState(Date.now());
+  const api = (window as any).api;
+
+  async function loadDashboard(showLoading = false) {
+    try {
+      if (showLoading) setLoading(true);
+      setError("");
+      const [devicesResult, sessionsResult] = await Promise.all([api.getDevices(), api.getActiveSessions()]);
+      setDevices(devicesResult);
+      setSessions(sessionsResult);
+    } catch (loadError) {
+      console.error(loadError);
+      setError(tr("Dashboard failed to load", "ØªØ¹Ø°Ø± ØªØ­Ù…ÙŠÙ„ Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…", "Impossible de charger le tableau de bord"));
+    } finally { setLoading(false); }
+  }
+
+  useEffect(() => {
+    void loadDashboard(true);
+    const clock = window.setInterval(() => setNow(Date.now()), 1000);
+    const refresh = window.setInterval(() => void loadDashboard(), 5000);
+    return () => { window.clearInterval(clock); window.clearInterval(refresh); };
+  }, []);
+
+  const initials = (name: string) => name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "N";
+  const minutes = (startTime: string) => Math.max(1, Math.ceil((Date.now() - new Date(startTime).getTime()) / 60000));
+  const amount = (session: Session) => ((minutes(session.startTime) / 60) * Number(session.hourlyPrice || 0)).toFixed(2);
+  const time = (value: string) => new Date(value).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+  const available = useMemo(() => devices.filter((device) => device.status === "Available"), [devices]);
+  const busy = useMemo(() => devices.filter((device) => device.status === "Busy"), [devices]);
+  const revenue = sessions.reduce((total, session) => total + Number(amount(session)), 0);
+  const average = sessions.length ? Math.round(sessions.reduce((total, session) => total + minutes(session.startTime), 0) / sessions.length) : 0;
+  const occupancy = devices.length ? Math.round((busy.length / devices.length) * 100) : 0;
+  const topMembers = Array.from(
+    sessions.reduce((map, session) => {
+      const current = map.get(session.customerName) || { name: session.customerName, image: session.customerImage || session.playerImage, total: 0 };
+      current.total += Number(amount(session));
+      map.set(session.customerName, current);
+      return map;
+    }, new Map<string, { name: string; image?: string; total: number }>() ).values(),
+  ).sort((a, b) => b.total - a.total).slice(0, 5);
+
+  const stats = [
+    { label: tr("Active Sessions", "Ø§Ù„Ø¬Ù„Ø³Ø§Øª Ø§Ù„Ù†Ø´Ø·Ø©", "Sessions actives"), value: sessions.length, icon: Gamepad2, tone: "red", note: tr("Live right now", "Ù…Ø¨Ø§Ø´Ø±Ø© Ø§Ù„Ø¢Ù†", "En direct") },
+    { label: tr("Available Devices", "Ø§Ù„Ø£Ø¬Ù‡Ø²Ø© Ø§Ù„Ù…ØªØ§Ø­Ø©", "Appareils disponibles"), value: available.length, icon: Monitor, tone: "purple", note: `${busy.length} ${tr("in use", "Ù…Ø´ØºÙˆÙ„Ø©", "occupÃ©s")}` },
+    { label: tr("Busy Devices", "Ø§Ù„Ø£Ø¬Ù‡Ø²Ø© Ø§Ù„Ù…Ø´ØºÙˆÙ„Ø©", "Appareils occupÃ©s"), value: busy.length, icon: Users, tone: "blue", note: `${occupancy}% ${tr("occupancy", "Ø¥Ø´ØºØ§Ù„", "occupation")}` },
+    { label: tr("Todayâ€™s Revenue", "Ø¥ÙŠØ±Ø§Ø¯ Ø§Ù„ÙŠÙˆÙ…", "Revenus du jour"), value: `${revenue.toFixed(2)} DA`, icon: Banknote, tone: "red", note: tr("From active sessions", "Ù…Ù† Ø§Ù„Ø¬Ù„Ø³Ø§Øª Ø§Ù„Ù†Ø´Ø·Ø©", "Sessions actives") },
+  ];
+
+  const quick = [
+    { title: tr("Add Session", "Ø¨Ø¯Ø¡ Ø¬Ù„Ø³Ø©", "Ajouter une session"), description: tr("Start a new session", "Ø¨Ø¯Ø¡ Ø¬Ù„Ø³Ø© Ø¬Ø¯ÙŠØ¯Ø©", "DÃ©marrer une session"), icon: Gamepad2, path: "/sessions", tone: "red" },
+    { title: tr("Add Member", "Ø¥Ø¶Ø§ÙØ© Ø¹Ø¶Ùˆ", "Ajouter un membre"), description: tr("Register a new member", "ØªØ³Ø¬ÙŠÙ„ Ø¹Ø¶Ùˆ Ø¬Ø¯ÙŠØ¯", "Enregistrer un membre"), icon: Users, path: "/members", tone: "purple" },
+    { title: tr("Open Cashier", "ÙØªØ­ Ø§Ù„ÙƒØ§Ø´ÙŠØ±", "Ouvrir la caisse"), description: tr("Open POS system", "ÙØªØ­ Ù†Ø¸Ø§Ù… Ø§Ù„Ø¨ÙŠØ¹", "Ouvrir le POS"), icon: Banknote, path: "/store", tone: "blue" },
+    { title: tr("Manage Devices", "Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø£Ø¬Ù‡Ø²Ø©", "GÃ©rer les appareils"), description: tr("View stations", "Ø¹Ø±Ø¶ Ø§Ù„Ù…Ø­Ø·Ø§Øª", "Voir les postes"), icon: Monitor, path: "/devices", tone: "gold" },
+  ];
+
+  return (
+    <div dir={dir} className="noxus-dashboard-reference mx-auto max-w-[1460px] space-y-4 pb-5">
+      <header className="flex flex-col gap-3 border-b border-white/[0.07] pb-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-baseline gap-4">
+          <h1 className="text-2xl font-semibold tracking-tight">{tr("Dashboard", "Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…", "Tableau de bord")}</h1>
+          <p className="text-xs text-white/55">{tr("Live arena overview", "Ù†Ø¸Ø±Ø© Ù…Ø¨Ø§Ø´Ø±Ø© Ø¹Ù„Ù‰ Ø§Ù„Ù‚Ø§Ø¹Ø©", "Vue de lâ€™arÃ¨ne en direct")}</p>
+        </div>
+        <button type="button" onClick={() => void loadDashboard(true)} disabled={loading} className="inline-flex h-9 items-center justify-center gap-2 self-start rounded-md border border-white/[0.10] bg-white/[0.025] px-3 text-xs text-white/80 transition hover:bg-white/[0.06] disabled:opacity-50 lg:self-auto">
+          <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+          {tr("Refresh", "ØªØ­Ø¯ÙŠØ«", "Actualiser")}
+        </button>
+      </header>
+
+      {error && <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
+
+      <section className="grid gap-3 grid-cols-2 md:grid-cols-4">
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+          return <article key={stat.label} className={`dashboard-stat dashboard-stat-${stat.tone} relative overflow-hidden rounded-lg border border-white/[0.08] p-3`}>
+            <Icon className="dashboard-stat-icon absolute right-3 top-3" size={36} strokeWidth={1.5} />
+            <p className="text-2xl font-semibold tracking-tight">{stat.value}</p>
+            <p className="mt-1 text-xs text-white/80">{stat.label}</p>
+            <p className="mt-3 text-[10px] text-emerald-300">â— {stat.note}</p>
+          </article>;
+        })}
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-[minmax(0,1.48fr)_minmax(250px,.72fr)]">
+        <article className="dashboard-panel overflow-hidden rounded-lg border border-white/[0.08]">
+          <div className="flex items-center justify-between border-b border-white/[0.07] px-4 py-3">
+            <h2 className="text-sm font-semibold">{tr("Recent Sessions", "Ø§Ù„Ø¬Ù„Ø³Ø§Øª Ø§Ù„Ø£Ø®ÙŠØ±Ø©", "Sessions rÃ©centes")}</h2>
+            <Link to="/sessions" className="text-[10px] text-white/70 hover:text-white">{tr("View All", "Ø¹Ø±Ø¶ Ø§Ù„ÙƒÙ„", "Voir tout")}</Link>
+          </div>
+          <div className="overflow-x-auto"><table className="w-full min-w-[530px] text-left text-[11px]" dir="ltr"><thead className="text-white/55"><tr className="border-b border-white/[0.06]"><th className="px-4 py-2 font-medium">{tr("User", "Ø§Ù„Ù„Ø§Ø¹Ø¨", "Utilisateur")}</th><th className="px-3 py-2 font-medium">{tr("Device", "Ø§Ù„Ø¬Ù‡Ø§Ø²", "Appareil")}</th><th className="px-3 py-2 font-medium">{tr("Start", "Ø§Ù„Ø¨Ø¯Ø¡", "DÃ©but")}</th><th className="px-3 py-2 font-medium">{tr("Duration", "Ø§Ù„Ù…Ø¯Ø©", "DurÃ©e")}</th><th className="px-3 py-2 font-medium">{tr("Amount", "Ø§Ù„Ù…Ø¨Ù„Øº", "Montant")}</th><th className="px-3 py-2 font-medium">{tr("Status", "Ø§Ù„Ø­Ø§Ù„Ø©", "Statut")}</th></tr></thead>
+            <tbody>{sessions.length === 0 ? <tr><td colSpan={6} className="px-4 py-12 text-center text-white/65">{tr("No active sessions", "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¬Ù„Ø³Ø§Øª Ù†Ø´Ø·Ø©", "Aucune session active")}</td></tr> : sessions.slice(0, 5).map((session) => <tr key={session.id} className="border-b border-white/[0.045] last:border-0"><td className="px-4 py-2.5 font-medium"><div className="flex items-center gap-2"><div className="h-6 w-6 shrink-0 overflow-hidden rounded-full border border-white/10 bg-gradient-to-br from-[#d90429] to-[#6d28d9] text-center text-[9px] leading-6 text-white">{session.customerImage || session.playerImage ? <img src={session.customerImage || session.playerImage} alt="" className="h-full w-full object-cover" /> : initials(session.customerName)}</div><span className="truncate">{session.customerName}</span></div></td><td className="px-3 py-2.5">{session.deviceName}</td><td className="px-3 py-2.5 text-white/75">{time(session.startTime)}</td><td className="px-3 py-2.5 text-white/75">{minutes(session.startTime)}m</td><td className="px-3 py-2.5 text-emerald-300">{amount(session)} DA</td><td className="px-3 py-2.5"><span className="rounded-full bg-emerald-500/10 px-2 py-1 text-[9px] text-emerald-300">â— {tr("Active", "Ù†Ø´Ø·Ø©", "Active")}</span></td></tr>)}</tbody>
+          </table></div>
+        </article>
+
+        <article className="dashboard-panel rounded-lg border border-white/[0.08] p-4">
+          <div className="flex items-center justify-between"><h2 className="text-sm font-semibold">{tr("Revenue Overview", "Ù†Ø¸Ø±Ø© Ø§Ù„Ø¥ÙŠØ±Ø§Ø¯Ø§Øª", "Vue des revenus")}</h2><span className="rounded bg-white/[0.04] px-2 py-1 text-[9px] text-white/70">{tr("This Week", "Ù‡Ø°Ø§ Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹", "Cette semaine")}</span></div>
+          <p className="mt-4 text-2xl font-semibold">{revenue.toFixed(2)} DA</p><p className="mt-1 text-[10px] text-emerald-300">â†‘ {tr("Active session estimate", "ØªÙ‚Ø¯ÙŠØ± Ø§Ù„Ø¬Ù„Ø³Ø§Øª Ø§Ù„Ù†Ø´Ø·Ø©", "Estimation en direct")}</p>
+          <div className="mt-5 h-32"><svg viewBox="0 0 300 120" className="h-full w-full overflow-visible"><defs><linearGradient id="revenueFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#ef233c" stopOpacity=".35"/><stop offset="100%" stopColor="#ef233c" stopOpacity="0"/></linearGradient></defs><path d="M0 95 L25 78 L48 56 L72 75 L95 69 L120 88 L145 48 L168 62 L194 53 L218 77 L243 60 L268 43 L300 17 L300 120 L0 120 Z" fill="url(#revenueFill)"/><path d="M0 95 L25 78 L48 56 L72 75 L95 69 L120 88 L145 48 L168 62 L194 53 L218 77 L243 60 L268 43 L300 17" fill="none" stroke="#ef233c" strokeWidth="2"/></svg></div>
+          <div className="flex justify-between text-[9px] text-white/55"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+        </article>
+      </section>
+
+      <section className="grid gap-3 grid-cols-2 md:grid-cols-4">{quick.map((item) => { const Icon = item.icon; return <Link key={item.path} to={item.path} className={`dashboard-quick dashboard-quick-${item.tone} flex items-center gap-3 rounded-lg border border-white/[0.08] p-3 transition hover:bg-white/[0.04]`}><div className="flex h-9 w-9 items-center justify-center rounded-md"><Icon size={18}/></div><div><p className="text-xs font-medium">{item.title}</p><p className="mt-1 text-[10px] text-white/65">{item.description}</p></div><ArrowUpRight size={15} className="ml-auto text-white/60"/></Link>; })}</section>
+
+      <section className="grid gap-4 md:grid-cols-3">
+        <article className="dashboard-panel rounded-lg border border-white/[0.08] p-4"><div className="flex items-center justify-between"><h2 className="text-sm font-semibold">{tr("Top Devices", "Ø£ÙØ¶Ù„ Ø§Ù„Ø£Ø¬Ù‡Ø²Ø©", "Meilleurs appareils")}</h2><Link to="/devices" className="text-[10px] text-white/70">{tr("View All", "Ø¹Ø±Ø¶ Ø§Ù„ÙƒÙ„", "Voir tout")}</Link></div><div className="mt-4 space-y-3">{devices.slice(0,5).map((device, index) => { const Icon = device.type === "PC" ? Monitor : Gamepad2; const colors = ["bg-red-500/12 text-red-300", "bg-violet-500/12 text-violet-300", "bg-emerald-500/12 text-emerald-300", "bg-sky-500/12 text-sky-300", "bg-amber-500/12 text-amber-300"]; return <div key={device.id} className="flex items-center gap-2.5"><div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded ${colors[index % colors.length]}`}><Icon size={14}/></div><div className="min-w-0 flex-1"><div className="flex items-center justify-between text-[11px]"><span className="truncate">{device.name}</span><span className="text-white/65">{device.status === "Busy" ? tr("In use", "Ù…Ø´ØºÙˆÙ„", "OccupÃ©") : tr("Available", "Ù…ØªØ§Ø­", "Disponible")}</span></div><div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/[0.07]"><div className="h-full rounded-full bg-[#ef233c]" style={{width:`${Math.max(20, 92-index*15)}%`}}/></div></div></div>})}</div></article>
+        <article className="dashboard-panel rounded-lg border border-white/[0.08] p-4"><div className="flex items-center justify-between"><h2 className="text-sm font-semibold">{tr("Active Alerts", "Ø§Ù„ØªÙ†Ø¨ÙŠÙ‡Ø§Øª Ø§Ù„Ù†Ø´Ø·Ø©", "Alertes actives")}</h2><Wrench size={15} className="text-amber-300"/></div><div className="mt-4 space-y-2"><div className="rounded-md border border-amber-500/10 bg-amber-500/[0.05] p-3 text-[11px]"><p className="font-medium text-amber-300">{tr("Device monitoring active", "Ù…Ø±Ø§Ù‚Ø¨Ø© Ø§Ù„Ø£Ø¬Ù‡Ø²Ø© Ù…ÙØ¹Ù„Ø©", "Surveillance active")}</p><p className="mt-1 text-white/70">{tr("Available devices are being tracked.", "ÙŠØªÙ… ØªØªØ¨Ø¹ Ø­Ø§Ù„Ø© Ø§Ù„Ø£Ø¬Ù‡Ø²Ø© Ø§Ù„Ù…ØªØ§Ø­Ø©.", "Les appareils sont suivis.")}</p></div><div className="rounded-md border border-white/[0.06] bg-white/[0.018] p-3 text-[11px]"><p className="font-medium">{tr("Live sessions", "Ø§Ù„Ø¬Ù„Ø³Ø§Øª Ø§Ù„Ù…Ø¨Ø§Ø´Ø±Ø©", "Sessions en direct")}</p><p className="mt-1 text-white/70">{sessions.length} {tr("currently active", "Ù†Ø´Ø·Ø© Ø­Ø§Ù„ÙŠÙ‹Ø§", "actives actuellement")}</p></div></div></article>
+        <article className="dashboard-panel rounded-lg border border-white/[0.08] p-4"><div className="flex items-center justify-between"><h2 className="text-sm font-semibold">{tr("Top Members", "Ø£ÙØ¶Ù„ Ø§Ù„Ø£Ø¹Ø¶Ø§Ø¡", "Meilleurs membres")}</h2><Trophy size={15} className="text-amber-300"/></div><div className="mt-4 space-y-2.5">{topMembers.length === 0 ? <p className="py-6 text-center text-[11px] text-white/65">{tr("No member activity yet", "Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ù†Ø´Ø§Ø· Ù„Ù„Ø£Ø¹Ø¶Ø§Ø¡ Ø¨Ø¹Ø¯", "Aucune activitÃ© membre")}</p> : topMembers.map((member, index) => { const medal = ["bg-amber-400 text-amber-950", "bg-slate-300 text-slate-950", "bg-amber-700 text-amber-100"][index] || "bg-white/[0.08] text-white/80"; return <div key={member.name} className="flex items-center gap-2.5"><span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] font-bold ${medal}`}>{index + 1}</span><div className="h-7 w-7 shrink-0 overflow-hidden rounded-full border border-white/10 bg-gradient-to-br from-[#d90429] to-[#6d28d9] text-center text-[9px] leading-7 text-white">{member.image ? <img src={member.image} alt="" className="h-full w-full object-cover" /> : initials(member.name)}</div><p className="min-w-0 flex-1 truncate text-[11px] font-medium">{member.name}</p><p className="text-[10px] text-emerald-300">{member.total.toFixed(2)} DA</p></div>})}</div></article>
+      </section>
+    </div>
+  );
+}
