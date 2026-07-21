@@ -2,6 +2,8 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   Banknote,
+  Clock3,
+  CreditCard,
   ListOrdered,
   Monitor,
   Play,
@@ -9,6 +11,7 @@ import {
   RefreshCw,
   Search,
   Square,
+  ShoppingBag,
   Trash2,
   Trophy,
   UserRound,
@@ -69,7 +72,7 @@ type Participant = {
 };
 
 const fieldClass =
-  "h-11 w-full rounded-lg border border-white/10 bg-[#080b16] px-4 text-sm text-white outline-none placeholder:text-white/25 focus:border-violet-400/60";
+  "h-11 w-full rounded-lg border border-white/10 bg-[#1C1C1C] px-4 text-sm text-white outline-none placeholder:text-white/25 focus:border-sky-400/60";
 
 export default function Sessions() {
   const { dir, language } = useLanguage();
@@ -403,6 +406,11 @@ Started next: ${result.started.length}`,
     }
   }
 
+  function openSessionStore(session: Session) {
+    const playerQuery = session.playerId ? `playerId=${session.playerId}&` : "";
+    window.location.hash = `#/store?${playerQuery}sessionId=${session.id}&returnTo=sessions`;
+  }
+
   const groupParticipants = endingGroup
     ? participants.filter((p) => p.groupId === endingGroup.id)
     : [];
@@ -444,18 +452,19 @@ Started next: ${result.started.length}`,
             >
               <div className="session-device-card-top">
                 <span className={`device-icon ${accent}`}><Monitor size={24} /></span>
-                <span className={`device-status ${busyDevice ? "busy" : maintenance ? "maintenance" : "available"}`}>{statusText}</span>
+                <span className={`device-status ${busyDevice ? "busy" : maintenance ? "maintenance" : "available"}`}><i /></span>
               </div>
               <div className="session-device-name">{device.name}</div>
               <div className="session-device-type">{device.type || tr("Gaming device", "جهاز ألعاب", "Appareil gaming")}</div>
               {session ? (
                 <div className="session-running-info">
                   <div className="session-user"><span className="session-avatar">{session.playerImage ? <img src={session.playerImage} alt="" /> : <UserRound size={18} />}</span><span>{session.customerName}</span></div>
-                  <div className="session-running-footer"><span>{String(Math.floor(minutes(session.startTime) / 60)).padStart(2, "0")}:{String(minutes(session.startTime) % 60).padStart(2, "0")}:00</span><span>{price(session)} DA</span></div>
+                  <div className="session-running-footer"><span className="session-time"><Clock3 size={20}/>{String(Math.floor(minutes(session.startTime) / 60)).padStart(2, "0")}:{String(minutes(session.startTime) % 60).padStart(2, "0")}:00</span><span className="session-price">{price(session)} DA</span></div>
+                  <button type="button" onClick={(event) => { event.stopPropagation(); openSessionStore(session); }} className="session-store-action"><ShoppingBag size={14}/>{tr("Store", "المتجر", "Magasin")}</button>
                   {!session.roundGroupId && <div className="session-payments">
-                    <button type="button" onClick={(event) => { event.stopPropagation(); void finishSession(session, "cash"); }} className="pay-action cash">{tr("Cash", "كاش", "Espèces")}</button>
-                    {session.playerId && <button type="button" onClick={(event) => { event.stopPropagation(); void finishSession(session, "wallet"); }} className="pay-action debt">{tr("Debt", "دين", "Dette")}</button>}
-                    {!session.playerId && <button type="button" onClick={(event) => { event.stopPropagation(); void finishSession(session, "debt"); }} className="pay-action debt">{tr("Debt", "دين", "Dette")}</button>}
+                    <button type="button" onClick={(event) => { event.stopPropagation(); void finishSession(session, "cash"); }} className="pay-action cash"><Banknote size={20}/>{tr("Cash", "كاش", "Espèces")}</button>
+                    {session.playerId && <button type="button" onClick={(event) => { event.stopPropagation(); void finishSession(session, "wallet"); }} className="pay-action debt"><CreditCard size={20}/>{tr("Debt", "دين", "Dette")}</button>}
+                    {!session.playerId && <button type="button" onClick={(event) => { event.stopPropagation(); void finishSession(session, "debt"); }} className="pay-action debt"><CreditCard size={20}/>{tr("Debt", "دين", "Dette")}</button>}
                   </div>}
                 </div>
               ) : (
@@ -472,7 +481,7 @@ Started next: ${result.started.length}`,
     <div dir={dir} className="space-y-6">
       <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="mb-2 text-sm text-violet-300">{tr("Session Control", "التحكم في الجلسات", "Contrôle des sessions")}</p>
+          <p className="mb-2 text-sm text-sky-300">{tr("Session Control", "التحكم في الجلسات", "Contrôle des sessions")}</p>
           <h1 className="text-3xl font-semibold">{tr("Sessions & CS Rounds", "الجلسات وجولات CS", "Sessions et manches CS")}</h1>
           <p className="mt-2 text-sm text-white/45">
             {tr("Groups, winners, and waiting list", "المجموعات والفائزون وقائمة الانتظار", "Groupes, gagnants et liste d’attente")}
@@ -493,7 +502,7 @@ Started next: ${result.started.length}`,
       )}
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <article className="session-control-panel session-group-panel rounded-xl border border-amber-400/20 bg-[#0c101d]">
+        <article className="session-control-panel session-group-panel rounded-xl border border-amber-400/20 bg-[#202020]">
           <div className="border-b border-white/[0.08] p-5">
             <h2 className="flex items-center gap-2 font-semibold text-amber-200">
               <Users size={19} /> {tr("Start group round", "بدء جولة جماعية", "Démarrer une manche de groupe")}
@@ -503,7 +512,7 @@ Started next: ${result.started.length}`,
             </p>
           </div>
           <div className="p-5">
-            <div className="mb-3 flex h-11 items-center gap-2 rounded-lg border border-white/10 bg-[#080b16] px-3">
+            <div className="mb-3 flex h-11 items-center gap-2 rounded-lg border border-white/10 bg-[#1C1C1C] px-3">
               <Search size={17} className="text-white/30" />
               <input
                 value={groupSearch}
@@ -520,7 +529,7 @@ Started next: ${result.started.length}`,
                 <button
                   key={player.id}
                   onClick={() => toggleSelected(player.id)}
-                  className={`rounded-lg border p-3 text-right ${selectedPlayers.includes(player.id) ? "border-amber-400/40 bg-amber-500/10" : "border-white/[0.08] bg-[#090d18]"}`}
+                  className={`rounded-lg border p-3 text-right ${selectedPlayers.includes(player.id) ? "border-amber-400/40 bg-amber-500/10" : "border-white/[0.08] bg-[#202020]"}`}
                 >
                   <p className="flex items-center gap-2 truncate text-sm">{player.image ? <img src={player.image} alt="" className="h-6 w-6 shrink-0 rounded-full object-cover" /> : <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-sky-500/15 text-[10px] text-sky-200">{player.name.slice(0, 1)}</span>}{player.name}</p>
                   <p dir="ltr" className="mt-1 truncate text-xs text-white/35">
@@ -556,7 +565,7 @@ Started next: ${result.started.length}`,
           </div>
         </article>
 
-        <aside className="session-control-panel session-waiting-panel rounded-xl border border-sky-400/20 bg-[#0c101d]">
+        <aside className="session-control-panel session-waiting-panel rounded-xl border border-sky-400/20 bg-[#202020]">
           <div className="border-b border-white/[0.08] p-5">
             <h2 className="flex items-center gap-2 font-semibold text-sky-200">
               <ListOrdered size={18} /> {tr(`Waiting list (${waiting.length})`, `قائمة الانتظار (${waiting.length})`, `Liste d’attente (${waiting.length})`)}
@@ -583,7 +592,7 @@ Started next: ${result.started.length}`,
             </div>
           </div>
           <div className="p-5">
-            {showWaitingPicker && <div className="flex h-11 items-center gap-2 rounded-lg border border-white/10 bg-[#080b16] px-3">
+            {showWaitingPicker && <div className="flex h-11 items-center gap-2 rounded-lg border border-white/10 bg-[#1C1C1C] px-3">
               <Search size={17} className="text-white/30" />
               <input
                 value={waitingSearch}
@@ -593,7 +602,7 @@ Started next: ${result.started.length}`,
               />
             </div>}
             {showWaitingPicker && waitingResults.length > 0 && (
-              <div className="mt-2 max-h-48 space-y-2 overflow-y-auto rounded-lg border border-white/10 bg-[#080b16] p-2">
+              <div className="mt-2 max-h-48 space-y-2 overflow-y-auto rounded-lg border border-white/10 bg-[#1C1C1C] p-2">
                 {waitingResults.map((player) => (
                   <button
                     key={player.id}
@@ -667,7 +676,7 @@ Started next: ${result.started.length}`,
       )}
 
       {endingGroup && (
-        <section className="rounded-xl border border-amber-400/30 bg-[#0c101d] p-5">
+        <section className="rounded-xl border border-amber-400/30 bg-[#202020] p-5">
           <div className="flex items-start justify-between">
             <div>
               <h2 className="flex items-center gap-2 font-semibold text-amber-200">
@@ -688,7 +697,7 @@ Started next: ${result.started.length}`,
               <button
                 key={player.playerId}
                 onClick={() => toggleWinner(player.playerId)}
-                className={`rounded-lg border p-3 text-right ${winnerIds.includes(player.playerId) ? "border-amber-400/50 bg-amber-500/15" : "border-white/10 bg-[#090d18]"}`}
+                className={`rounded-lg border p-3 text-right ${winnerIds.includes(player.playerId) ? "border-amber-400/50 bg-amber-500/15" : "border-white/10 bg-[#202020]"}`}
               >
                 <p>{player.playerName}</p>
                 <p className="mt-1 text-xs text-white/35">
@@ -742,9 +751,9 @@ Started next: ${result.started.length}`,
         </div>
       )}
       <style>{`
-        .sessions-board{background:#151515;border:1px solid #292929;border-radius:14px;padding:18px;color:#f6f6f6}.sessions-board-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px}.sessions-eyebrow{color:#36b8ff;font-size:12px;font-weight:700;margin:0 0 4px;text-transform:uppercase;letter-spacing:.08em}.sessions-board h2{font-size:22px;font-weight:700;margin:0}.sessions-board-head p:not(.sessions-eyebrow){color:#9ea1a8;font-size:13px;margin:5px 0 0}.sessions-legend{display:flex;gap:12px;flex-wrap:wrap;color:#bfc2c8;font-size:12px}.sessions-legend span{display:flex;align-items:center;gap:5px}.dot{width:7px;height:7px;border-radius:50%;display:inline-block}.dot.available{background:#2ee781}.dot.busy{background:#ff315b}.dot.maintenance{background:#f7a822}.session-device-section+ .session-device-section{border-top:1px solid #282828;margin-top:18px;padding-top:18px}.session-device-heading{display:flex;gap:10px;align-items:center;font-size:16px;margin:0 0 13px}.session-device-heading.cyan{color:#e9f8ff}.session-device-heading.cyan svg{color:#26b9ff}.session-device-heading.violet svg{color:#b14eff}.session-device-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:13px}.session-device-card{min-height:177px;text-align:left;border:1px solid #30343a;border-radius:9px;background:linear-gradient(145deg,#15191e,#0f1216);padding:14px;color:white;transition:.18s}.session-device-card.available{cursor:pointer}.session-device-card.available:hover{transform:translateY(-2px);border-color:#259cd5;background:#171d23}.session-device-card:disabled{cursor:default}.session-device-card-top{display:flex;justify-content:space-between;align-items:flex-start}.device-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:8px;background:#08213b}.device-icon.cyan{color:#14b9ff}.device-icon.violet{color:#b24bff;background:#201038}.device-status{border-radius:6px;padding:5px 7px;font-size:11px;font-weight:700}.device-status.available{color:#38e98b;background:#082819;border:1px solid #135f3b}.device-status.busy{color:#ff496c;background:#2d0b14;border:1px solid #742033}.device-status.maintenance{color:#f2ae38;background:#2b210c;border:1px solid #70501c}.session-device-name{margin-top:8px;font-weight:700;font-size:15px}.session-device-type{color:#b5b7bd;font-size:12px;margin-top:3px}.session-running-info{margin-top:23px}.session-user{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600}.session-avatar{display:grid;place-items:center;width:29px;height:29px;border-radius:50%;background:linear-gradient(145deg,#f28462,#251719);color:#fff}.session-running-footer{display:flex;justify-content:space-between;margin-top:14px;color:#d3d5da;font-size:13px}.session-payments{display:flex;gap:6px;margin-top:11px}.pay-action{font-size:10px;color:#78d6ff;cursor:pointer}.pay-action.debt{color:#ff7f91}.session-card-empty{margin-top:35px;color:#6f747c;font-size:12px}.session-modal-backdrop{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:rgba(0,0,0,.72);padding:16px}.session-start-modal{width:min(460px,100%);background:#181818;border:1px solid #333;border-radius:14px;padding:20px;box-shadow:0 20px 60px #000}.session-modal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}.session-modal-head p{margin:0;color:#32baff;font-size:12px;font-weight:700}.session-modal-head h2{margin:3px 0;font-size:21px}.session-modal-head span{color:#94979d;font-size:12px}.session-modal-head button{border:0;background:transparent;color:#aaa;font-size:29px;line-height:1;cursor:pointer}.session-type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.session-type-toggle button{height:39px;border:1px solid #313131;border-radius:8px;background:#101010;color:#bbb;font-size:12px}.session-type-toggle button.selected{border-color:#187eae;background:#092536;color:#54ceff}.session-type-toggle button.round{border-color:#8a621b;background:#2a1c08;color:#ffc75a}.session-type-toggle button.player{border-color:#167ea9;background:#082533;color:#57d4ff}.session-type-toggle button.guest{border-color:#287b55;background:#092519;color:#65e6a6}.session-guest-fields{display:grid;gap:10px}.session-start-modal input,.session-start-modal select{background:#101010!important;border-color:#373737!important}.session-start-button{width:100%;height:44px;margin-top:14px;border:0;border-radius:8px;background:#139bd6;color:#fff;font-weight:700;display:flex;gap:8px;align-items:center;justify-content:center}.session-start-button:disabled{opacity:.45}@media(max-width:640px){.sessions-board-head{display:block}.sessions-legend{margin-top:12px}.session-device-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.session-device-card{min-height:168px;padding:11px}}
+        .sessions-board{background:#1C1C1C;border:1px solid #303030;border-radius:14px;padding:18px;color:#F4F7FA}.sessions-board-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px}.sessions-eyebrow{color:#20B8FF;font-size:12px;font-weight:700;margin:0 0 4px;text-transform:uppercase;letter-spacing:.08em}.sessions-board h2{font-size:22px;font-weight:700;margin:0}.sessions-board-head p:not(.sessions-eyebrow){color:#9BA7B3;font-size:13px;margin:5px 0 0}.sessions-legend{display:flex;gap:12px;flex-wrap:wrap;color:#9BA7B3;font-size:12px}.sessions-legend span{display:flex;align-items:center;gap:5px}.dot{width:7px;height:7px;border-radius:50%;display:inline-block}.dot.available{background:#16D878}.dot.busy{background:#D80627}.dot.maintenance{background:#20B8FF}.session-device-section+ .session-device-section{border-top:1px solid #282828;margin-top:18px;padding-top:18px}.session-device-heading{display:flex;gap:10px;align-items:center;font-size:16px;margin:0 0 13px}.session-device-heading.cyan{color:#e9f8ff}.session-device-heading.cyan svg{color:#20B8FF}.session-device-heading.violet svg{color:#20B8FF}.session-device-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:13px}.session-device-card{position:relative;min-height:177px;text-align:left;border:1px solid #3a3563;border-radius:10px;background:radial-gradient(circle at 50% 20%,rgba(125,69,225,.15),transparent 27%),linear-gradient(145deg,#141624,#0c0f1b);padding:14px;color:#F4F7FA;box-shadow:inset 0 0 22px rgba(47,33,118,.1);transition:.18s}.session-device-card.available{cursor:pointer}.session-device-card.available:hover{transform:translateY(-2px);border-color:#7e58d7;box-shadow:0 10px 22px rgba(67,37,160,.25)}.session-device-card:disabled{cursor:default}.session-device-card-top{height:58px;position:relative;display:flex;justify-content:flex-end}.device-icon{position:absolute;left:50%;top:0;transform:translateX(-50%);display:grid;place-items:center;width:52px;height:52px;border:1px solid #7e50d9;border-radius:15px;background:radial-gradient(circle at 50% 35%,rgba(149,85,255,.25),rgba(17,14,40,.86));color:#bb66ff;box-shadow:0 0 12px rgba(147,75,255,.26)}.device-icon svg{width:27px;height:27px;stroke-width:1.8}.device-icon.cyan,.device-icon.violet{color:#bb66ff;background:radial-gradient(circle at 50% 35%,rgba(149,85,255,.25),rgba(17,14,40,.86))}.device-status{display:grid;place-items:center;width:14px;height:14px;padding:0;border:0;background:transparent}.device-status i{display:block;width:10px;height:10px;border-radius:50%;background:currentColor}.device-status.available{color:#16D878}.device-status.available i{box-shadow:0 0 8px #16D878,0 0 15px rgba(22,216,120,.78)}.device-status.busy{color:#ff3b59}.device-status.busy i{box-shadow:0 0 8px #ff3b59,0 0 15px rgba(255,59,89,.78)}.device-status.maintenance{color:#f5c451}.device-status.maintenance i{box-shadow:0 0 8px #f5c451}.session-device-name{margin-top:0;font-weight:700;font-size:15px}.session-device-type{color:#9BA7B3;font-size:12px;margin-top:3px}.session-running-info{margin-top:18px}.session-user{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:650}.session-avatar{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;overflow:hidden;border:1px solid #a85b43;background:linear-gradient(145deg,#b76246,#281618);color:#fff}.session-avatar img{width:100%;height:100%;object-fit:cover}.session-running-footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #283044;margin-top:12px;padding-top:10px;font-size:13px}.session-time{display:flex;align-items:center;gap:5px}.session-time svg{color:#b456ff;width:14px;height:14px}.session-price{color:#16D878;font-weight:800;font-size:13px}.session-store-action{width:100%;height:31px;margin-top:10px;border:1px solid #b8831d;border-radius:7px;background:linear-gradient(100deg,rgba(75,46,10,.64),rgba(25,24,24,.9));color:#f5c451;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}.session-store-action svg{width:14px;height:14px}.session-store-action:hover{background:#3a2c0c}.session-payments{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}.pay-action{height:32px;border:1px solid;border-radius:7px;background:#111;display:flex;gap:5px;align-items:center;justify-content:center;font-size:11px;font-weight:800;cursor:pointer}.pay-action svg{width:14px;height:14px}.pay-action.cash{color:#16D878;border-color:#167a49;background:#08271d}.pay-action.debt{color:#ff3b59;border-color:#8d1830;background:#240d16}.session-card-empty{margin-top:40px;color:#9BA7B3;font-size:12px;text-align:center}.session-device-section+ .session-device-section{border-top:1px solid #303030;margin-top:18px;padding-top:18px}.session-modal-backdrop{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:rgba(0,0,0,.72);padding:16px}.session-start-modal{width:min(460px,100%);background:#181818;border:1px solid #333;border-radius:14px;padding:20px;box-shadow:0 20px 60px #000}.session-modal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}.session-modal-head p{margin:0;color:#32baff;font-size:12px;font-weight:700}.session-modal-head h2{margin:3px 0;font-size:21px}.session-modal-head span{color:#9BA7B3;font-size:12px}.session-modal-head button{border:0;background:transparent;color:#9BA7B3;font-size:29px;line-height:1;cursor:pointer}.session-type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.session-type-toggle button{height:39px;border:1px solid #313131;border-radius:8px;background:#1C1C1C;color:#9BA7B3;font-size:12px}.session-type-toggle button.selected{border-color:#20B8FF;background:#102734;color:#20B8FF}.session-type-toggle button.round{border-color:#1c5d7b;background:#102734;color:#20B8FF}.session-type-toggle button.player{border-color:#20B8FF;background:#102734;color:#20B8FF}.session-type-toggle button.guest{border-color:#167a49;background:#10291d;color:#16D878}.session-guest-fields{display:grid;gap:10px}.session-start-modal input,.session-start-modal select{background:#1C1C1C!important;border-color:#303030!important}.session-start-button{width:100%;height:44px;margin-top:14px;border:0;border-radius:8px;background:#20B8FF;color:#fff;font-weight:700;display:flex;gap:8px;align-items:center;justify-content:center}.session-start-button:disabled{opacity:.45}@media(max-width:640px){.sessions-board-head{display:block}.sessions-legend{margin-top:12px}.session-device-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.session-device-card{min-height:168px;padding:11px}}
 
-        .session-control-panel{background:#151515!important;border-color:#303030!important;box-shadow:none}.session-control-panel>div:first-child{border-color:#303030!important}.session-control-panel .bg-[#080b16],.session-control-panel .bg-[#090d18]{background:#101010!important}.session-control-panel .border-white\/10{border-color:#343434!important}.session-group-panel h2{color:#61cfff!important}.session-group-panel .bg-amber-500{background:#159ed9!important}.session-group-panel .border-amber-400\/40{border-color:#168ec5!important;background:#092634!important}.session-waiting-panel h2{color:#61cfff!important}.session-waiting-panel .text-sky-300{color:#52cdfd!important}.session-avatar{overflow:hidden}.session-avatar img{width:100%;height:100%;object-fit:cover}.session-running-footer span:last-child{color:#42e990;font-weight:700}
+        .session-control-panel{background:#1C1C1C!important;border-color:#303030!important;box-shadow:none}.session-control-panel>div:first-child{border-color:#303030!important}.session-control-panel .bg-[#1C1C1C],.session-control-panel .bg-[#202020]{background:#1C1C1C!important}.session-control-panel .border-white\/10{border-color:#343434!important}.session-group-panel h2{color:#61cfff!important}.session-group-panel .bg-amber-500{background:#159ed9!important}.session-group-panel .border-amber-400\/40{border-color:#168ec5!important;background:#092634!important}.session-waiting-panel h2{color:#61cfff!important}.session-waiting-panel .text-sky-300{color:#52cdfd!important}.session-avatar{overflow:hidden}.session-avatar img{width:100%;height:100%;object-fit:cover}.session-running-footer span:last-child{color:#42e990;font-weight:700}
 
         .session-waiting-panel button[type="button"]:not(.pay-action){transition:.16s}.session-waiting-panel .bg-sky-500\/10{background:#092737!important}.session-waiting-panel .border-sky-400\/30{border-color:#187eaa!important}
 

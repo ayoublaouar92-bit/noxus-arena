@@ -8,9 +8,12 @@ import {
   Tags,
   UserRound,
   Image as ImageIcon,
+  ShoppingBag,
+  BadgeDollarSign,
+  ChartNoAxesCombined,
+  AlertTriangle,
 } from "lucide-react";
 import { handleUnauthorized } from "../lib/auth";
-import { useNavigate, useSearchParams } from "react-router-dom";
 
 type Category = {
   id: number;
@@ -54,7 +57,7 @@ type CartItem = {
 };
 
 const fieldClass =
-  "h-10 w-full rounded-lg border border-white/10 bg-[#080b16] px-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-violet-400/60";
+  "h-10 w-full rounded-lg border border-white/10 bg-[#1c1c1c] px-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-violet-400/60";
 
 function normalizeNumber(value: string) {
   const digitMap: Record<string, string> = {
@@ -107,14 +110,10 @@ function money(value: number) {
 }
 
 export default function Store() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const sessionPlayerId = searchParams.get("playerId");
-  const returnTo = searchParams.get("returnTo");
-  const sessionId = searchParams.get("sessionId");
   const api = (window as any).api;
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [sales, setSales] = useState<any[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
@@ -157,15 +156,10 @@ export default function Store() {
   }, []);
 
   useEffect(() => {
-    if (!sessionPlayerId || players.length === 0) return;
-    const player = players.find((row) => Number(row.id) === Number(sessionPlayerId));
-    if (!player) return;
-    setPayment("player");
-    setPlayerId(String(player.id));
-    setCustomerName(player.name);
-    setNote(sessionId ? `Session #${sessionId} store order` : "Session store order");
-  }, [players, sessionPlayerId, sessionId]);
-
+    if (api.getSales) {
+      api.getSales().then((rows: any[]) => setSales(Array.isArray(rows) ? rows : [])).catch(() => setSales([]));
+    }
+  }, []);
   const activeCategories = useMemo(
     () =>
       categories
@@ -197,6 +191,17 @@ export default function Store() {
     });
   }, [activeProducts, categoryId, search]);
 
+  const completedSales = sales.filter((sale) => sale.status === "Completed");
+  const totalSince = (milliseconds: number) => completedSales.filter((sale) => new Date(sale.createdAt).getTime() >= Date.now() - milliseconds).reduce((sum, sale) => sum + Number(sale.total || 0), 0);
+  const todaySales = totalSince(86400000);
+  const weekSales = totalSince(604800000);
+  const lowStockProducts = products.filter((product) => Number(product.stock || 0) > 0 && Number(product.stock || 0) <= 5);
+  function showStoreSummary(kind: string) {
+    if (kind === "products") return window.alert(`Products: ${products.length}\nActive products: ${activeProducts.length}\nCategories: ${activeCategories.length}`);
+    if (kind === "today") return window.alert(`Today's sales: ${money(todaySales)}`);
+    if (kind === "week") return window.alert(`This week's sales: ${money(weekSales)}`);
+    return window.alert(lowStockProducts.length ? `Low stock items:\n${lowStockProducts.map((product) => `${product.name}: ${product.stock}`).join("\n")}` : "No low stock items.");
+  }
   const cartCount = cart.reduce((t, i) => t + i.quantity, 0);
   const subtotal = cart.reduce((t, i) => t + i.quantity * i.unitPrice, 0);
   const total = Number(subtotal.toFixed(2));
@@ -309,7 +314,6 @@ export default function Store() {
       setNote("");
 
       await loadData(true);
-      if (returnTo === "sessions") navigate("/sessions");
     } catch (e: any) {
       console.error(e);
       if (handleUnauthorized(e)) return;
@@ -320,9 +324,9 @@ export default function Store() {
   }
 
   return (
-    <div dir="ltr" className="space-y-5 bg-[#1c1c1c] p-1 text-[#f4f7fa]">
-      {sessionPlayerId && <div dir="rtl" className="rounded-lg border border-sky-400/20 bg-sky-500/10 px-4 py-3 text-sm text-sky-100">طلب متجر للاعب الموجود في الجلسة — سيتم الرجوع إلى صفحة Sessions بعد إتمام العملية.</div>}
-      <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div dir="ltr" className="store-reference space-y-5">
+      
+<section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div dir="rtl">
           <p className="mb-2 text-sm text-violet-300">Point of Sale</p>
           <h1 className="text-3xl font-semibold">POS / المتجر</h1>
@@ -350,12 +354,12 @@ export default function Store() {
         </div>
       )}
 
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
         {/* PRODUCTS */}
         <div className="space-y-4">
-          <div className="rounded-xl border border-white/[0.08] bg-[#0c101d] p-4">
+          <div className="rounded-xl border border-white/[0.08] bg-[#1c1c1c] p-4">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex h-10 items-center gap-2 rounded-lg border border-white/10 bg-[#080b16] px-3">
+              <div className="flex h-10 items-center gap-2 rounded-lg border border-white/10 bg-[#1c1c1c] px-3">
                 <Search size={16} className="text-white/25" />
                 <input
                   value={search}
@@ -407,92 +411,57 @@ export default function Store() {
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+          
+          <section className="store-summary-cards grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" dir="ltr">
+  <button type="button" onClick={() => showStoreSummary("products")} className="min-h-[86px] rounded-lg border border-white/[0.06] bg-[#1c1c1c] p-3 text-left transition hover:border-fuchsia-400/50"><div className="flex items-center gap-3"><div className="flex h-14 w-14 items-center justify-center rounded-lg bg-fuchsia-950/70 text-fuchsia-400"><ShoppingBag size={27} /></div><div><p className="text-xs text-white/75">Total Products</p><p className="mt-1 text-xl font-semibold">{products.length}</p><p className="mt-1 text-xs text-white/55">Tap for details</p></div></div></button>
+  <button type="button" onClick={() => showStoreSummary("today")} className="min-h-[86px] rounded-lg border border-white/[0.06] bg-[#1c1c1c] p-3 text-left transition hover:border-emerald-400/50"><div className="flex items-center gap-3"><div className="flex h-14 w-14 items-center justify-center rounded-lg bg-emerald-950/70 text-emerald-400"><BadgeDollarSign size={27} /></div><div><p className="text-xs text-white/75">Today's Sales</p><p className="mt-1 text-xl font-semibold">{money(todaySales)}</p><p className="mt-1 text-xs text-emerald-400">Tap for details</p></div></div></button>
+  <button type="button" onClick={() => showStoreSummary("week")} className="min-h-[86px] rounded-lg border border-white/[0.06] bg-[#1c1c1c] p-3 text-left transition hover:border-amber-400/50"><div className="flex items-center gap-3"><div className="flex h-14 w-14 items-center justify-center rounded-lg bg-amber-950/70 text-amber-400"><ChartNoAxesCombined size={27} /></div><div><p className="text-xs text-white/75">This Week Sales</p><p className="mt-1 text-xl font-semibold">{money(weekSales)}</p><p className="mt-1 text-xs text-emerald-400">Tap for details</p></div></div></button>
+  <button type="button" onClick={() => showStoreSummary("low")} className="min-h-[86px] rounded-lg border border-white/[0.06] bg-[#1c1c1c] p-3 text-left transition hover:border-sky-400/50"><div className="flex items-center gap-3"><div className="flex h-14 w-14 items-center justify-center rounded-lg bg-[#1c1c1c] text-sky-400"><AlertTriangle size={27} /></div><div><p className="text-xs text-white/75">Low Stock Items</p><p className="mt-1 text-xl font-semibold">{lowStockProducts.length}</p><p className="mt-1 text-xs text-rose-400">Tap for details</p></div></div></button>
+</section>
+
+          <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
             {filteredProducts.map((p) => {
               const stock = Number(p.stock || 0);
               const inCart = cart.find((i) => i.productId === p.id)?.quantity || 0;
 
               return (
-                <button
+                <div
                   key={p.id}
-                  type="button"
-                  onClick={() => upsertCart(p, +1)}
-                  disabled={stock <= 0}
-                  className="grid min-h-[144px] grid-cols-[56px_minmax(0,1fr)] gap-3 rounded-lg border border-[#303030] bg-[#202020] p-3 text-left text-[#f4f7fa] transition hover:border-[#20b8ff] hover:bg-[linear-gradient(145deg,#0d1b27,#08111a)] disabled:opacity-40"
+                  role="button"
+                  tabIndex={stock > 0 ? 0 : -1}
+                  onClick={() => stock > 0 && upsertCart(p, +1)}
+                  onKeyDown={(event) => {
+                    if (stock > 0 && (event.key === "Enter" || event.key === " ")) {
+                      event.preventDefault();
+                      upsertCart(p, +1);
+                    }
+                  }}
+                  className={`store-product-reference ${stock <= 0 ? "opacity-40" : "cursor-pointer"}`}
                 >
-                  <div className="flex h-[82px] w-[56px] items-center justify-center overflow-visible bg-transparent">
-                    {p.image ? (
-                      <img
-                        src={p.image}
-                        alt={p.name}
-                        className="h-[82px] w-[56px] object-contain"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-white/15">
-                        <ImageIcon />
-                      </div>
-                    )}
+                  <div className="store-product-photo">
+                    {p.image ? <img src={p.image} alt={p.name} /> : <ImageIcon size={25} />}
                   </div>
-
-                  <div dir="rtl" className="min-w-0">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="line-clamp-2 break-words font-semibold leading-5">{p.name}</p>
-                        <p className="mt-1 text-xs text-white/45">{p.categoryName || "Other"}</p>
-                        <p className="mt-1 text-[11px] text-white/60"><span className="mr-1 rounded bg-[#062b1d] px-1.5 py-0.5 text-[#16d878]">In Stock</span>{stock} {p.unit}</p>
-                      </div>
-
-                      <p dir="ltr" className="text-sm font-semibold text-emerald-300">
-                        {money(p.salePrice)}
-                      </p>
-                    </div>
-
-                    <div className="mt-2 grid grid-cols-[36px_minmax(0,1fr)_36px] items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          upsertCart(p, -1);
-                        }}
-                        disabled={inCart <= 0}
-                        className="flex h-9 items-center justify-center rounded-lg bg-white/[0.05] text-white/70 disabled:opacity-30"
-                      >
-                        <Minus size={16} />
-                      </button>
-
-                      <div className="h-9 rounded-lg border border-white/10 bg-[#080b16] text-center flex items-center justify-center text-sm">
-                        {inCart}
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          upsertCart(p, +1);
-                        }}
-                        disabled={stock <= 0 || inCart >= stock}
-                        className="flex h-9 items-center justify-center rounded-lg bg-violet-600 text-white disabled:opacity-30"
-                      >
-                        <Plus size={16} />
-                      </button>
-                    </div>
+                  <div className="store-product-details">
+                    <span className="store-product-menu">...</span>
+                    <p className="store-product-name">{p.name}</p>
+                    <p className="store-product-category">{p.categoryName || "Other"}</p>
+                    <p className="store-product-price">{money(p.salePrice)}</p>
+                    <p className="store-product-stock"><span>{stock > 0 ? "In Stock" : "Out of Stock"}</span> Stock: {stock}</p>
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>
         </div>
 
         {/* CHECKOUT */}
-        <aside className="h-fit rounded-xl border border-[#303030] bg-[#202020]">
+        <aside className="h-fit rounded-xl border border-white/[0.08] bg-[#1c1c1c]">
           <div className="border-b border-white/[0.08] p-5" dir="rtl">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="font-semibold">Current Order</h2>
                 <p className="mt-1 text-xs text-white/30">
-                  {cartCount} items · {money(total)}
+                  {cartCount} items - {money(total)}
                 </p>
               </div>
 
@@ -507,7 +476,7 @@ export default function Store() {
           </div>
 
           <div className="p-5" dir="rtl">
-            <div className="rounded-xl border border-white/[0.08] bg-[#090d18]">
+            <div className="rounded-xl border border-white/[0.08] bg-[#1c1c1c]">
               {cart.length === 0 ? (
                 <div className="p-6 text-center text-sm text-white/35">
                   Cart is empty
@@ -519,10 +488,13 @@ export default function Store() {
                   {cart.map((i) => (
                     <div key={i.productId} className="p-4">
                       <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
+                        <div className="cart-item-thumb flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white/[0.04]">
+  {i.image ? <img src={i.image} alt={i.name} className="h-full w-full object-contain" /> : <ImageIcon size={16} className="text-white/25" />}
+</div>
+<div className="min-w-0">
                           <p className="truncate text-sm font-medium">{i.name}</p>
                           <p className="mt-1 text-xs text-white/30">
-                            {i.categoryName} · {i.unit}
+                            {i.categoryName} - {i.unit}
                           </p>
                         </div>
 
@@ -571,7 +543,7 @@ export default function Store() {
                               )
                             );
                           }}
-                          className="h-9 flex-1 rounded-lg border border-white/10 bg-[#080b16] px-3 text-sm outline-none text-center"
+                          className="h-9 flex-1 rounded-lg border border-white/10 bg-[#1c1c1c] px-3 text-sm outline-none text-center"
                         />
 
                         <button
@@ -597,7 +569,7 @@ export default function Store() {
               )}
             </div>
 
-            <div className="mt-4 rounded-xl border border-white/[0.08] bg-[#090d18] p-4 text-sm">
+            <div className="mt-4 rounded-xl border border-white/[0.08] bg-[#1c1c1c] p-4 text-sm">
               <div className="flex items-center justify-between text-white/60">
                 <span>Subtotal</span>
                 <span dir="ltr">{money(total)}</span>
@@ -705,6 +677,17 @@ export default function Store() {
           </div>
         </aside>
       </section>
+      <style>{`
+        .store-reference{background:#202020;min-height:calc(100vh - 36px);padding:4px;color:#f4f7fa}.store-reference h1{font-size:25px!important;letter-spacing:-.02em}.store-reference>section:first-child{border-bottom:1px solid #172633;padding:8px 0 14px}.store-reference>section:first-child p:first-child{color:#dbe2e8!important;font-size:12px!important;margin:0!important}.store-reference>section:first-child h1{font-size:0!important}.store-reference>section:first-child h1:after{content:'Store';font-size:25px}.store-reference>section:first-child p:last-child{font-size:0!important}.store-reference>section:first-child p:last-child:after{content:'Manage products and in-arena sales';font-size:12px;color:#9ba7b3}.store-reference button{transition:.16s}.store-reference .bg-\[\#1c1c1c\]{background:#202020!important;border-color:#1c2a35!important}.store-reference .bg-\[\#1c1c1c\],.store-reference .bg-\[\#1c1c1c\]{background:#202020!important}.store-reference .border-white\/\[0\.08\],.store-reference .border-white\/10{border-color:#1c2a35!important}.store-reference .text-violet-300{color:#20b8ff!important}.store-reference .bg-violet-600{background:#d80627!important}.store-reference .hover\:border-violet-400\/30:hover{border-color:#d80627!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))!important;gap:11px!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button{border-radius:7px!important;background:#202020!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button>div:first-child{height:104px!important;background:#202020!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3>button>div:last-child{padding:10px!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3 .text-emerald-300{color:#16d878!important;font-size:12px}.store-reference aside{position:sticky;top:12px;border-radius:8px!important;background:#202020!important}.store-reference aside h2{font-size:15px}.store-reference aside .bg-violet-600{background:#d80627!important}.store-reference aside form>button[type=submit]{background:#e2072c!important;color:#fff!important;border-radius:6px}.store-reference input,.store-reference select{border-color:#24333e!important}.store-reference .rounded-xl{border-radius:8px!important}.store-reference .rounded-lg{border-radius:6px!important}@media(min-width:1280px){.store-reference>section.grid{grid-template-columns:minmax(0,1fr) 300px!important}.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3{grid-template-columns:repeat(4,minmax(0,1fr))!important}} 
+
+        .store-product-reference{min-height:144px;display:grid;grid-template-columns:76px minmax(0,1fr);gap:11px;padding:10px;border:1px solid #26333e;border-radius:8px;background:linear-gradient(145deg,#0d171f,#091119);color:#edf2f6;text-align:left}.store-product-reference:hover{border-color:#3a647c;background:#101b24}.store-product-photo{height:122px;display:flex;align-items:center;justify-content:center;overflow:visible;border-radius:0;background:transparent;color:#668}.store-product-photo img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 6px 8px rgba(0,0,0,.30))}.store-product-details{position:relative;min-width:0}.store-product-menu{position:absolute;right:0;top:-5px;color:#d4d9dd;font-size:22px;line-height:18px}.store-product-name{margin:1px 18px 0 0;font-size:14px;font-weight:700;line-height:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.store-product-category{margin:3px 0 0;color:#b2bac1;font-size:11px}.store-product-price{margin:16px 0 0;color:#15df7c;font-weight:700;font-size:14px}.store-product-stock{margin:13px 0 0;color:#aab2ba;font-size:10px}.store-product-stock span{display:inline-block;background:#062b1d;color:#1ddd83;border-radius:4px;padding:3px 5px;margin-right:5px;font-weight:700}
+
+        /* Four products per row and a larger image area matching the product detail height. */
+        @media(min-width:1024px){.store-reference .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-3{grid-template-columns:repeat(4,minmax(0,1fr))!important}}.store-product-reference{grid-template-columns:96px minmax(0,1fr)!important;min-height:154px!important}.store-product-photo{width:96px!important;height:134px!important}.store-product-details{min-height:134px}.store-product-price{margin-top:19px!important}.store-product-stock{position:absolute;bottom:1px;left:0;margin:0!important}
+      `}
+/* Product cards use Card Surface instead of blue navy. */
+.store-product-reference,.store-product-card{background:#202020!important}.store-product-reference .store-product-details,.store-product-card .store-product-details{background:#202020!important}
+</style>
     </div>
   );
 }

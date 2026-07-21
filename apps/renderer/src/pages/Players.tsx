@@ -501,7 +501,7 @@ export default function Players() {
               />
             </div>
           </div>
-          <div className="grid gap-4 p-5 md:grid-cols-2 2xl:grid-cols-3">
+          <div className="player-card-grid grid gap-4 p-5 md:grid-cols-2 2xl:grid-cols-3">
             {loading && <p className="text-white/35">جارٍ التحميل...</p>}
             {!loading &&
               filteredPlayers.map((player) => {
@@ -509,14 +509,14 @@ export default function Players() {
                 return (
                   <article
                     key={player.id}
-                    className={`overflow-hidden rounded-xl border bg-[#090d18] ${vip?.isVip ? "border-amber-400/35" : "border-white/[0.08]"}`}
+                    className={`player-card overflow-hidden rounded-xl border bg-[#090d18] ${vip?.isVip ? "vip" : "regular"}`}
                   >
                     <div
-                      className={`h-14 ${vip?.isVip ? "bg-gradient-to-l from-amber-500/25 to-violet-600/15" : "bg-gradient-to-l from-violet-600/20 to-cyan-500/10"}`}
+                      className="player-card-banner h-14"
                     />
-                    <div className="px-4 pb-4">
-                      <div className="-mt-7 mb-3 flex items-center justify-between">
-                        <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border-4 border-[#090d18] bg-violet-600 font-bold">
+                    <div className="player-card-body px-4 pb-4">
+                      <div className="player-card-profile -mt-7 mb-3 flex items-center justify-between">
+                        <div className="player-card-avatar flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border-4 border-[#090d18] bg-violet-600 font-bold">
                           {player.image ? (
                             <img
                               src={player.image}
@@ -527,24 +527,22 @@ export default function Players() {
                             initials(player.name)
                           )}
                         </div>
-                        {vip?.isVip && (
-                          <span className="flex items-center gap-1 rounded-lg bg-amber-500/15 px-2 py-1 text-xs font-semibold text-amber-300">
-                            <Crown size={13} /> VIP
-                          </span>
-                        )}
+                        <span className="player-status flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold">
+                          {vip?.isVip ? <><Crown size={13} /> VIP</> : "REGULAR"}
+                        </span>
                       </div>
                       <h3 className="truncate font-semibold">{player.name}</h3>
                       <p dir="ltr" className="mt-1 text-xs text-violet-300">
                         @{player.username}
                       </p>
                       <div className="my-3 grid grid-cols-2 gap-2 text-xs">
-                        <div className="rounded-lg bg-emerald-500/[0.07] p-2">
+                        <div className="player-wallet rounded-lg bg-emerald-500/[0.07] p-2">
                           <p className="text-white/35">المحفظة</p>
                           <p className="mt-1 text-emerald-300">
                             {Number(player.walletBalance).toFixed(2)} DA
                           </p>
                         </div>
-                        <div className="rounded-lg bg-rose-500/[0.07] p-2">
+                        <div className="player-debt rounded-lg bg-rose-500/[0.07] p-2">
                           <p className="text-white/35">الدين</p>
                           <p className="mt-1 text-rose-300">
                             {Number(player.debtBalance).toFixed(2)} DA
@@ -569,7 +567,7 @@ export default function Players() {
                           <span>{vip?.roundsPlayed || 0}</span>
                         </div>
                       </div>
-                      <div className="mt-3 grid grid-cols-3 gap-2">
+                      <div className="player-card-actions mt-3 grid grid-cols-3 gap-2">
                         <button
                           type="button"
                           onClick={() => openEditPlayer(player)}
@@ -1019,6 +1017,12 @@ export default function Players() {
           </div>,
           document.body,
         )}
+
+      <style>{`
+        .player-card-grid{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))!important}
+        .player-card{position:relative;min-height:500px!important;border:4px solid #ff174d!important;border-radius:13px!important;background:#09090b!important;color:#f4f7fa!important;box-shadow:none!important}
+        .player-card.regular{border-color:#ff174d!important}.player-card.vip{border-color:#ffd166!important}.player-card-banner{display:none!important}.player-card-body{padding:14px!important}.player-card-profile{margin:0 0 12px!important;flex-direction:row-reverse!important;align-items:flex-start!important}.player-card-avatar{width:140px!important;height:140px!important;flex:none!important;border:1px solid #ff174d!important;border-radius:16px!important;background:#09090b!important;color:#ff174d!important}.player-card.vip .player-card-avatar{border-color:#ffd166!important;color:#ffd166!important}.player-status{margin-top:6px;border:1px solid #ff174d!important;background:transparent!important;color:#ff174d!important}.player-card.vip .player-status{border-color:#ffd166!important;color:#ffd166!important}.player-card h3{font-size:19px!important}.player-card .text-violet-300{color:#9ba7b3!important}.player-wallet,.player-debt{border:1px solid #303034!important;background:#151518!important}.player-wallet p:last-child{color:#16d878!important}.player-debt p:last-child{color:#ff174d!important}.player-card .bg-white\/\[0\.04\]{border:1px solid #303034!important;background:#151518!important}.player-card .text-amber-300{color:#ffd166!important}.player-card-actions{grid-template-columns:repeat(3,minmax(0,1fr))!important}.player-card-actions button{border:1px solid #343438!important;background:#17171a!important;color:#f4f7fa!important}.player-card-actions button:last-child{border-color:#ff174d!important;color:#ff174d!important}.player-card>div:last-child>button{border:1px solid #ff174d!important;background:#17171a!important;color:#ff174d!important}@media(max-width:640px){.player-card-grid{grid-template-columns:1fr!important}.player-card{min-height:auto!important}}
+      `}</style>
     </div>
   );
 }
