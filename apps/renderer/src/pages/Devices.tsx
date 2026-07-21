@@ -168,7 +168,7 @@ export default function Devices() {
   };
 
   const stats = [
-    ["Total Devices", devices.length, "All devices", Server, "#1597e5"],
+    ["Total Devices", devices.length, "All devices", Server, "#9ba7b3"],
     [
       "Online",
       online,
@@ -194,23 +194,23 @@ export default function Devices() {
   ] as const;
 
   return (
-    <div className="noxus-devices-page mx-auto max-w-[1460px] pb-5 text-white">
-      <style>{`.noxus-devices-page{font-family:Inter,ui-sans-serif,system-ui,sans-serif}.device-panel{background:linear-gradient(145deg,#0b1620 0%,#07111a 100%);border:1px solid rgba(88,125,150,.16);box-shadow:0 12px 28px rgba(0,0,0,.16)}.device-card{background:rgba(8,19,29,.82);border:1px solid rgba(83,118,142,.17)}.device-card:hover{border-color:rgba(10,207,135,.45);background:rgba(11,27,37,.96)}.device-scroll::-webkit-scrollbar{width:5px}.device-scroll::-webkit-scrollbar-thumb{background:#1a4052;border-radius:99px}`}</style>
+    <div className="noxus-devices-page mx-auto max-w-[1540px] pb-6 text-white">
+      <style>{`.noxus-devices-page{font-family:Inter,ui-sans-serif,system-ui,sans-serif;background-image:linear-gradient(rgba(28,28,28,.90),rgba(28,28,28,.96)),url('/branding/noxus-arena-emblem.jpeg');background-size:cover;background-position:center;background-attachment:fixed;border-radius:10px;padding:12px}.device-panel{background:#202020;border:1px solid #303030;box-shadow:0 12px 28px rgba(0,0,0,.20)}.device-card{background:#202020;border:1px solid #303030}.device-card:hover{border-color:rgba(10,207,135,.45);background:#1c1c1c}.device-scroll::-webkit-scrollbar{width:6px}.device-scroll::-webkit-scrollbar-thumb{background:#303030;border-radius:99px}`}</style>
       <header className="flex flex-col gap-4 border-b border-white/[.07] pb-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-[18px] font-semibold">Devices</h1>
-          <p className="mt-0.5 text-[10px] text-white/55">
+          <h1 className="text-[20px] font-semibold">Devices</h1>
+          <p className="mt-0.5 text-[11px] text-white/60">
             Monitor and manage all arena devices in real-time
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex h-9 w-48 items-center gap-2 rounded-md border border-white/10 bg-[#071019] px-3">
+          <div className="flex h-10 w-52 items-center gap-2 rounded-md border border-white/10 bg-[#1c1c1c] px-3">
             <Search size={13} className="text-white/45" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search devices..."
-              className="min-w-0 flex-1 bg-transparent text-[10px] outline-none placeholder:text-white/35"
+              className="min-w-0 flex-1 bg-transparent text-[11px] outline-none placeholder:text-white/35"
             />
           </div>
           <button
@@ -236,23 +236,23 @@ export default function Devices() {
         {stats.map(([label, value, note, Icon, color]) => (
           <article
             key={label}
-            className="device-panel relative min-h-[57px] overflow-hidden rounded-md px-4 py-2.5"
+            className="device-panel relative min-h-[66px] overflow-hidden rounded-md px-5 py-3"
           >
             <Icon
-              size={22}
+              size={24}
               className="absolute right-4 top-3 opacity-90"
               style={{ color }}
             />
-            <p className="text-[9px] text-white/60">{label}</p>
-            <p className="mt-0.5 text-[18px] font-semibold">{value}</p>
-            <p className="text-[8px]" style={{ color }}>
+            <p className="text-[10px] text-white/60">{label}</p>
+            <p className="mt-0.5 text-[20px] font-semibold">{value}</p>
+            <p className="text-[9px]" style={{ color }}>
               {note}
             </p>
           </article>
         ))}
       </section>
       <section className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,1.8fr)_minmax(300px,1.15fr)]">
-        <div className="device-panel min-w-0 rounded-md p-3">
+        <div className="device-panel min-w-0 rounded-md p-4">
           <div className="flex flex-col gap-2 border-b border-white/[.07] pb-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex gap-4">
               {(
@@ -294,20 +294,20 @@ export default function Devices() {
                 <button
                   key={device.id}
                   onClick={() => setSelectedId(device.id)}
-                  className={`device-card relative min-h-[114px] rounded-md p-2.5 text-left transition ${active ? "border-emerald-500/70 ring-1 ring-emerald-500/20" : ""}`}
+                  className={`device-card relative min-h-[126px] rounded-md p-3 text-left transition ${active ? "border-emerald-500/70 ring-1 ring-emerald-500/20" : ""}`}
                 >
                   <span
                     className={`absolute right-2.5 top-2.5 h-2 w-2 rounded-full ${available ? "bg-emerald-400" : "bg-amber-400"}`}
                   />
                   <div className="flex gap-2">
-                    <div className="h-9 w-9 overflow-hidden rounded bg-[#061019]">
+                    <div className="h-10 w-10 overflow-hidden rounded bg-[#1c1c1c]">
                       {isPC(device) ? (
                         <img
                           src={gamingPcImage}
                           className="h-full w-full scale-110 object-contain"
                         />
                       ) : (
-                        <div className="flex h-full items-center justify-center text-sky-300">
+                        <div className="flex h-full items-center justify-center text-white/70">
                           <Gamepad2 size={20} />
                         </div>
                       )}
@@ -337,7 +337,7 @@ export default function Devices() {
                   </div>
                   <div className="mt-2 border-t border-white/[.07] pt-1.5 text-[8px] text-white/50">
                     <span>{device.ip || "No IP"}</span>
-                    <span className="float-right rounded bg-blue-500/15 px-1 text-blue-300">
+                    <span className="float-right rounded bg-[#1c1c1c] px-1 text-white/65">
                       {isPC(device) ? "CS2" : "Console"}
                     </span>
                   </div>
@@ -348,7 +348,7 @@ export default function Devices() {
               onClick={openAdd}
               className="flex min-h-[114px] flex-col items-center justify-center rounded-md border border-dashed border-white/15 text-white/65 hover:border-emerald-400/40"
             >
-              <CirclePlus size={22} />
+              <CirclePlus size={24} />
               <span className="mt-2 text-[10px]">Add Device</span>
               <span className="mt-1 text-[8px] text-white/45">
                 Register a new device
@@ -369,14 +369,14 @@ export default function Devices() {
                       </span>
                     </p>
                     <div className="mt-3 flex items-center gap-3">
-                      <div className="h-16 w-16 overflow-hidden rounded-md bg-[#061019]">
+                      <div className="h-[72px] w-[72px] overflow-hidden rounded-md bg-[#1c1c1c]">
                         {isPC(selected) ? (
                           <img
                             src={gamingPcImage}
                             className="h-full w-full scale-110 object-contain"
                           />
                         ) : (
-                          <Gamepad2 className="m-5 text-sky-300" size={28} />
+                          <Gamepad2 className="m-5 text-white/70" size={28} />
                         )}
                       </div>
                       <div className="space-y-1 text-[9px] text-white/60">
@@ -522,7 +522,7 @@ export default function Devices() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
           <form
             onSubmit={submit}
-            className="w-full max-w-md rounded-xl border border-white/10 bg-[#0b1620] p-5 shadow-2xl"
+            className="w-full max-w-md rounded-xl border border-white/10 bg-[#202020] p-5 shadow-2xl"
           >
             <div className="flex items-center justify-between">
               <h2 className="font-semibold">

@@ -35,8 +35,9 @@ await esbuild.build({
   external: ["electron"],
 });
 
-// Copy UI
+// Copy UI and the shared Login background used by Kiosk.
 fs.copyFileSync(path.join(src, "ui.html"), path.join(dist, "ui.html"));
+fs.copyFileSync(path.join(src, "noxus-arena-emblem.jpeg"), path.join(dist, "noxus-arena-emblem.jpeg"));
 
 // Copy default config
 fs.copyFileSync(path.join(root, "config.json"), path.join(dist, "config.json"));
