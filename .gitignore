@@ -44,3 +44,7 @@ noxus-files.txt
 _share/manager-build/
 _share/noxus-kiosk-current.zip
 *.exe
+
+# Local page backups
+*.backup-*
+*.parse-error-copy
