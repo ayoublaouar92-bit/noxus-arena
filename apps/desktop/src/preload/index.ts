@@ -1,16 +1,21 @@
 import { contextBridge, ipcRenderer } from "electron";
 
+function invoke(channel: string, ...args: unknown[]) {
+  return ipcRenderer.invoke(channel, ...args).finally(() => {
+    ipcRenderer.send("renderer:request-focus");
+  });
+}
+
 const api = {
-  getDevices: () => ipcRenderer.invoke("get-devices"),
+  getDevices: () => invoke("get-devices"),
   addDevice: (device: {
     name: string;
     type: string;
     ip?: string;
     mac?: string;
     price: string;
-  }) => ipcRenderer.invoke("add-device", device),
+  }) => invoke("add-device", device),
 
-  // NEW: Devices update/delete
   updateDevice: (data: {
     deviceId: number;
     name: string;
@@ -19,71 +24,69 @@ const api = {
     mac?: string;
     price: string;
     status?: "Available" | "Busy";
-  }) => ipcRenderer.invoke("update-device", data),
+  }) => invoke("update-device", data),
 
-  deleteDevice: (deviceId: number) =>
-    ipcRenderer.invoke("delete-device", deviceId),
+  deleteDevice: (deviceId: number) => invoke("delete-device", deviceId),
 
   // Staff (PIN)
-  getCurrentStaff: () => ipcRenderer.invoke("staff:get-current"),
+  getCurrentStaff: () => invoke("staff:get-current"),
   staffLogin: (userIdOrPin: number | string, pin?: string) =>
     typeof userIdOrPin === "number"
-      ? ipcRenderer.invoke("staff:login", { userId: userIdOrPin, pin })
-      : ipcRenderer.invoke("staff:login", { pin: userIdOrPin }),
-  staffLogout: () => ipcRenderer.invoke("staff:logout"),
-  listStaffUsers: () => ipcRenderer.invoke("staff:list-users"),
+      ? invoke("staff:login", { userId: userIdOrPin, pin })
+      : invoke("staff:login", { pin: userIdOrPin }),
+  staffLogout: () => invoke("staff:logout"),
+  listStaffUsers: () => invoke("staff:list-users"),
   createStaffUser: (data: {
     name: string;
     role: "Admin" | "Staff";
     pin: string;
-  }) => ipcRenderer.invoke("staff:create-user", data),
+  }) => invoke("staff:create-user", data),
   setStaffUserActive: (data: { userId: number; active: boolean }) =>
-    ipcRenderer.invoke("staff:set-user-active", data),
-  getAuditLog: () => ipcRenderer.invoke("staff:get-audit"),
+    invoke("staff:set-user-active", data),
+  getAuditLog: () => invoke("staff:get-audit"),
 
   // Settings
-  getSettings: () => ipcRenderer.invoke("settings:get"),
+  getSettings: () => invoke("settings:get"),
   updateSettings: (updates: {
     currency?: string;
     roundingMode?: "minute" | "quarter_hour" | "hour";
     minimumMinutes?: number;
     defaultGuestPayment?: "cash" | "debt";
-  }) => ipcRenderer.invoke("settings:update", updates),
+  }) => invoke("settings:update", updates),
 
-  // Kiosk control (Admin only in the main process)
-  getKioskMode: () => ipcRenderer.invoke("kiosk:get-mode"),
+  // Kiosk control
+  getKioskMode: () => invoke("kiosk:get-mode"),
   setKioskMode: (data: { enabled: boolean; force?: boolean }) =>
-    ipcRenderer.invoke("kiosk:set-mode", data),
+    invoke("kiosk:set-mode", data),
 
   // Finance
-  getPlayers: () => ipcRenderer.invoke("finance:get-players"),
+  getPlayers: () => invoke("finance:get-players"),
   addPlayer: (player: {
     name: string;
     username: string;
     phone?: string;
     initialDeposit?: number;
     image?: string;
-  }) => ipcRenderer.invoke("finance:add-player", player),
+  }) => invoke("finance:add-player", player),
   updatePlayer: (player: {
     playerId: number;
     name: string;
     username: string;
     phone?: string;
     image?: string | null;
-  }) => ipcRenderer.invoke("finance:update-player", player),
-  deletePlayer: (playerId: number) =>
-    ipcRenderer.invoke("finance:delete-player", playerId),
+  }) => invoke("finance:update-player", player),
+  deletePlayer: (playerId: number) => invoke("finance:delete-player", playerId),
   topUpPlayer: (data: { playerId: number; amount: number; note?: string }) =>
-    ipcRenderer.invoke("finance:top-up-player", data),
+    invoke("finance:top-up-player", data),
   setPlayerWalletBalance: (data: {
     playerId: number;
     newBalance: number;
     reason?: string;
-  }) => ipcRenderer.invoke("finance:set-player-wallet-balance", data),
+  }) => invoke("finance:set-player-wallet-balance", data),
   payPlayerDebt: (data: { playerId: number; amount: number; note?: string }) =>
-    ipcRenderer.invoke("finance:pay-player-debt", data),
+    invoke("finance:pay-player-debt", data),
   getPlayerTransactions: (playerId: number) =>
-    ipcRenderer.invoke("finance:get-transactions", playerId),
+    invoke("finance:get-transactions", playerId),
 
   startSession: (data: {
     deviceId: number;
@@ -91,7 +94,7 @@ const api = {
     customerName?: string;
     guestPhone?: string;
     guestNotes?: string;
-  }) => ipcRenderer.invoke("finance:start-session", data),
+  }) => invoke("finance:start-session", data),
 
   startRoundSession: (data: {
     deviceId: number;
@@ -101,45 +104,43 @@ const api = {
     guestNotes?: string;
     fixedPrice: number;
     roundTitle?: string;
-  }) => ipcRenderer.invoke("finance:start-round-session", data),
+  }) => invoke("finance:start-round-session", data),
 
-  getActiveSessions: () => ipcRenderer.invoke("finance:get-active-sessions"),
+  getActiveSessions: () => invoke("finance:get-active-sessions"),
 
   endSession: (data: {
     sessionId: number;
     guestPaymentMethod?: "cash" | "debt";
     playerPaymentMethod?: "cash" | "wallet";
-  }) => ipcRenderer.invoke("finance:end-session", data),
+  }) => invoke("finance:end-session", data),
 
   // CS round groups and waiting list
-  getRoundState: () => ipcRenderer.invoke("rounds:get-state"),
+  getRoundState: () => invoke("rounds:get-state"),
   startRoundGroup: (data: {
     playerIds: number[];
     fixedPrice: number;
     title?: string;
-  }) => ipcRenderer.invoke("rounds:start-group", data),
-  endRoundGroup: (groupId: number) =>
-    ipcRenderer.invoke("rounds:end-group", groupId),
+  }) => invoke("rounds:start-group", data),
+  endRoundGroup: (groupId: number) => invoke("rounds:end-group", groupId),
   addWaitingPlayer: (playerId: number) =>
-    ipcRenderer.invoke("rounds:add-waiting-player", playerId),
+    invoke("rounds:add-waiting-player", playerId),
   removeWaitingPlayer: (waitingId: number) =>
-    ipcRenderer.invoke("rounds:remove-waiting-player", waitingId),
-  seatWaitingPlayers: () =>
-    ipcRenderer.invoke("rounds:seat-waiting-players"),
+    invoke("rounds:remove-waiting-player", waitingId),
+  seatWaitingPlayers: () => invoke("rounds:seat-waiting-players"),
   finishAndStartNextRound: (data: {
     groupId: number;
     winnerPlayerIds: number[];
-  }) => ipcRenderer.invoke("rounds:finish-and-start-next", data),
+  }) => invoke("rounds:finish-and-start-next", data),
 
   // VIP
-  getVipOverview: () => ipcRenderer.invoke("vip:get-overview"),
+  getVipOverview: () => invoke("vip:get-overview"),
   updateVipSettings: (data: {
     spendPerPoint: number;
     roundPoints: number;
     autoVipThreshold: number;
-  }) => ipcRenderer.invoke("vip:update-settings", data),
+  }) => invoke("vip:update-settings", data),
   setManualVip: (data: { playerId: number; enabled: boolean }) =>
-    ipcRenderer.invoke("vip:set-manual", data),
+    invoke("vip:set-manual", data),
 
   // Guest Debts v2
   getGuestDebts: (query?: {
@@ -148,13 +149,13 @@ const api = {
     start?: string;
     end?: string;
     limit?: number;
-  }) => ipcRenderer.invoke("finance:get-guest-debts", query),
+  }) => invoke("finance:get-guest-debts", query),
 
   settleGuestDebt: (data: {
     debtId: number;
     paidAmount: number;
     note?: string;
-  }) => ipcRenderer.invoke("finance:settle-guest-debt", data),
+  }) => invoke("finance:settle-guest-debt", data),
 
   addGuestDebt: (data: {
     guestName: string;
@@ -162,10 +163,10 @@ const api = {
     identityNotes?: string;
     amount: number;
     note?: string;
-  }) => ipcRenderer.invoke("finance:add-guest-debt", data),
+  }) => invoke("finance:add-guest-debt", data),
 
   // Tournaments
-  getTournaments: () => ipcRenderer.invoke("tournaments:get-all"),
+  getTournaments: () => invoke("tournaments:get-all"),
   createTournament: (data: {
     name: string;
     game: string;
@@ -173,39 +174,39 @@ const api = {
     maxPlayers: number;
     entryFee: number;
     prize: number;
-  }) => ipcRenderer.invoke("tournaments:create", data),
+  }) => invoke("tournaments:create", data),
   setTournamentStatus: (data: {
     tournamentId: number;
     status: "Draft" | "Registration" | "Running" | "Completed";
-  }) => ipcRenderer.invoke("tournaments:set-status", data),
+  }) => invoke("tournaments:set-status", data),
   getTournamentParticipants: (tournamentId: number) =>
-    ipcRenderer.invoke("tournaments:get-participants", tournamentId),
+    invoke("tournaments:get-participants", tournamentId),
   registerTournamentPlayer: (data: {
     tournamentId: number;
     playerId: number;
-  }) => ipcRenderer.invoke("tournaments:register-player", data),
+  }) => invoke("tournaments:register-player", data),
   deleteTournament: (tournamentId: number) =>
-    ipcRenderer.invoke("tournaments:delete", tournamentId),
+    invoke("tournaments:delete", tournamentId),
 
   // Store / Inventory
-  getCategories: () => ipcRenderer.invoke("store:get-categories"),
+  getCategories: () => invoke("store:get-categories"),
   addCategory: (data: {
     name: string;
     color?: string;
     sortOrder?: number;
     active?: boolean;
-  }) => ipcRenderer.invoke("store:add-category", data),
+  }) => invoke("store:add-category", data),
   updateCategory: (data: {
     categoryId: number;
     name?: string;
     color?: string;
     sortOrder?: number;
     active?: boolean;
-  }) => ipcRenderer.invoke("store:update-category", data),
+  }) => invoke("store:update-category", data),
   deleteCategory: (categoryId: number) =>
-    ipcRenderer.invoke("store:delete-category", categoryId),
+    invoke("store:delete-category", categoryId),
 
-  getProducts: () => ipcRenderer.invoke("store:get-products"),
+  getProducts: () => invoke("store:get-products"),
   addProduct: (data: {
     name: string;
     sku?: string;
@@ -216,7 +217,7 @@ const api = {
     active?: boolean;
     categoryId?: number | null;
     image?: string | null;
-  }) => ipcRenderer.invoke("store:add-product", data),
+  }) => invoke("store:add-product", data),
 
   updateProduct: (data: {
     productId: number;
@@ -228,20 +229,20 @@ const api = {
     active?: boolean;
     categoryId?: number | null;
     image?: string | null;
-  }) => ipcRenderer.invoke("store:update-product", data),
+  }) => invoke("store:update-product", data),
 
   deleteProduct: (productId: number) =>
-    ipcRenderer.invoke("store:delete-product", productId),
+    invoke("store:delete-product", productId),
 
   getProductMovements: (productId: number) =>
-    ipcRenderer.invoke("store:get-product-movements", productId),
+    invoke("store:get-product-movements", productId),
 
   moveStock: (data: {
     productId: number;
     quantity: number;
     reason: "PURCHASE" | "ADJUSTMENT" | "RETURN";
     note?: string;
-  }) => ipcRenderer.invoke("store:move-stock", data),
+  }) => invoke("store:move-stock", data),
 
   createSale: (
     data:
@@ -265,19 +266,19 @@ const api = {
             quantity: number;
             unitPrice: number;
           }>;
-        },
-  ) => ipcRenderer.invoke("store:create-sale", data),
-  getSales: () => ipcRenderer.invoke("store:get-sales"),
+        }
+  ) => invoke("store:create-sale", data),
+  getSales: () => invoke("store:get-sales"),
 
   // Billing
-  getCurrentShift: () => ipcRenderer.invoke("billing:get-current-shift"),
+  getCurrentShift: () => invoke("billing:get-current-shift"),
   openShift: (data: { openingCash: number }) =>
-    ipcRenderer.invoke("billing:open-shift", data),
+    invoke("billing:open-shift", data),
   closeShift: (data: { actualCash: number }) =>
-    ipcRenderer.invoke("billing:close-shift", data),
-  getShiftHistory: () => ipcRenderer.invoke("billing:get-shift-history"),
-  getBillingSummary: () => ipcRenderer.invoke("billing:get-summary"),
-  getBillingDailyRevenue: () => ipcRenderer.invoke("billing:get-daily-revenue"),
+    invoke("billing:close-shift", data),
+  getShiftHistory: () => invoke("billing:get-shift-history"),
+  getBillingSummary: () => invoke("billing:get-summary"),
+  getBillingDailyRevenue: () => invoke("billing:get-daily-revenue"),
   getBillingTransactions: (query?: {
     range?: "today" | "week" | "month" | "custom";
     start?: string;
@@ -287,25 +288,28 @@ const api = {
     type?: string;
     payment?: string;
     search?: string;
-  }) => ipcRenderer.invoke("billing:get-transactions", query),
-  getBillingLedger: () => ipcRenderer.invoke("billing:get-ledger"),
-  getExpenses: () => ipcRenderer.invoke("billing:get-expenses"),
+  }) => invoke("billing:get-transactions", query),
+  getBillingLedger: () => invoke("billing:get-ledger"),
+  getExpenses: () => invoke("billing:get-expenses"),
   addExpense: (data: {
     title: string;
     category: string;
     amount: number;
     note?: string;
     spentAt?: string;
-  }) => ipcRenderer.invoke("billing:add-expense", data),
+  }) => invoke("billing:add-expense", data),
   deleteExpense: (expenseId: number) =>
-    ipcRenderer.invoke("billing:delete-expense", expenseId),
+    invoke("billing:delete-expense", expenseId),
 
   // Reports
   getReport: (payload: {
     range: "today" | "week" | "month" | "custom";
     start?: string;
     end?: string;
-  }) => ipcRenderer.invoke("reports:get", payload),
+  }) => invoke("reports:get", payload),
+
+  // Focus fix
+  requestFocus: () => ipcRenderer.send("renderer:request-focus"),
 };
 
 contextBridge.exposeInMainWorld("api", api);

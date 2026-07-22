@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import AppLayout from "./layout/AppLayout";
@@ -33,6 +33,7 @@ export default function App() {
   const api = (window as any).api;
   const [currentStaff, setCurrentStaff] = useState<StaffUser | null>(null);
   const [checkingSession, setCheckingSession] = useState(true);
+  const focusGuardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let active = true;
@@ -55,6 +56,34 @@ export default function App() {
     };
   }, [api]);
 
+  useEffect(() => {
+    // When focus escapes to document.body (e.g. after modal closes),
+    // redirect it to our focus guard so Electron never loses keyboard routing
+    const handleFocusOut = () => {
+      setTimeout(() => {
+        if (
+          !document.activeElement ||
+          document.activeElement === document.body
+        ) {
+          focusGuardRef.current?.focus({ preventScroll: true });
+        }
+      }, 0);
+    };
+
+    // When window regains focus from another app
+    const handleWindowFocus = () => {
+      api?.requestFocus?.();
+    };
+
+    document.addEventListener("focusout", handleFocusOut, true);
+    window.addEventListener("focus", handleWindowFocus);
+
+    return () => {
+      document.removeEventListener("focusout", handleFocusOut, true);
+      window.removeEventListener("focus", handleWindowFocus);
+    };
+  }, [api]);
+
   async function logout() {
     try {
       await api.staffLogout();
@@ -73,27 +102,50 @@ export default function App() {
   }
 
   return (
-    <HashRouter>
-      <Routes>
-        <Route
-          element={<AppLayout currentStaff={currentStaff} onLogout={logout} />}
-        >
-          <Route index element={<Dashboard />} />
-          <Route path="devices" element={<Devices />} />
-          <Route path="sessions" element={<Sessions />} />
-          <Route path="players" element={<Players />} />
-          <Route path="members" element={<Navigate to="/players" replace />} />
-          <Route path="tournaments" element={<Tournaments />} />
-          <Route path="billing" element={<Billing />} />
-          <Route path="store" element={<Store />} />
-          <Route path="inventory" element={<Inventory />} />
-          <Route path="guest-debts" element={<GuestDebts />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="staff" element={<Staff />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
-      </Routes>
-    </HashRouter>
+    <>
+      {/* Focus guard: invisible element that catches focus before it escapes to body */}
+      <div
+        ref={focusGuardRef}
+        tabIndex={-1}
+        aria-hidden="true"
+        onFocus={() => api?.requestFocus?.()}
+        style={{
+          position: "fixed",
+          width: 0,
+          height: 0,
+          overflow: "hidden",
+          outline: "none",
+          top: 0,
+          left: 0,
+        }}
+      />
+      <HashRouter>
+        <Routes>
+          <Route
+            element={
+              <AppLayout currentStaff={currentStaff} onLogout={logout} />
+            }
+          >
+            <Route index element={<Dashboard />} />
+            <Route path="devices" element={<Devices />} />
+            <Route path="sessions" element={<Sessions />} />
+            <Route path="players" element={<Players />} />
+            <Route
+              path="members"
+              element={<Navigate to="/players" replace />}
+            />
+            <Route path="tournaments" element={<Tournaments />} />
+            <Route path="billing" element={<Billing />} />
+            <Route path="store" element={<Store />} />
+            <Route path="inventory" element={<Inventory />} />
+            <Route path="guest-debts" element={<GuestDebts />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="staff" element={<Staff />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
+        </Routes>
+      </HashRouter>
+    </>
   );
 }
